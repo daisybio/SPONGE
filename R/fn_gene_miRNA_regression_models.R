@@ -76,10 +76,13 @@
 #' mir_predicted_targets = NULL)
 #'
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets, mir_family=NULL,
+                                         mir_predicted_targets,
+                                         mir_family = NULL,
                                          elastic.net = TRUE,
-                                         log.every.n = 10, log.level='INFO',
-                                         var.threshold=NULL, F.test = FALSE,
+                                         log.every.n = 10,
+                                         log.level='INFO',
+                                         var.threshold = 0,
+                                         F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
                                          only.neg.coefficients = TRUE){
 

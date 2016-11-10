@@ -103,9 +103,11 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
                   log.level = "INFO",
                   log.every.n = 1e5,
                   selected.genes = NULL,
-                  genes.pairwise.combinations = NULL,
+                  gene.combinations = NULL,
                   p.adj.method = "BH",
                   p.value.threshold = 0.05,
+                  each.miRNA = FALSE,
+                  min.cor = 0.1,
                   parallel.chunks = 1e3){
     #names of genes for which we have expr and miRNA data
     genes <- intersect(colnames(gene_expr), names(mir_interactions))
@@ -130,9 +132,9 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
     sel.genes <- Filter(Negate(is.null), sel.genes)
 
     #all pairwise combinations of selected genes
-    if(is.null(genes.pairwise.combinations)){
+    if(is.null(gene.combinations)){
         loginfo("Computing all pairwise combinations of genes")
-        genes.pairwise.combinations <-
+        gene.combinations <-
            genes_pairwise_combinations(length(sel.genes))
     }
 
@@ -144,10 +146,10 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
         mir_intersect <- colnames(mir_expr)
     }
     num_of_samples <- nrow(gene_expr)
-    num_of_tasks <- min(nrow(genes.pairwise.combinations), parallel.chunks)
+    num_of_tasks <- min(nrow(gene.combinations), parallel.chunks)
 
     SPONGE_result <- foreach(gene_combis =
-                    itertools::isplitRows(genes.pairwise.combinations,
+                    itertools::isplitRows(gene.combinations,
                                             chunks = parallel.chunks),
                     i = iterators::icount(),
                     .combine=rbind,
@@ -160,14 +162,24 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
         result <- foreach(gene_combi = iter(gene_combis, by="row"),
                             .combine=rbind) %do% {
 
-            logdebug(paste("Processing source gene", geneA,
-                           "and target gene", geneB ))
-
             geneA <- sel.genes[gene_combi[1]]
             geneB <- sel.genes[gene_combi[2]]
 
+
+            logdebug(paste("Processing source gene", geneA,
+                           "and target gene", geneB ))
+
             source_expr <- gene_expr[,geneA]
             target_expr <- gene_expr[,geneB]
+
+            #check correlation
+            dcor <- cor(source_expr, target_expr, use = "complete.obs")
+            if(dcor < min.cor){
+                logdebug(paste("Source gene", geneA, "and target gene", geneB,
+                               "have a correlation of", dcor,
+                               "which is below the threshold of", min.cor))
+                return(NULL)
+            }
 
             #check if miRNA interaction information is provided, otherwise we
             #consider ALL miRNAs in each comparison
@@ -183,64 +195,23 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
                 return(NULL)
             }
 
-            m_expr <- mir_expr[,mir_intersect] #2.c
-            pcor <- tryCatch({
-                pcor.test(source_expr, target_expr, m_expr)
-                #if(length(mir_intersect) == 1){
-                    #use linear model here, since glmnet does not
-                    #handle single feature models
-            #        source_model <- lm(source_expr~m_expr)
-            #        target_model <- lm(target_expr~m_expr)
+            if(each.miRNA){
+                result <- foreach(mirna = mir_intersect,
+                                  .combine = rbind,
+                                  .inorder = TRUE) %do%{
+                    m_expr <- mir_expr[,mirna]
 
-                    #residuals
-            #        source_model_residuals <- residuals(source_model) #2f
-            #        target_model_residuals <- residuals(target_model) #2f
-                #}
-                #else{
-                #    #lasso
-                #    source_model <- cv.glmnet(m_expr, source_expr) #2.d
-                #    target_model <- cv.glmnet(m_expr, target_expr) #2.e
-                #
-                #    #residuals
-                #    source_model_residuals <- (predict(source_model, m_expr,
-                #    s="lambda.min")  - source_expr)[,1] #2f
-                #    target_model_residuals <- (predict(target_model,
-                #    m_expr, s="lambda.min")  - target_expr)[,1] #2f
-                #}
-                #partial correlation
-                #cor(source_model_residuals, target_model_residuals)
-
-            }, warning = function(w) {
-                logwarn(w)
-                return(NULL)
-            }, error = function(e) {
-                logerror(e)
-                return(NULL)
-            })
-
-            if(is.null(pcor)) return(NULL)
-
-            #significance
-            dof <- pcor$gp #length(mir_intersect)
-            dcor <- cor(source_expr, target_expr, use = "complete.obs")
-            scor <- dcor - pcor$estimate
-
-            cohens_q <- 0.5 * (log((1+dcor)/(1-dcor)) -
-                                   log((1+pcor$estimate)/(1-pcor$estimate)))
-            cohens_q_pvalue <- pnorm(cohens_q, lower.tail = F,
-                                     sd = sqrt(2 / (num_of_samples - 3)))
-
-            #if(cohens_q_pvalue > p.value.threshold) return(NULL)
-
-            #result
-            data.frame(geneA = geneA,
-                       geneB = geneB,
-                       df = pcor$gp,
-                       cor =  dcor,
-                       pcor = pcor$estimate,
-                       cohens_q = cohens_q,
-                       cohens_q_p = cohens_q_pvalue
-                      )
+                    compute_pcor(source_expr, target_expr, m_expr,
+                                 geneA, geneB, dcor)
+                }
+                result$miRNA <- mir_intersect
+                return(result)
+            }
+            else{
+                m_expr <- mir_expr[,mir_intersect]
+                compute_pcor(source_expr, target_expr, m_expr,
+                             geneA, geneB, dcor)
+            }
         }
 
         curr_percentage <- round((i / num_of_tasks) * 100, 2)
@@ -249,13 +220,45 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
 
         return(result)
     }
-    #adjust p-values
-    #SPONGE_result$pcor_p.adj <- p.adjust(SPONGE_result$pcor_pval,
-    #method = p.adj.method)
-    #SPONGE_result$scor_p.adj <- p.adjust(SPONGE_result$scor_pval,
-    #method = p.adj.method)
-    SPONGE_result$cohens_q_p.adj <- p.adjust(SPONGE_result$cohens_q_p,
-                                             method = p.adj.method)
 
     return(SPONGE_result)
+}
+
+compute_cohens_q <- function(SPONGE_result){
+    SPONGE_result$cohens_q <- 0.5 * (log((1+SPONGE_result$cor)/(1-SPONGE_result$cor)) -
+                                         log((1+SPONGE_result$pcor)/(1-SPONGE_result$pcor)))
+    SPONGE_result$cohens_q_pvalue <- pnorm(SPONGE_result$cohens_q, lower.tail = F,
+                                           sd = sqrt(2 / (num_of_samples - 3)))
+    SPONGE_result$cohens_q_p.adj <- p.adjust(SPONGE_result$cohens_q_p,
+                                             method = p.adj.method)
+    return(SPONGE_result)
+}
+
+compute_pcor <- function(source_expr, target_expr, m_expr,
+                         geneA, geneB, dcor){
+
+    pcor <- tryCatch({
+        pcor.test(source_expr, target_expr, m_expr)
+
+    }, warning = function(w) {
+        logwarn(w)
+        return(NULL)
+    }, error = function(e) {
+        logerror(e)
+        return(NULL)
+    })
+
+    if(is.null(pcor)) return(NULL)
+
+    #significance
+    dof <- pcor$gp #length(mir_intersect)
+    scor <- dcor - pcor$estimate
+
+    #result
+    data.frame(geneA = geneA,
+               geneB = geneB,
+               df = pcor$gp,
+               cor =  dcor,
+               pcor = pcor$estimate
+    )
 }
