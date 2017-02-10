@@ -41,12 +41,12 @@ fn_map_mimats_to_mir <- function(mimats){
 
 #' Compute all pairwise interactions for a number of genes as indices
 #'
-#' @param number.of.genes
+#' @param number.of.genes Number of genes for which all pairwise interactions
+#' are needed
 #' @importFrom gRbase combnPrim
 #'
 #' @return data frame with one row per unique pairwise combination. To be used
 #' as input for the sponge method.
-#' @export
 #'
 #' @examples genes_pairwise_combinations(ncol(gene_expr))
 genes_pairwise_combinations <- function(number.of.genes){
@@ -71,6 +71,9 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @param log.every.n write to the log after every n steps
 #' @param selected.genes Operate only on a subset of genes, particularly
 #' useful for bootstrapping
+#' @param gene.combinations A data frame of combinations of genes to be tested.
+#' Gene names are taken from the first two columns and have to match the names
+#' used for gene_expr
 #' @param p.adj.method Multiple testing correction method. see ?p.adjust for
 #' details
 #' @param p.value.threshold Multiple testing p-value cutoff
@@ -128,16 +131,21 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
         sel.genes <- available.selected.genes
     }
 
-    #consider only genes that have miRNA interactions
-    sel.genes <- Filter(Negate(is.null), sel.genes)
+    genes.as.indices <- FALSE
 
     #all pairwise combinations of selected genes
     if(is.null(gene.combinations)){
         loginfo("Computing all pairwise combinations of genes")
+
+        #consider only genes that have miRNA interactions
+        sel.genes <- Filter(Negate(is.null), sel.genes)
+
         gene.combinations <-
            genes_pairwise_combinations(length(sel.genes))
-    }
 
+        genes.as.indices <- TRUE
+    }
+    browser()
     loginfo("Beginning SPONGE run...")
 
     if(is.null(mir_interactions)){
@@ -162,9 +170,14 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
         result <- foreach(gene_combi = iter(gene_combis, by="row"),
                             .combine=rbind) %do% {
 
-            geneA <- sel.genes[gene_combi[1]]
-            geneB <- sel.genes[gene_combi[2]]
-
+            if(genes.as.indices){
+                geneA <- sel.genes[gene_combi[1]]
+                geneB <- sel.genes[gene_combi[2]]
+            }
+            else {
+                geneA <- as.character(gene_combi[1,1])
+                geneB <- as.character(gene_combi[1,2])
+            }
 
             logdebug(paste("Processing source gene", geneA,
                            "and target gene", geneB ))
@@ -186,6 +199,13 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
             if(!is.null(mir_interactions)){
                 mir_intersect <- fn_get_shared_miRNAs(geneA, geneB,
                                                       mir_interactions)
+            }
+
+            #check if shared miRNAs are in expression matrix
+            if(length(setdiff(mir_intersect, colnames(mir_expr))) > 0){
+                logwarn(paste("Source gene", geneA, "and target gene", geneB,
+                              "shared miRNAs not found in mir_expr are discarded"))
+                mir_intersect <- intersect(mir_intersect, colnames(mir_expr))
             }
 
             #check if there are actually any shared mirnas

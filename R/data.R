@@ -10,6 +10,11 @@
 #' with samples in columns and miRNA in rows
 "mir_expr"
 
+#' miRNA / gene interactions
+#'
+#' @format A data frame of regression coefficients
+#' typically provided by gene_miRNA_interaction_filter
+"mir_interactions"
 
 #' miRNA family mapping table
 #'

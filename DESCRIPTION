@@ -8,3 +8,13 @@ Description: This package provides methods to efficiently detect competitive end
 License: GPLv3
 LazyData: TRUE
 RoxygenNote: 5.0.1
+Suggests:
+    testthat,
+    ggplot2,
+    d3network
+Imports:
+    ppcor,
+    logging,
+    foreach,
+    dplyr,
+    stringr
