@@ -25,6 +25,10 @@ all miRNA interaction partners that should be considered.}
 \item{selected.genes}{Operate only on a subset of genes, particularly
 useful for bootstrapping}
 
+\item{gene.combinations}{A data frame of combinations of genes to be tested.
+Gene names are taken from the first two columns and have to match the names
+used for gene_expr}
+
 \item{p.adj.method}{Multiple testing correction method. see ?p.adjust for
 details}
 

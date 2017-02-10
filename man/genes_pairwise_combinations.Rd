@@ -6,6 +6,10 @@
 \usage{
 genes_pairwise_combinations(number.of.genes)
 }
+\arguments{
+\item{number.of.genes}{Number of genes for which all pairwise interactions
+are needed}
+}
 \value{
 data frame with one row per unique pairwise combination. To be used
 as input for the sponge method.
