@@ -45,10 +45,10 @@
 #' own risk.
 #' @param F.test.p.adj.threshold If F.test is TRUE, threshold to use for
 #' miRNAs to be included.
-#' @param only.neg.coefficients If F.test is FALSE, this function In the
-#' regression model consider only negative coefficients.
-#' This is a sensible strategy since only such miRNA have an
-#' inhibitory role on gene expression. Positive values indicate false positives.
+#' @param coefficient.threshold If F.test is FALSE, the
+#' regression model considers only negative coefficients < threshold.
+#' This is a sensible strategy since only miRNA with a negative coefficient
+#' have an inhibitory role on gene expression.
 #' @return A list of genes, where for each gene, the regulating miRNA are
 #' included as a data frame. For F.test = TRUE this is a data frame with fstat
 #' and p-value for each miRNA. Else it is a data frame with the model
@@ -84,7 +84,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          var.threshold = 0,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
-                                         only.neg.coefficients = TRUE){
+                                         coefficient.threshold = 0){
 
     #check which miRNA target db to use
     if(is.character(mir_predicted_targets) && mir_predicted_targets == "targetscan"){
@@ -212,9 +212,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         if(!F.test){
             result <- fn_get_model_coef(model)
 
-            if(only.neg.coefficients)
-                return(result[which(result$coefficient < 0),])
-            else return(result)
+            return(result[which(result$coefficient < coefficient.threshold),])
         }
         #we use the F test to assess the significance of each feature
         else if(F.test){
