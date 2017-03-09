@@ -5,7 +5,7 @@
 \title{Compute competing endogeneous RNA interactions using
 Sparse Partial correlations ON Gene Expression (SPONGE)}
 \usage{
-sponge(gene_expr, mir_expr, mir_interactions, log.level = "INFO",
+sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "INFO",
   log.every.n = 1e+05, selected.genes = NULL, gene.combinations = NULL,
   p.adj.method = "BH", p.value.threshold = 0.05, each.miRNA = FALSE,
   min.cor = 0.1, parallel.chunks = 1000)

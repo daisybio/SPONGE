@@ -7,7 +7,7 @@
 gene_miRNA_interaction_filter(gene_expr, mir_expr, mir_predicted_targets,
   mir_family = NULL, elastic.net = TRUE, log.every.n = 10,
   log.level = "INFO", var.threshold = 0, F.test = FALSE,
-  F.test.p.adj.threshold = 0.05, only.neg.coefficients = TRUE)
+  F.test.p.adj.threshold = 0.05, coefficient.threshold = 0)
 }
 \arguments{
 \item{gene_expr}{A matrix of gene expression}
@@ -36,10 +36,10 @@ own risk.}
 \item{F.test.p.adj.threshold}{If F.test is TRUE, threshold to use for
 miRNAs to be included.}
 
-\item{only.neg.coefficients}{If F.test is FALSE, this function In the
-regression model consider only negative coefficients.
-This is a sensible strategy since only such miRNA have an
-inhibitory role on gene expression. Positive values indicate false positives.}
+\item{coefficient.threshold}{If F.test is FALSE, the
+regression model considers only negative coefficients < threshold.
+This is a sensible strategy since only miRNA with a negative coefficient
+have an inhibitory role on gene expression.}
 
 \item{Some}{miRNA target databases do not use mature miRNAs but miRNA family
 ids since members of the same family have an identical seed sequence. To map

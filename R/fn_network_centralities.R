@@ -17,17 +17,21 @@
 #' @seealso sponge
 #'
 #' @examples
-sponge_node_centralities <- function(sponge_result){
-    directed <- FALSE
+sponge_node_centralities <- function(sponge_result, directed = FALSE){
 
     network <- igraph::graph.data.frame(sponge_result)
 
-    ev_centrality <- igraph::eigen_centrality(network, directed = directed)
+    ev_centrality <- igraph::eigen_centrality(network,
+                                              directed = directed)
     btw_centrality <- igraph::betweenness(network, directed = directed)
+
+    page_rank <- igraph::page_rank(network, directed = directed)
+
     centrality_df <- data.table(gene = names(ev_centrality$vector),
                                 degree = igraph::degree(network),
                                 eigenvector = ev_centrality$vector,
-                                betweenness = btw_centrality)
+                                betweenness = btw_centrality,
+                                page_rank = page_rank$vector)
     return(centrality_df)
 }
 
@@ -127,31 +131,46 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 }
 
-sponge_plot_network_centralities <- function(network_centralities, measure="all"){
+#' plot node network centralities
+#'
+#' @param network_centralities a result from sponge_node_centralities()
+#' @param measure one of 'all', 'degree', 'ev' or 'btw'
+#' @param x plot against another column in the data table, defaults to degree
+#' @param top label the top x samples in the plot
+#'
+#' @return a plot
+#' @export
+#'
+#' @examples #sponge_plot_network_centralities
+sponge_plot_network_centralities <- function(network_centralities,
+                                             measure="all",
+                                             x = "degree",
+                                             top = 5){
     library(ggplot2)
     library(ggrepel)
+    network_centralities <- network_centralities %>% mutate(color =
+        paste("#", substr(sapply(gene, function(x)
+                  digest(x, algo = "crc32")), 1, 6), sep=""))
 
-    plot.data <- sponge_transform_centralities_for_plotting(network_centralities)
-
-    p1 <- ggplot(plot.data, aes(x=degree)) +
+    p1 <- ggplot(network_centralities, aes(x=degree)) +
         geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
-        facet_wrap(~dataset, scales = "free_x") +
-        xlab("node degree") +
         theme(strip.background = element_rect(fill="grey"))
-    p2 <- ggplot(plot.data, aes(x = degree, y = eigenvector_centrality, color= color, label = gene)) +
+    p2 <- ggplot(network_centralities, aes_string(x = x,
+                                                  y = "eigenvector",
+                                                  color= "color",
+                                                  label = "gene")) +
         geom_point(alpha = 0.3) +
-        facet_wrap(~dataset, scales = "free_x") +
-        xlab("node degree") +
-        ylab("weighted eigenvector centrality") +
+        ylab("eigenvector centrality") +
         theme(legend.position = "none") +
-        geom_label_repel(data = dplyr::group_by(plot.data, dataset) %>% top_n(5, eigenvector_centrality))
-    p3 <- ggplot(plot.data, aes(x = degree, y = betweenness_centrality, color = color, label = gene)) +
+        geom_label_repel(data = network_centralities %>% top_n(top, eigenvector))
+    p3 <- ggplot(network_centralities, aes_string(x = x,
+                                                  y = "betweenness",
+                                                  color = "color",
+                                                  label = "gene")) +
         geom_point(alpha = 0.3) +
-        facet_wrap(~dataset, scales = "free_x") +
-        xlab("node degree") +
         ylab("betweenness centrality") +
         theme(legend.position = "none") +
-        geom_label_repel(data = dplyr::group_by(plot.data, dataset) %>% top_n(5, betweenness_centrality))
+        geom_label_repel(data = network_centralities %>% top_n(top, betweenness))
     if(measure == "degree") return(p1)
     else if(measure == "ev") return(p2)
     else if(measure == "btw") return(p3)
@@ -195,8 +214,7 @@ sponge_plot_betweenness_centralities_differences <- function(network_centralitie
 
 sponge_plot_top_centralities <- function(network_centralities, top = 50,
                                          known.sponge.genes = c("ESR1", "CD44", "LIN28B", "HULC", "KRAS1P", "HSUR1", "HSUR2", "BRAFP1", "VCAN", "LINCMD1", "H19"),
-                                         known.cancer.genes = c("TP53", "ESR1", "CD44", "KRAS"),
-                                         only=""){
+                                         known.cancer.genes = c("TP53", "ESR1", "CD44", "KRAS")){
 
     plot.bars <- function(plot.data, value, ylabel){
         ggplot(plot.data) +
@@ -206,9 +224,8 @@ sponge_plot_top_centralities <- function(network_centralities, top = 50,
             theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
             scale_fill_manual(values = c("black","red")) +
             scale_color_manual(values = c("black","green"),
-                               guide = guide_legend(title = "cancer gene")) +
-            facet_wrap(~plot)
-    }
+                               guide = guide_legend(title = "cancer gene"))
+        }
 
     network_centralities$ceRNA = "novel"
     network_centralities[which(network_centralities$gene %in% known.sponge.genes), "ceRNA"] <- "known"
@@ -218,47 +235,22 @@ sponge_plot_top_centralities <- function(network_centralities, top = 50,
     network_centralities[which(network_centralities$gene %in% known.cancer.genes), "cancer"] <- TRUE
     network_centralities$cancer <- factor(network_centralities$cancer, levels = c(FALSE, TRUE))
 
-    top_eigenvector_centrality.cancer <- head(dplyr::arrange(network_centralities, desc(eigenvector_centrality.cancer)), top)
-    top_eigenvector_centrality.cancer <- within(top_eigenvector_centrality.cancer, gene <- factor(gene, levels=unique(as.character(gene))))
-    top_eigenvector_centrality.cancer$plot <- "Liver cancer"
+    top_eigenvector_centrality <- head(dplyr::arrange(network_centralities, desc(eigenvector)), top)
+    top_eigenvector_centrality <- within(top_eigenvector_centrality, gene <- factor(gene, levels=unique(as.character(gene))))
 
-    top_eigenvector_centrality.normal <- head(dplyr::arrange(network_centralities, desc(eigenvector_centrality.normal)), top)
-    top_eigenvector_centrality.normal <- within(top_eigenvector_centrality.normal, gene <- factor(gene, levels=unique(as.character(gene))))
-    top_eigenvector_centrality.normal$plot <- "Liver normal"
+    top_betweenness_centrality <- head(dplyr::arrange(network_centralities, desc(betweenness)), top)
+    top_betweenness_centrality <- within(top_betweenness_centrality, gene <- factor(gene, levels=unique(as.character(gene))))
 
-    top_betweenness_centrality.cancer <- head(dplyr::arrange(network_centralities, desc(betweenness_centrality.cancer)), top)
-    top_betweenness_centrality.cancer <- within(top_betweenness_centrality.cancer, gene <- factor(gene, levels=unique(as.character(gene))))
-    top_betweenness_centrality.cancer$plot <- "Liver cancer"
 
-    top_betweenness_centrality.normal <- head(dplyr::arrange(network_centralities, desc(betweenness_centrality.normal)), top)
-    top_betweenness_centrality.normal <- within(top_betweenness_centrality.normal, gene <- factor(gene, levels=unique(as.character(gene))))
-    top_betweenness_centrality.normal$plot <- "Liver normal"
-
-    p1 <- plot.bars(top_eigenvector_centrality.cancer,
-                    value = "eigenvector_centrality.cancer") +
+    p1 <- plot.bars(top_eigenvector_centrality,
+                    value = "eigenvector") +
           ylab("weighted eigenvector centrality")
 
-    p2 <- plot.bars(top_eigenvector_centrality.normal,
-                    value = "eigenvector_centrality.normal") +
-          ylab("weighted eigenvector centrality")
 
-    p3 <- plot.bars(top_betweenness_centrality.cancer,
-                    value = "betweenness_centrality.cancer") +
+    p2 <- plot.bars(top_betweenness_centrality,
+                    value = "betweenness") +
           ylab("betweenness centrality")
 
-    p4 <- plot.bars(top_betweenness_centrality.normal,
-                    value = "betweenness_centrality.normal") +
-          ylab("betweenness centrality")
+    grid.arrange(p1, p2)
 
-    if(only == "cancer")
-        grid.arrange(p1, p3)
-    else if(only == "normal")
-        grid.arrange(p2, p4)
-    else if(only == "eigenvector"){
-        grid.arrange(p1, p2)
-    }
-    else if(only == "betweenness"){
-        grid.arrange(p3, p4)
-    }
-    else grid.arrange(p1, p2, p3, p4)
 }

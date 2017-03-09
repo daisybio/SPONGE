@@ -1,7 +1,9 @@
 compute_p_values <- function(partition,
                              cov.matrices,
-                             number.of.datasets = 1e6,
+                             number.of.datasets = 1e5,
                              number.of.samples){
+
+    if(nrow(partition) == 1 && is.na(partition$geneA))  return(NULL)
 
     if(!("scor" %in% colnames(partition))) stop("sensitivity correlation missing")
 
@@ -35,16 +37,49 @@ compute_p_values <- function(partition,
     return(partition)
 }
 
+#' Compute p-values for SPONGE interactions
+#'
+#' @param sponge_result A data frame from a sponge call
+#' @param number.of.samples number of samples in the expression matrices
+#' @param number.of.datasets number of datasets to simulate.
+#' affects the mimimum p-value that can be achieved
+#' @import data.table
+#' @import gRbase
+#' @import MASS
+#' @import ppcor
+#' @import foreach
+#' @import logging
+#' @import iterators
+#'
+#' @return A data frame with sponge results, now including p-values
+#' and adjusted p-value
+#' @description This method uses pre-computed covariance matrices that were
+#' created for various gene-gene correlations (0.2 to 0.9 in steps of 0.1)
+#' and number of miRNAs (between 1 and 8) under the null hypothesis that the
+#' sensitivity correlation is zero. Datasets are sampled from this null model
+#' and allow for an empirical p-value to be computed that is only significant
+#' if the sensitivity correlation is higher than can be expected by chance
+#' given the number of samples, correlation and number of miRNAs. p-values
+#' are adjusted indepdenently for each parameter
+#' combination using Benjamini-Hochberg FDR correction.
+#' @export
+#'
+#' @examples #sponge_compute_p_values()
 sponge_compute_p_values <- function(sponge_result,
-                                    cov.matrices,
                                     number.of.samples,
-                                    number.of.datasets = 10,
-                                    ms, ks){
+                                    number.of.datasets = 1e5){
+
+    ks <- seq(0.2, 0.90, 0.1)
+    ms <- seq(1, 8, 1)
 
     #divide gene_gene correlation
-    if(max(sponge_result$df) > 7) df_breaks <- c(seq(0,7), max(sponge_result$df))
-    else df_breaks <- seq(0, max(sponge_result$df))
+    if(max(sponge_result$df) > 7){
+        df_breaks <- c(seq(0,7), max(sponge_result$df))
+    } else{
+        df_breaks <- seq(0, max(sponge_result$df))
+    }
 
+    sponge_result <- as.data.table(sponge_result)
     sponge_result <- sponge_result[,
                 c("cor_cut", "df_cut") := list(
                     cut(abs(cor), breaks = c(0, seq(0.25, 0.85, 0.1), 1)),
@@ -71,7 +106,7 @@ sponge_compute_p_values <- function(sponge_result,
 
     setkey(sponge_result, cor_cut, df_cut)
 
-    foreach(dt.m=isplitDT2(sponge_result, ks, ms),
+    result <- foreach(dt.m=isplitDT2(sponge_result, ks, ms),
         .combine='dtcomb',
         .multicombine=TRUE,
         .export = c("compute_p_values",
@@ -83,4 +118,7 @@ sponge_compute_p_values <- function(sponge_result,
                              number.of.datasets = number.of.datasets,
                              number.of.samples = number.of.samples)
         }
+
+    result[p.val == 0, p.val := (1/number.of.datasets)]
+    return(result)
 }

@@ -58,7 +58,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #'
 #' @import foreach
 #' @import logging
-#' @import ppcor
+#' @importFrom ppcor pcor
 #' @importFrom iterators iter
 #' @importFrom iterators icount
 #' @importFrom itertools isplitRows
@@ -102,7 +102,8 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
 #' mir_interactions = genes_miRNA_candidates)
-sponge <- function(gene_expr, mir_expr, mir_interactions,
+sponge <- function(gene_expr, mir_expr,
+                   mir_interactions = NULL,
                   log.level = "INFO",
                   log.every.n = 1e5,
                   selected.genes = NULL,
@@ -187,6 +188,12 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
 
             #check correlation
             dcor <- cor(source_expr, target_expr, use = "complete.obs")
+            if(is.na(dcor)){
+                logdebug(paste("Source gene", geneA, "or target gene", geneB,
+                               "have a correlation of", dcor,
+                               "there is no variance in one of the genes"))
+                return(NULL)
+            }
             if(dcor < min.cor){
                 logdebug(paste("Source gene", geneA, "and target gene", geneB,
                                "have a correlation of", dcor,
@@ -241,18 +248,12 @@ sponge <- function(gene_expr, mir_expr, mir_interactions,
         return(result)
     }
 
+    SPONGE_result <- SPONGE_result %>%
+        dplyr::filter(pcor > 0, cor > 0)
+
     return(SPONGE_result)
 }
 
-compute_cohens_q <- function(SPONGE_result){
-    SPONGE_result$cohens_q <- 0.5 * (log((1+SPONGE_result$cor)/(1-SPONGE_result$cor)) -
-                                         log((1+SPONGE_result$pcor)/(1-SPONGE_result$pcor)))
-    SPONGE_result$cohens_q_pvalue <- pnorm(SPONGE_result$cohens_q, lower.tail = F,
-                                           sd = sqrt(2 / (num_of_samples - 3)))
-    SPONGE_result$cohens_q_p.adj <- p.adjust(SPONGE_result$cohens_q_p,
-                                             method = p.adj.method)
-    return(SPONGE_result)
-}
 
 compute_pcor <- function(source_expr, target_expr, m_expr,
                          geneA, geneB, dcor){
@@ -279,6 +280,7 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
                geneB = geneB,
                df = pcor$gp,
                cor =  dcor,
-               pcor = pcor$estimate
+               pcor = pcor$estimate,
+               scor = scor
     )
 }

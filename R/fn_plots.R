@@ -1,39 +1,6 @@
-sponge_plot_density <- function(cancer_sponge_effects, normal_sponge_effects){
-    cancer_sponge_effects$type <- "Liver cancer"
-    normal_sponge_effects$type <- "Liver normal"
-
-    p1 <- ggplot(cancer_sponge_effects) +
-        facet_wrap(~type) +
-        xlab("Cohen's q") +
-        geom_density(aes(x = scor, fill = I("cornflowerblue")), alpha = 0.6)
-
-    p2 <- ggplot(normal_sponge_effects) +
-        facet_wrap(~type) +
-        xlab("Cohen's q") +
-        geom_density(aes(x = scor, fill = I("darkorchid1")), alpha = 0.6)
-
-    p3 <- ggplot(cancer_sponge_effects) +
-        xlab("p-value") +
-        geom_density(aes(x = scor_p, fill = I("cornflowerblue")), alpha = 0.6)
-
-    p4 <- ggplot(normal_sponge_effects) +
-        xlab("p-value") +
-        geom_density(aes(x = scor_p, fill = I("darkorchid1")), alpha = 0.6)
-
-    p5 <- ggplot(cancer_sponge_effects) +
-        xlab("adjusted p-value (BH)") +
-        geom_density(aes(x = scor_p.adj, fill = I("cornflowerblue")), alpha = 0.6)
-
-    p6 <- ggplot(normal_sponge_effects) +
-        xlab("ajusted p-value (BH)") +
-        geom_density(aes(x = scor_p.adj, fill = I("darkorchid1")), alpha = 0.6)
-
-    grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2)
-}
-
 sponge_plot_heatmap <- function(data, interactive=T, show = "scor"){
     if(require(d3heatmap) && interactive){
-        sponge.matrix <- xtabs(p.adj ~ source_gene + target_gene, data = data)
+        sponge.matrix <- xtabs(p.adj ~ geneA + geneB, data = data)
         d3heatmap(sponge.matrix, dendrogram = "none", symm=T)
     }
     else if(require(ggplot2))
@@ -43,7 +10,7 @@ sponge_plot_heatmap <- function(data, interactive=T, show = "scor"){
         data[data$p.adj < 0.05, "significance"] <- "*"
         data[data$p.adj < 0.01, "significance"] <- "**"
         data[data$p.adj < 0.001, "significance"] <- "***"
-        ggplot(data = data, aes_string(fill = show, x = "source_gene", y = "target_gene")) +
+        ggplot(data = data, aes_string(fill = show, x = "geneA", y = "geneB")) +
             geom_tile() +
             theme_bw() +
             geom_text(label=data$significance)
@@ -56,13 +23,12 @@ sponge_plot_heatmap <- function(data, interactive=T, show = "scor"){
 sponge_plot_boxplot <- function(data){
     if(!require(ggplot2)) stop("library ggplot2 needs to be installed for this plot")
 
-    ggplot(data = data, aes(x = source_gene, y = scor)) + geom_boxplot(fill = "skyblue", aes(outlier.color = p.adj)) + theme_bw()
+    ggplot(data = data, aes(x = geneA, y = scor)) + geom_boxplot(fill = "skyblue", aes(outlier.color = p.adj)) + theme_bw()
 }
 
-sponge_network <- function(sponge.data,
-                           mir.data,
+sponge_network <- function(sponge_result,
+                           mir_data,
                            target.genes = NULL,
-                           cerna.p.val.threshold = 0.05,
                            show.sponge.interaction = TRUE,
                            show.mirnas = c("none", "all", "shared"),
                            replace.mirna.with.name = TRUE,
@@ -70,17 +36,15 @@ sponge_network <- function(sponge.data,
     library(foreach)
     library(iterators)
     library(dplyr)
-    sponge.data <- filter(sponge.data, p.val < cerna.p.val.threshold)
 
-    #genes <- unique(c(as.character(sponge.data$source_gene), as.character(sponge.data$target_gene)))
-    genes <- unique(c(as.character(sponge.data$source_gene), as.character(sponge.data$target_gene)))
+    genes <- unique(c(as.character(sponge_result$geneA), as.character(sponge_result$geneB)))
 
     edges <- NULL
     nodes <- NULL
 
     #sponge genes edges
-    sponge.edges <- with(sponge.data, {
-        result <- data.frame(from=source_gene, to=target_gene, width = scor, color="red")
+    sponge.edges <- with(sponge_result, {
+        result <- data.frame(from=geneA, to=geneB, width = scor, color="red")
 
         result[which(result$to %in% genes | result$from %in% genes),]
     })
@@ -100,7 +64,7 @@ sponge_network <- function(sponge.data,
     if(show.mirnas != "none"){
 
         mirna.edges <- foreach(gene = nodes$id, .combine=rbind) %do% {
-            gene_mirnas <- mir.data[[as.character(gene)]]
+            gene_mirnas <- mir_data[[as.character(gene)]]
             gene_mirnas <- dplyr::filter(gene_mirnas, coefficient < 0)
             foreach(mir = iter(gene_mirnas, by="row"), .combine = rbind) %do% {
                 with(mir, { data.frame(from = gene, to = mirna, width = abs(log2(coefficient)), color="blue")})
@@ -142,13 +106,15 @@ sponge_network <- function(sponge.data,
     return(list(nodes=nodes, edges=edges))
 }
 
-sponge_plot_network <- function(nodes,
-                                edges,
+sponge_plot_network <- function(sponge_result, mir_data,
                                 layout="layout.fruchterman.reingold",
-                                force.directed = FALSE){
+                                force.directed = FALSE, ...){
     library(visNetwork)
+    network <- sponge_network(sponge_result, mir_data, ...)
+    nodes <- network$nodes
+    edges <- network$edges
 
-    if(nrow(edges) < 5000){
+    if(nrow(edges) < 10000){
         plot <- visNetwork(nodes, edges)
         plot <- plot %>% visIgraphLayout(layout = layout, type="full", physics = force.directed)
         plot <- plot %>% visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
@@ -158,7 +124,7 @@ sponge_plot_network <- function(nodes,
         return(plot)
     }
     else{
-        warning("With more than 5000 edges, this plot is omitted for performance reasons")
+        warning("With more than 10000 edges, this plot is omitted for performance reasons")
     }
     return(edges)
 }

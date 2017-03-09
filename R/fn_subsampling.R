@@ -58,14 +58,15 @@ sponge_subsampling <- function(
         subsample_scor_plot <- ggplot(subsample_results,
                                       aes(x = paste(geneA, geneB, sep = " - "),
                                           y = cor - pcor)) +
-            geom_boxplot(aes(fill = "green")) +
-            geom_boxplot(aes(y = cor, fill = "red")) +
+            geom_boxplot(fill = "orange") +
+            geom_boxplot(aes(y = cor), fill = "grey") +
             scale_fill_discrete(name = "",
                     labels = c("sensitivity correlation", "correlation")) +
             theme_bw() +
             theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
             ylab("") +
-            xlab("ceRNA interaction")
+            xlab("ceRNA interaction") +
+            theme(legend.position = "top")
 
         if(length(subsample.n) > 1){
             subsample_scor_plot <- subsample_scor_plot +
