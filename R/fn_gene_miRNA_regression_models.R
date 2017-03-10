@@ -76,8 +76,8 @@
 #' mir_predicted_targets = NULL)
 #'
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets,
-                                         mir_family = NULL,
+                                         mir_predicted_targets = mircode,
+                                         mir_family = mir_family_info,
                                          elastic.net = TRUE,
                                          log.every.n = 10,
                                          log.level='INFO',
