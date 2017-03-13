@@ -76,27 +76,48 @@
 #' mir_predicted_targets = NULL)
 #'
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets = mircode,
-                                         mir_family = mir_family_info,
+                                         mir_predicted_targets = list(mircode, targetscan),
                                          elastic.net = TRUE,
                                          log.every.n = 10,
                                          log.level='INFO',
-                                         var.threshold = 0,
+                                         var.threshold = NULL,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
                                          coefficient.threshold = 0){
-
-    #check which miRNA target db to use
-    if(is.character(mir_predicted_targets) && mir_predicted_targets == "targetscan"){
-        mir_predicted_targets <- as.data.frame(targetscan.Hs.egTARGETS)
-    }
 
     #remove columns with little variance
     if(!is.null(var.threshold)){
         gene_expr <- gene_expr[,which(colVars(gene_expr) > var.threshold)]
         mir_expr <- mir_expr[,which(colVars(mir_expr) > var.threshold)]
     }
-    all_genes <- ncol(gene_expr)
+    num_of_genes <- ncol(gene_expr)
+
+    #merge mirna target annotation
+    if(is.list(mir_predicted_targets)){
+        all_mirs <- foreach(mir_db = mir_predicted_targets,
+                            .combine = union) %do% {
+                                colnames(mir_db)
+                            }
+
+        all_genes <- foreach(mir_db = mir_predicted_targets,
+                            .combine = union) %do% {
+                                rownames(mir_db)
+                            }
+
+        big_matrix <- matrix(nrow = length(all_genes),
+                             ncol = length(all_mirs),
+                             dimnames = list(all_genes, all_mirs))
+
+        big_matrix[,] <- 0
+
+        #fill big matrix
+        for(mir_db in mir_predicted_targets){
+            big_matrix[rownames(mir_db), colnames(mir_db)] <-
+                big_matrix[rownames(mir_db), colnames(mir_db)] + mir_db
+        }
+
+        mir_predicted_targets <- big_matrix
+    }
 
     #loop over all genes and compute regression models to identify important miRNAs
     foreach(col.num = 1:ncol(gene_expr),
@@ -110,7 +131,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         #setup logging
         basicConfig(level = log.level)
 
-        curr_percentage <- round((col.num / all_genes) * 100, 2)
+        curr_percentage <- round((col.num / num_of_genes) * 100, 2)
         if(col.num %% log.every.n == 0) loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
 
         logdebug(paste("Processing gene", gene))
@@ -138,14 +159,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
             mimats <- colnames(mir_predicted_targets)[which(mir_predicted_targets[gene,] > 0)]
 
-            #if the miRNA binding db operates with miRNA families, we translate those to mimat ids
-            if(!is.null(mir_family)){
-                mimats <- dplyr::filter(mir_family, miR.family %in% mimats) %>%
-                    dplyr::select(MiRBase.Accession)
-                mimats <- as.character(mimats[,1])
-            }
-
-            else if(length(mimats) == 0){
+            if(length(mimats) == 0){
                 logdebug("Gene not found in miRNA target database. Returning null for this gene.")
                 return(NULL)
             }
