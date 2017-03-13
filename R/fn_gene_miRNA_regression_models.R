@@ -225,8 +225,9 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         #extract model coefficients
         if(!F.test){
             result <- fn_get_model_coef(model)
-
-            return(result[which(result$coefficient < coefficient.threshold),])
+            smaller.than.threshold <- which(result$coefficient < coefficient.threshold)
+            if(length(smaller.than.threshold) == 0) return(NULL)
+            else return(result[smaller.than.threshold,])
         }
         #we use the F test to assess the significance of each feature
         else if(F.test){
