@@ -113,6 +113,11 @@ sponge <- function(gene_expr, mir_expr,
                   each.miRNA = FALSE,
                   min.cor = 0.1,
                   parallel.chunks = 1e3){
+
+    #check for toxic NA values that crash elasticnet
+    if(anyNA(gene_expr)) stop("NA values found in gene expression data. Can not proceed")
+    if(anyNA(mir_expr)) stop("NA values found in miRNA expression data. Can not proceed")
+
     #names of genes for which we have expr and miRNA data
     genes <- intersect(colnames(gene_expr), names(mir_interactions))
 

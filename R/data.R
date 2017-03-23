@@ -32,3 +32,10 @@
 #' @source http://www.mircode.org/download.php
 #' @format A matrix gene symbols vs miRNA family names. 1 if interaction is predicted, 0 otherwise
 "mircode"
+
+#' mircode predicted miRNA gene interactions
+#' @source http://www.mircode.org/download.php
+#' @description This is a subset of the mircode highly conserved interactions for non-coding RNAs
+#' and showing very high total conservation > 20%
+#' @format A matrix gene symbols vs miRNA family names. 1 if interaction is predicted, 0 otherwise
+"mircode_noncoding"

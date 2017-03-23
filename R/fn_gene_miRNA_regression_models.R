@@ -76,7 +76,7 @@
 #' mir_predicted_targets = NULL)
 #'
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets = list(mircode, targetscan),
+                                         mir_predicted_targets = list(mircode_noncoding, targetscan),
                                          elastic.net = TRUE,
                                          log.every.n = 10,
                                          log.level='INFO',
@@ -93,6 +93,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     num_of_genes <- ncol(gene_expr)
 
     #merge mirna target annotation
+    loginfo("merging miRNA target database annotations")
     if(is.list(mir_predicted_targets)){
         all_mirs <- foreach(mir_db = mir_predicted_targets,
                             .combine = union) %do% {
@@ -135,18 +136,17 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         if(col.num %% log.every.n == 0) loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
 
         logdebug(paste("Processing gene", gene))
-        #expression values of this gene
 
-        #if there is zero variance this exercise is pointless
+        #expression values of this gene
         g_expr <- gene_expr[,gene]
 
+        #if there is zero variance this exercise is pointless
         if(var(g_expr) == 0){
             logerror(paste("Zero variance found in gene", gene, ". Returning null for this gene"))
             return(NULL)
         }
 
         #check if we have a target database
-
         if(!is.null(mir_predicted_targets)){
             #miRNAs this genes has binding sites for
             if(!(gene %in% rownames(mir_predicted_targets))){
@@ -183,7 +183,6 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             mimats_matched <- colnames(mir_expr)
             m_expr <- mir_expr
         }
-
         #learn a regression model to figure out which miRNAs regulate this gene in
         #the given dataset
         logdebug(paste("Learning regression model for gene", gene))

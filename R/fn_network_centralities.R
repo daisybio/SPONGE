@@ -137,6 +137,9 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
 #' @param measure one of 'all', 'degree', 'ev' or 'btw'
 #' @param x plot against another column in the data table, defaults to degree
 #' @param top label the top x samples in the plot
+#' @import ggplot2
+#' @import ggrepel
+#' @import digest
 #'
 #' @return a plot
 #' @export
@@ -146,14 +149,14 @@ sponge_plot_network_centralities <- function(network_centralities,
                                              measure="all",
                                              x = "degree",
                                              top = 5){
-    library(ggplot2)
-    library(ggrepel)
+
     network_centralities <- network_centralities %>% mutate(color =
         paste("#", substr(sapply(gene, function(x)
                   digest(x, algo = "crc32")), 1, 6), sep=""))
 
     p1 <- ggplot(network_centralities, aes(x=degree)) +
         geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
+        theme_bw() +
         theme(strip.background = element_rect(fill="grey"))
     p2 <- ggplot(network_centralities, aes_string(x = x,
                                                   y = "eigenvector",
@@ -161,6 +164,7 @@ sponge_plot_network_centralities <- function(network_centralities,
                                                   label = "gene")) +
         geom_point(alpha = 0.3) +
         ylab("eigenvector centrality") +
+        theme_bw() +
         theme(legend.position = "none") +
         geom_label_repel(data = network_centralities %>% top_n(top, eigenvector))
     p3 <- ggplot(network_centralities, aes_string(x = x,
@@ -169,6 +173,7 @@ sponge_plot_network_centralities <- function(network_centralities,
                                                   label = "gene")) +
         geom_point(alpha = 0.3) +
         ylab("betweenness centrality") +
+        theme_bw() +
         theme(legend.position = "none") +
         geom_label_repel(data = network_centralities %>% top_n(top, betweenness))
     if(measure == "degree") return(p1)
