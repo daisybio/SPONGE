@@ -161,7 +161,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
         #if there is zero variance this exercise is pointless
         if(var(g_expr) == 0){
-            logerror(paste("Zero variance found in gene", gene, ". Returning null for this gene"))
+            logdebug(paste("Zero variance found in gene", gene, ". Returning null for this gene"))
             return(NULL)
         }
 
@@ -169,7 +169,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         if(!is.null(attached_mir_predicted_targets)){
             #miRNAs this genes has binding sites for
             if(!(gene %in% rownames(attached_mir_predicted_targets))){
-                logerror(paste("No information about miRNA target interaction found for ", gene, ". Returning null for this gene", sep=""))
+                logdebug(paste("No information about miRNA target interaction found for ", gene, ". Returning null for this gene", sep=""))
                 return(NULL)
             }
             else{
@@ -218,7 +218,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     lm_result <- data.frame(mirna = mimats_matched[1], coefficient = coef(lm(g_expr ~ m_expr))[-1])
                 }
             }, warning = function(w) {
-                logerror(w)
+                logdebug(w)
                 return(NULL)
             }, error = function(e) {
                 logerror(e)
@@ -232,7 +232,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         model <- tryCatch({
             fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
         }, warning = function(w) {
-            logerror(w)
+            logdebug(w)
             return(NULL)
         }, error = function(e) {
             logerror(e)
@@ -253,7 +253,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 fn_gene_miRNA_F_test(g_expr, m_expr, model,
                                      F.test.p.adj.threshold)
             }, warning = function(w) {
-                logerror(w)
+                logdebug(w)
                 return(NULL)
             }, error = function(e) {
                 logerror(e)

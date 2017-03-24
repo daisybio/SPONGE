@@ -236,7 +236,7 @@ sponge <- function(gene_expr,
 
             #check if shared miRNAs are in expression matrix
             if(length(setdiff(mir_intersect, colnames(mir_expr))) > 0){
-                logwarn(paste("Source gene", geneA, "and target gene", geneB,
+                logdebug(paste("Source gene", geneA, "and target gene", geneB,
                               "shared miRNAs not found in mir_expr are discarded"))
                 mir_intersect <- intersect(mir_intersect, colnames(mir_expr))
             }
@@ -293,7 +293,7 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
         pcor.test(source_expr, target_expr, m_expr)
 
     }, warning = function(w) {
-        logwarn(w)
+        logdebug(w)
         return(NULL)
     }, error = function(e) {
         logerror(e)
@@ -319,7 +319,7 @@ compute_cmi <- function(source_expr, target_expr, m_expr,
         condinformation(source_expr, target_expr, m_expr)
 
     }, warning = function(w) {
-        logwarn(w)
+        logdebug(w)
         return(NULL)
     }, error = function(e) {
         logerror(e)
