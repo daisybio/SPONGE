@@ -62,6 +62,9 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom iterators iter
 #' @importFrom iterators icount
 #' @importFrom itertools isplitRows
+#' @importFrom infotheo condinformation
+#' @import data.table
+#' @import bigmemory
 #'
 #' @param gene_expr A gene expression matrix
 #' @param mir_expr A miRNA expression matrix
@@ -102,17 +105,22 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
 #' mir_interactions = genes_miRNA_candidates)
-sponge <- function(gene_expr, mir_expr,
+sponge <- function(gene_expr,
+                   mir_expr,
                    mir_interactions = NULL,
-                  log.level = "INFO",
-                  log.every.n = 1e5,
-                  selected.genes = NULL,
-                  gene.combinations = NULL,
-                  p.adj.method = "BH",
-                  p.value.threshold = 0.05,
-                  each.miRNA = FALSE,
-                  min.cor = 0.1,
-                  parallel.chunks = 1e3){
+                   log.level = "INFO",
+                   log.every.n = 1e5,
+                   selected.genes = NULL,
+                   gene.combinations = NULL,
+                   p.adj.method = "BH",
+                   p.value.threshold = 0.05,
+                   each.miRNA = FALSE,
+                   conditional.mutual.information = FALSE,
+                   min.cor = 0.1,
+                   parallel.chunks = 1e3){
+
+    if(!each.miRNA & conditional.mutual.information)
+        stop("conditional mutual information can only be computed for individual miRNAs")
 
     #check for toxic NA values that crash elasticnet
     if(anyNA(gene_expr)) stop("NA values found in gene expression data. Can not proceed")
@@ -162,19 +170,32 @@ sponge <- function(gene_expr, mir_expr,
     num_of_samples <- nrow(gene_expr)
     num_of_tasks <- min(nrow(gene.combinations), parallel.chunks)
 
+    #convert to big.matrix for shared memory operations
+    gene_expr <- as.big.matrix(gene_expr)
+    gene_expr_description <- describe(gene_expr)
+
+    mir_expr <- as.big.matrix(mir_expr)
+    mir_expr_description <- describe(mir_expr)
+
     SPONGE_result <- foreach(gene_combis =
                     itertools::isplitRows(gene.combinations,
                                             chunks = parallel.chunks),
                     i = iterators::icount(),
-                    .combine=rbind,
-                    .packages = c("logging", "ppcor", "foreach", "iterators"),
+                    .combine=function(...) rbindlist(list(...)),
+                    .multicombine=TRUE,
+                    .packages = c("logging", "ppcor", "foreach", "iterators",
+                                  "data.table", "bigmemory"),
                     .export = c("fn_get_shared_miRNAs")) %dopar% {
         basicConfig(level = log.level)
 
         loginfo(paste("SPONGE: worker is processing chunk: ", i, sep=""))
 
         result <- foreach(gene_combi = iter(gene_combis, by="row"),
-                            .combine=rbind) %do% {
+                          .combine=function(...) rbindlist(list(...))) %do% {
+
+            #attach bigmemory objects
+            attached_gene_expr <- attach.big.matrix(gene_expr_description)
+            attached_mir_expr <- attach.big.matrix(mir_expr_description)
 
             if(genes.as.indices){
                 geneA <- sel.genes[gene_combi[1]]
@@ -188,8 +209,8 @@ sponge <- function(gene_expr, mir_expr,
             logdebug(paste("Processing source gene", geneA,
                            "and target gene", geneB ))
 
-            source_expr <- gene_expr[,geneA]
-            target_expr <- gene_expr[,geneB]
+            source_expr <- attached_gene_expr[,geneA]
+            target_expr <- attached_gene_expr[,geneB]
 
             #check correlation
             dcor <- cor(source_expr, target_expr, use = "complete.obs")
@@ -231,16 +252,22 @@ sponge <- function(gene_expr, mir_expr,
                 result <- foreach(mirna = mir_intersect,
                                   .combine = rbind,
                                   .inorder = TRUE) %do%{
-                    m_expr <- mir_expr[,mirna]
+                    m_expr <- attached_mir_expr[,mirna]
 
-                    compute_pcor(source_expr, target_expr, m_expr,
-                                 geneA, geneB, dcor)
+                    if(conditional.mutual.information){
+                        return(compute_cmi(source_expr, target_expr, m_expr,
+                                    geneA, geneB, dcor))
+                    }
+                    else{
+                        return(compute_pcor(source_expr, target_expr, m_expr,
+                                 geneA, geneB, dcor))
+                    }
                 }
                 result$miRNA <- mir_intersect
                 return(result)
             }
             else{
-                m_expr <- mir_expr[,mir_intersect]
+                m_expr <- attached_mir_expr[,mir_intersect]
                 compute_pcor(source_expr, target_expr, m_expr,
                              geneA, geneB, dcor)
             }
@@ -253,8 +280,7 @@ sponge <- function(gene_expr, mir_expr,
         return(result)
     }
 
-    SPONGE_result <- SPONGE_result %>%
-        dplyr::filter(pcor > 0, cor > 0)
+    if(!conditional.mutual.information) SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0,]
 
     return(SPONGE_result)
 }
@@ -276,16 +302,37 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
 
     if(is.null(pcor)) return(NULL)
 
-    #significance
-    dof <- pcor$gp #length(mir_intersect)
-    scor <- dcor - pcor$estimate
-
     #result
     data.frame(geneA = geneA,
                geneB = geneB,
                df = pcor$gp,
                cor =  dcor,
                pcor = pcor$estimate,
-               scor = scor
+               scor = dcor - pcor$estimate
+    )
+}
+
+compute_cmi <- function(source_expr, target_expr, m_expr,
+                         geneA, geneB, dcor){
+
+    cmi <- tryCatch({
+        condinformation(source_expr, target_expr, m_expr)
+
+    }, warning = function(w) {
+        logwarn(w)
+        return(NULL)
+    }, error = function(e) {
+        logerror(e)
+        return(NULL)
+    })
+
+    if(is.null(cmi)) return(NULL)
+
+    #result
+    data.frame(geneA = geneA,
+               geneB = geneB,
+               df = 1,
+               cor =  dcor,
+               cmi = cmi
     )
 }

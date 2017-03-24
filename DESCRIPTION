@@ -17,4 +17,7 @@ Imports:
     logging,
     foreach,
     dplyr,
-    stringr
+    stringr,
+    data.table,
+    bigmemory,
+    inftheo
