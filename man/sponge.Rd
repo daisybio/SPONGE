@@ -8,7 +8,8 @@ Sparse Partial correlations ON Gene Expression (SPONGE)}
 sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "INFO",
   log.every.n = 1e+05, selected.genes = NULL, gene.combinations = NULL,
   p.adj.method = "BH", p.value.threshold = 0.05, each.miRNA = FALSE,
-  min.cor = 0.1, parallel.chunks = 1000)
+  conditional.mutual.information = FALSE, min.cor = 0.1,
+  parallel.chunks = 1000)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix}

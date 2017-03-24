@@ -77,7 +77,7 @@
 #' mir_predicted_targets = NULL)
 #'
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets = list(mircode_noncoding, targetscan),
+                                         mir_predicted_targets = list(mircode, targetscan),
                                          elastic.net = TRUE,
                                          log.every.n = 10,
                                          log.level='INFO',
