@@ -269,7 +269,7 @@ sample_zero_scor_data <- function(cov.matrices,
                                   number.of.samples = 100,
                                   number.of.datasets = 100){
     foreach(cov.matrix = cov.matrices,
-            .packages = c("gRbase", "MASS", "ppcor", "foreach", "logging")) %dopar% {
+            .packages = c("gRbase", "MASS", "ppcor", "foreach", "logging")) %do% {
         #check that sensitivity correlation is zero
         if(abs(cov2pcor(cov.matrix)[1,2] - cov2cor(cov.matrix)[1,2]) > sqrt(.Machine$double.eps))
             stop("sensitivity correlation of a given covariance matrix is not zero.")

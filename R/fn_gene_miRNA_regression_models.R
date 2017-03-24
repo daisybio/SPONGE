@@ -21,6 +21,7 @@
 #' @import dplyr
 #' @import foreach
 #' @import glmnet
+#' @import bigmemory
 #'
 #' @param gene_expr A matrix of gene expression
 #' @param mir_expr A matrix of miRNA expression
@@ -92,9 +93,18 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     }
     num_of_genes <- ncol(gene_expr)
 
+    #convert to big.matrix for shared memory operations
+    gene_expr <- as.big.matrix(gene_expr)
+    gene_expr_description <- describe(gene_expr)
+
+    mir_expr <- as.big.matrix(mir_expr)
+    mir_expr_description <- describe(mir_expr)
+
     #merge mirna target annotation
     loginfo("merging miRNA target database annotations")
     if(is.list(mir_predicted_targets)){
+        list_of_mir_predicted_targets <- mir_predicted_targets
+
         all_mirs <- foreach(mir_db = mir_predicted_targets,
                             .combine = union) %do% {
                                 colnames(mir_db)
@@ -105,29 +115,38 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                 rownames(mir_db)
                             }
 
-        big_matrix <- matrix(nrow = length(all_genes),
+        mir_predicted_targets <- big.matrix(nrow = length(all_genes),
                              ncol = length(all_mirs),
                              dimnames = list(all_genes, all_mirs))
 
-        big_matrix[,] <- 0
+        mir_predicted_targets[,] <- 0
 
         #fill big matrix
-        for(mir_db in mir_predicted_targets){
-            big_matrix[rownames(mir_db), colnames(mir_db)] <-
-                big_matrix[rownames(mir_db), colnames(mir_db)] + mir_db
+        for(mir_db in list_of_mir_predicted_targets){
+            mir_predicted_targets[rownames(mir_db), colnames(mir_db)] <-
+                mir_predicted_targets[rownames(mir_db), colnames(mir_db)] + mir_db
         }
-
-        mir_predicted_targets <- big_matrix
     }
+    else{
+        mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
+    }
+
+    mir_predicted_targets_description <- describe(mir_predicted_targets)
 
     #loop over all genes and compute regression models to identify important miRNAs
     foreach(col.num = 1:ncol(gene_expr),
             .final = function(x) setNames(x, colnames(gene_expr)),
-            .packages = c("logging", "glmnet", "dplyr"),
+            .packages = c("logging", "glmnet", "dplyr", "bigmemory"),
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
             .inorder = TRUE) %dopar% {
+
+        #attach shared data
+        attached_gene_expr <- attach.big.matrix(gene_expr_description)
+        attached_mir_expr <- attach.big.matrix(mir_expr_description)
+        attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
+
         #get gene name
-        gene <- colnames(gene_expr)[col.num]
+        gene <- colnames(attached_gene_expr)[col.num]
 
         #setup logging
         basicConfig(level = log.level)
@@ -138,7 +157,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         logdebug(paste("Processing gene", gene))
 
         #expression values of this gene
-        g_expr <- gene_expr[,gene]
+        g_expr <- attached_gene_expr[,gene]
 
         #if there is zero variance this exercise is pointless
         if(var(g_expr) == 0){
@@ -147,9 +166,9 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         }
 
         #check if we have a target database
-        if(!is.null(mir_predicted_targets)){
+        if(!is.null(attached_mir_predicted_targets)){
             #miRNAs this genes has binding sites for
-            if(!(gene %in% rownames(mir_predicted_targets))){
+            if(!(gene %in% rownames(attached_mir_predicted_targets))){
                 logerror(paste("No information about miRNA target interaction found for ", gene, ". Returning null for this gene", sep=""))
                 return(NULL)
             }
@@ -157,7 +176,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 logdebug(paste("Extracting miRNAs targeting gene", gene))
             }
 
-            mimats <- colnames(mir_predicted_targets)[which(mir_predicted_targets[gene,] > 0)]
+            mimats <- colnames(attached_mir_predicted_targets)[which(attached_mir_predicted_targets[gene,] > 0)]
 
             if(length(mimats) == 0){
                 logdebug("Gene not found in miRNA target database. Returning null for this gene.")
@@ -165,7 +184,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             }
 
             #expression of miRNAs selected above
-            mimats_matched <- intersect(mimats, colnames(mir_expr))
+            mimats_matched <- intersect(mimats, colnames(attached_mir_expr))
 
             if(length(mimats_matched) == 0){
                 logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
@@ -176,12 +195,12 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             }
             logdebug(paste(length(mimats_matched), "of", length(mimats), "mirnas found in expression data for gene", gene))
 
-            m_expr <- mir_expr[,mimats_matched]
+            m_expr <- attached_mir_expr[,mimats_matched]
         }
         else{
             logwarn("No miRNA target database provided. Using all miRNAs")
-            mimats_matched <- colnames(mir_expr)
-            m_expr <- mir_expr
+            mimats_matched <- colnames(attached_mir_expr)
+            m_expr <- attached_mir_expr
         }
         #learn a regression model to figure out which miRNAs regulate this gene in
         #the given dataset
