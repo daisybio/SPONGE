@@ -134,6 +134,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
     #randomize target genes
     if(randomize.predicted.targets){
+        options(bigmemory.allow.dimnames=TRUE)
         rownames(mir_predicted_targets) <- sample(rownames(mir_predicted_targets))
     }
 
