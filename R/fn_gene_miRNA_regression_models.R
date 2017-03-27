@@ -84,7 +84,8 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          var.threshold = NULL,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
-                                         coefficient.threshold = 0){
+                                         coefficient.threshold = 0,
+                                         randomize.predicted.targets = FALSE){
 
     #remove columns with little variance
     if(!is.null(var.threshold)){
@@ -129,6 +130,11 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     }
     else{
         mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
+    }
+
+    #randomize target genes
+    if(randomize.predicted.targets){
+        rownames(mir_predicted_targets) <- sample(rownames(mir_predicted_targets))
     }
 
     mir_predicted_targets_description <- describe(mir_predicted_targets)
