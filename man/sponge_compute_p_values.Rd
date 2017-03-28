@@ -5,14 +5,16 @@
 \title{Compute p-values for SPONGE interactions}
 \usage{
 sponge_compute_p_values(sponge_result, number.of.samples,
-  number.of.datasets = 1e+05)
+  number.of.datasets = 1e+05, simulated.data = NULL)
 }
 \arguments{
 \item{sponge_result}{A data frame from a sponge call}
 
 \item{number.of.samples}{number of samples in the expression matrices}
 
-\item{number.of.datasets}{number of datasets to simulate.
+\item{number.of.datasets}{number of datasets to simulate.}
+
+\item{simulated.data}{optional, pre-computed simulated data
 affects the mimimum p-value that can be achieved}
 }
 \value{
@@ -32,5 +34,8 @@ combination using Benjamini-Hochberg FDR correction.
 }
 \examples{
 #sponge_compute_p_values()
+}
+\seealso{
+sponge_build_null_model
 }
 

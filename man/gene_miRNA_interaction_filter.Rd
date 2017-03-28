@@ -5,10 +5,10 @@
 \title{Determine miRNA-gene interactions to be considered in SPONGE}
 \usage{
 gene_miRNA_interaction_filter(gene_expr, mir_expr,
-  mir_predicted_targets = list(mircode_noncoding, targetscan),
-  elastic.net = TRUE, log.every.n = 10, log.level = "INFO",
-  var.threshold = NULL, F.test = FALSE, F.test.p.adj.threshold = 0.05,
-  coefficient.threshold = 0)
+  mir_predicted_targets = list(mircode, targetscan), elastic.net = TRUE,
+  log.every.n = 10, log.level = "INFO", var.threshold = NULL,
+  F.test = FALSE, F.test.p.adj.threshold = 0.05,
+  coefficient.threshold = 0, randomize.predicted.targets = FALSE)
 }
 \arguments{
 \item{gene_expr}{A matrix of gene expression}

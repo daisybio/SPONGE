@@ -2,6 +2,7 @@
 
 export(gene_miRNA_interaction_filter)
 export(sponge)
+export(sponge_build_null_model)
 export(sponge_compute_p_values)
 export(sponge_edge_centralities)
 export(sponge_node_centralities)

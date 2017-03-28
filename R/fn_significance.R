@@ -1,9 +1,32 @@
+compute_simulated_data <- function(cov.matrices,
+                                   number.of.datasets = 1e5,
+                                   number.of.samples){
+
+    #to reach the necessary number of datasets we need to find out how many
+    #datasets to construct from each covariance matrix we have
+    number.of.datasets.per.matrix <- ceiling(number.of.datasets / length(cov.matrices))
+
+    scor <- sample(
+        unlist(sample_zero_scor_data(cov.matrices = cov.matrices,
+                                         number.of.datasets = number.of.datasets.per.matrix,
+                                         number.of.samples = number.of.samples)),
+        number.of.datasets)
+
+    test_data_dt <- data.table(scor)
+    setkey(test_data_dt, scor)
+
+    return(test_data_dt)
+}
+
 compute_p_values <- function(partition,
-                             cov.matrices,
+                             cov.matrices = NULL,
+                             simulated.data = NULL,
                              number.of.datasets = 1e5,
-                             number.of.samples){
+                             number.of.samples = 100){
 
     if(nrow(partition) == 1 && is.na(partition$geneA))  return(NULL)
+    if(is.null(cov.matrices) & is.null(simulated.data))
+        stop("either covariance matrices or simulated data have to be provided.")
 
     if(!("scor" %in% colnames(partition))) stop("sensitivity correlation missing")
 
@@ -12,21 +35,18 @@ compute_p_values <- function(partition,
     m <- as.character(partition[1,df_cut])
 
     #simulate data using the appropriate covariance matrices
-    cov.matrices.partition <- cov.matrices[[m]][[k]]
+    if(is.null(simulated.data)){
+        cov.matrices.partition <- cov.matrices[[m]][[k]]
 
-    #to reach the necessary number of datasets we need to find out how many
-    #datasets to construct from each covariance matrix we have
-    number.of.datasets.per.matrix <- ceiling(number.of.datasets / length(cov.matrices.partition))
+        test_data_dt <- compute_simulated_data(cov.matrices = cov.matrices.partition,
+                                               number.of.datasets = number.of.datasets,
+                                               number.of.samples = number.of.samples)
+    }
+    else{
+        test_data_dt <- simulated.data[[m]][[k]]
+    }
 
-    scor <- unlist(sample_zero_scor_data(cov.matrices = cov.matrices.partition,
-                                         number.of.datasets = number.of.datasets.per.matrix,
-                                         number.of.samples = number.of.samples)[1:number.of.datasets])
-
-    test_data_dt <- data.table(scor) #data.table(scor[which(scor > 0)])
-    setkey(test_data_dt, scor)
     number.of.datasets.on.right.side <- length(test_data_dt$scor)
-
-    #partition_scor_positive <- partition[which(partition$scor >= 0),]
 
     partition$p.val <- (number.of.datasets.on.right.side -
         test_data_dt[J(partition$scor),
@@ -37,11 +57,15 @@ compute_p_values <- function(partition,
     return(partition)
 }
 
+ks <- seq(0.2, 0.90, 0.1)
+ms <- seq(1, 8, 1)
+
 #' Compute p-values for SPONGE interactions
 #'
 #' @param sponge_result A data frame from a sponge call
 #' @param number.of.samples number of samples in the expression matrices
 #' @param number.of.datasets number of datasets to simulate.
+#' @param simulated.data optional, pre-computed simulated data
 #' affects the mimimum p-value that can be achieved
 #' @import data.table
 #' @import gRbase
@@ -50,6 +74,7 @@ compute_p_values <- function(partition,
 #' @import foreach
 #' @import logging
 #' @import iterators
+#' @seealso sponge_build_null_model
 #'
 #' @return A data frame with sponge results, now including p-values
 #' and adjusted p-value
@@ -67,10 +92,8 @@ compute_p_values <- function(partition,
 #' @examples #sponge_compute_p_values()
 sponge_compute_p_values <- function(sponge_result,
                                     number.of.samples,
-                                    number.of.datasets = 1e5){
-
-    ks <- seq(0.2, 0.90, 0.1)
-    ms <- seq(1, 8, 1)
+                                    number.of.datasets = 1e5,
+                                    simulated.data = NULL){
 
     #divide gene_gene correlation
     if(max(sponge_result$df) > 7){
@@ -116,9 +139,39 @@ sponge_compute_p_values <- function(sponge_result,
             compute_p_values(partition = dt.m$value,
                              cov.matrices = cov.matrices,
                              number.of.datasets = number.of.datasets,
-                             number.of.samples = number.of.samples)
+                             number.of.samples = number.of.samples,
+                             simulated.data = simulated.data)
         }
 
     result[p.val == 0, p.val := (1/number.of.datasets)]
     return(result)
+}
+
+#' Build null model for p-value computation
+#'
+#' @param number.of.datasets the number of datesets defining the precision of the p-value
+#' @param number.of.samples  the number of samples in the expression data
+#'
+#' @return a list (for various values of m) of lists (for various values of k)
+#' of lists of simulated data sets, drawn from a set of precomputed covariance matrices
+#' @import foreach
+#' @import data.table
+#' @import gRbase
+#' @import MASS
+#' @import ppcor
+#' @export
+#'
+#' @examples sponge_build_null_model(100, 100)
+sponge_build_null_model <- function(number.of.datasets = 1e5,
+                                    number.of.samples){
+    foreach(cov.matrices.m = cov.matrices[as.character(ms)],
+            .final = function(x) setNames(x, as.character(ms)),
+            .inorder = TRUE) %:%
+        foreach(cov.matrices.k = cov.matrices.m[as.character(ks)],
+                .final = function(x) setNames(x, as.character(ks)),
+                .inorder = TRUE) %dopar%{
+            compute_simulated_data(cov.matrices = cov.matrices.k,
+                                   number.of.datasets = number.of.datasets,
+                                   number.of.samples = number.of.samples)
+        }
 }
