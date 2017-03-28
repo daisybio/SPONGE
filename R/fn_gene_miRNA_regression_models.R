@@ -86,6 +86,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          F.test.p.adj.threshold = 0.05,
                                          coefficient.threshold = 0,
                                          randomize.predicted.targets = FALSE){
+    basicConfig(level = log.level)
 
     #remove columns with little variance
     if(!is.null(var.threshold)){

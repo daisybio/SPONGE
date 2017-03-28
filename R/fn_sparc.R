@@ -118,6 +118,7 @@ sponge <- function(gene_expr,
                    conditional.mutual.information = FALSE,
                    min.cor = 0.1,
                    parallel.chunks = 1e3){
+    basicConfig(level = log.level)
 
     if(!each.miRNA & conditional.mutual.information)
         stop("conditional mutual information can only be computed for individual miRNAs")

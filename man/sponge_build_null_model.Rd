@@ -4,7 +4,8 @@
 \alias{sponge_build_null_model}
 \title{Build null model for p-value computation}
 \usage{
-sponge_build_null_model(number.of.datasets = 1e+05, number.of.samples)
+sponge_build_null_model(number.of.datasets = 1e+05, number.of.samples,
+  log.level = "INFO")
 }
 \arguments{
 \item{number.of.datasets}{the number of datesets defining the precision of the p-value}

@@ -5,7 +5,7 @@
 \title{Compute p-values for SPONGE interactions}
 \usage{
 sponge_compute_p_values(sponge_result, number.of.samples,
-  number.of.datasets = 1e+05, simulated.data = NULL)
+  number.of.datasets = 1e+05, simulated.data = NULL, log.level = "INFO")
 }
 \arguments{
 \item{sponge_result}{A data frame from a sponge call}

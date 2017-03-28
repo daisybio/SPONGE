@@ -34,8 +34,11 @@ compute_p_values <- function(partition,
     k <- as.character(partition[1,cor_cut])
     m <- as.character(partition[1,df_cut])
 
+    loginfo(paste0("Computing p-values for partition m = ", m, " and k = ", k))
+
     #simulate data using the appropriate covariance matrices
     if(is.null(simulated.data)){
+
         cov.matrices.partition <- cov.matrices[[m]][[k]]
 
         test_data_dt <- compute_simulated_data(cov.matrices = cov.matrices.partition,
@@ -43,9 +46,14 @@ compute_p_values <- function(partition,
                                                number.of.samples = number.of.samples)
     }
     else{
+        logdebug(paste0("Using simulation data provided for partition m = ", m,
+                        " and k = ", k))
         test_data_dt <- simulated.data[[m]][[k]]
     }
 
+    logdebug(paste0("Extracting p-values for partition m = ", m,
+                    " and k = ", k,
+                    "using simulated data from null model."))
     number.of.datasets.on.right.side <- length(test_data_dt$scor)
 
     partition$p.val <- (number.of.datasets.on.right.side -
@@ -93,8 +101,12 @@ ms <- seq(1, 8, 1)
 sponge_compute_p_values <- function(sponge_result,
                                     number.of.samples,
                                     number.of.datasets = 1e5,
-                                    simulated.data = NULL){
+                                    simulated.data = NULL,
+                                    log.level = "INFO"){
 
+    basicConfig(level = log.level)
+
+    loginfo("Computing empirical p-values for SPONGE results.")
     #divide gene_gene correlation
     if(max(sponge_result$df) > 7){
         df_breaks <- c(seq(0,7), max(sponge_result$df))
@@ -144,6 +156,7 @@ sponge_compute_p_values <- function(sponge_result,
         }
 
     result[p.val == 0, p.val := (1/number.of.datasets)]
+    loginfo("Finished computing p-values.")
     return(result)
 }
 
@@ -159,17 +172,29 @@ sponge_compute_p_values <- function(sponge_result,
 #' @import gRbase
 #' @import MASS
 #' @import ppcor
+#' @import logging
 #' @export
 #'
 #' @examples sponge_build_null_model(100, 100)
 sponge_build_null_model <- function(number.of.datasets = 1e5,
-                                    number.of.samples){
+                                    number.of.samples,
+                                    log.level = "INFO"){
+
     foreach(cov.matrices.m = cov.matrices[as.character(ms)],
+            m = ms,
             .final = function(x) setNames(x, as.character(ms)),
             .inorder = TRUE) %:%
         foreach(cov.matrices.k = cov.matrices.m[as.character(ks)],
+                k = ks,
                 .final = function(x) setNames(x, as.character(ks)),
-                .inorder = TRUE) %dopar%{
+                .inorder = TRUE,
+                .packages = c("data.table", "gRbase", "MASS", "ppcor", "logging", "foreach")) %dopar%{
+            if(is.null(cov.matrices.k)) stop("Covariance matrix missing for simulating data.")
+            basicConfig(level = log.level)
+
+            loginfo(paste0("Simulating data for null model of partition m = ", m,
+                    " and k = ", k))
+
             compute_simulated_data(cov.matrices = cov.matrices.k,
                                    number.of.datasets = number.of.datasets,
                                    number.of.samples = number.of.samples)
