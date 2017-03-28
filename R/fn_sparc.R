@@ -115,13 +115,9 @@ sponge <- function(gene_expr,
                    p.adj.method = "BH",
                    p.value.threshold = 0.05,
                    each.miRNA = FALSE,
-                   conditional.mutual.information = FALSE,
                    min.cor = 0.1,
                    parallel.chunks = 1e3){
     basicConfig(level = log.level)
-
-    if(!each.miRNA & conditional.mutual.information)
-        stop("conditional mutual information can only be computed for individual miRNAs")
 
     #check for toxic NA values that crash elasticnet
     if(anyNA(gene_expr)) stop("NA values found in gene expression data. Can not proceed")
@@ -255,14 +251,14 @@ sponge <- function(gene_expr,
                                   .inorder = TRUE) %do%{
                     m_expr <- attached_mir_expr[,mirna]
 
-                    if(conditional.mutual.information){
-                        return(compute_cmi(source_expr, target_expr, m_expr,
-                                    geneA, geneB, dcor))
-                    }
-                    else{
-                        return(compute_pcor(source_expr, target_expr, m_expr,
-                                 geneA, geneB, dcor))
-                    }
+                    #if(conditional.mutual.information){
+                    #    return(compute_cmi(source_expr, target_expr, m_expr,
+                    #                geneA, geneB, dcor))
+                    #}
+                    #else{
+                    return(compute_pcor(source_expr, target_expr, m_expr,
+                                        geneA, geneB, dcor))
+                    #}
                 }
                 result$miRNA <- mir_intersect
                 return(result)
@@ -281,8 +277,7 @@ sponge <- function(gene_expr,
         return(result)
     }
 
-    if(!conditional.mutual.information) SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0,]
-
+    SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & scor > 0,]
     return(SPONGE_result)
 }
 

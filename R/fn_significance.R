@@ -48,7 +48,7 @@ compute_p_values <- function(partition,
     else{
         logdebug(paste0("Using simulation data provided for partition m = ", m,
                         " and k = ", k))
-        test_data_dt <- simulated.data[[m]][[k]]
+        test_data_dt <- as.data.table(simulated.data)
     }
 
     logdebug(paste0("Extracting p-values for partition m = ", m,
@@ -60,7 +60,10 @@ compute_p_values <- function(partition,
         test_data_dt[J(partition$scor),
                      .I,
                      roll = "nearest",
-                     by = .EACHI]$I) / number.of.datasets.on.right.side
+                 by = .EACHI]$I) / number.of.datasets.on.right.side
+
+    partition <- as.data.table(partition)
+    partition[, p.adj := p.adjust(p.val, method = "BH")]
 
     return(partition)
 }
@@ -127,8 +130,13 @@ sponge_compute_p_values <- function(sponge_result,
         ival <- iter(apply(expand.grid(ks, ms), 1, list))
         nextEl <- function() {
             val <- nextElem(ival)
+
             list(value=x[.(as.character(val[[1]][1]),
-                           as.character(val[[1]][2]))], key=val[[1]])
+                           as.character(val[[1]][2]))],
+                 key=val[[1]],
+                 sim.data = simulated.data[[as.character(val[[1]][2])]][[
+                                as.character(val[[1]][1])]]
+                 )
         }
         obj <- list(nextElem=nextEl)
         class(obj) <- c('abstractiter', 'iter')
@@ -147,12 +155,13 @@ sponge_compute_p_values <- function(sponge_result,
         .export = c("compute_p_values",
                     "sample_zero_scor_data"),
         .packages = c("gRbase", "MASS", "ppcor", "foreach", "logging", "data.table"),
-        .noexport = c("sponge_result")) %dopar% {
-            compute_p_values(partition = dt.m$value,
+        .noexport = c("sponge_result")) %do% {
+            partition <- dt.m$value
+            compute_p_values(partition = partition,
                              cov.matrices = cov.matrices,
                              number.of.datasets = number.of.datasets,
                              number.of.samples = number.of.samples,
-                             simulated.data = simulated.data)
+                             simulated.data = dt.m$sim.data)
         }
 
     result[p.val == 0, p.val := (1/number.of.datasets)]
