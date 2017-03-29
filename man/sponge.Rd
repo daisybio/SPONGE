@@ -7,8 +7,7 @@ Sparse Partial correlations ON Gene Expression (SPONGE)}
 \usage{
 sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "INFO",
   log.every.n = 1e+05, selected.genes = NULL, gene.combinations = NULL,
-  p.adj.method = "BH", p.value.threshold = 0.05, each.miRNA = FALSE,
-  min.cor = 0.1, parallel.chunks = 1000)
+  each.miRNA = FALSE, min.cor = 0.1, parallel.chunks = 1000)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix}
@@ -28,11 +27,6 @@ useful for bootstrapping}
 \item{gene.combinations}{A data frame of combinations of genes to be tested.
 Gene names are taken from the first two columns and have to match the names
 used for gene_expr}
-
-\item{p.adj.method}{Multiple testing correction method. see ?p.adjust for
-details}
-
-\item{p.value.threshold}{Multiple testing p-value cutoff}
 
 \item{parallel.chunks}{Split into this number of tasks if parallel processing
 is set up. The number should be high enough to guarantee equal distribution

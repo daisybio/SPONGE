@@ -63,6 +63,7 @@ compute_p_values <- function(partition,
                  by = .EACHI]$I) / number.of.datasets.on.right.side
 
     partition <- as.data.table(partition)
+    partition[df > max(ms), p.val := NA]
     partition[, p.adj := p.adjust(p.val, method = "BH")]
 
     return(partition)
@@ -165,6 +166,8 @@ sponge_compute_p_values <- function(sponge_result,
         }
 
     result[p.val == 0, p.val := (1/number.of.datasets)]
+    result[,cor_cut := NULL]
+    result[, df_cut := NULL]
     loginfo("Finished computing p-values.")
     return(result)
 }

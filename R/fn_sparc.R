@@ -77,9 +77,6 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @param gene.combinations A data frame of combinations of genes to be tested.
 #' Gene names are taken from the first two columns and have to match the names
 #' used for gene_expr
-#' @param p.adj.method Multiple testing correction method. see ?p.adjust for
-#' details
-#' @param p.value.threshold Multiple testing p-value cutoff
 #' @param parallel.chunks Split into this number of tasks if parallel processing
 #' is set up. The number should be high enough to guarantee equal distribution
 #' of the work load in parallel execution. However, if the number is too large,
@@ -112,8 +109,6 @@ sponge <- function(gene_expr,
                    log.every.n = 1e5,
                    selected.genes = NULL,
                    gene.combinations = NULL,
-                   p.adj.method = "BH",
-                   p.value.threshold = 0.05,
                    each.miRNA = FALSE,
                    min.cor = 0.1,
                    parallel.chunks = 1e3){
@@ -187,12 +182,12 @@ sponge <- function(gene_expr,
 
         loginfo(paste("SPONGE: worker is processing chunk: ", i, sep=""))
 
+        #attach bigmemory objects
+        attached_gene_expr <- attach.big.matrix(gene_expr_description)
+        attached_mir_expr <- attach.big.matrix(mir_expr_description)
+
         result <- foreach(gene_combi = iter(gene_combis, by="row"),
                           .combine=function(...) rbindlist(list(...))) %do% {
-
-            #attach bigmemory objects
-            attached_gene_expr <- attach.big.matrix(gene_expr_description)
-            attached_mir_expr <- attach.big.matrix(mir_expr_description)
 
             if(genes.as.indices){
                 geneA <- sel.genes[gene_combi[1]]
@@ -247,18 +242,12 @@ sponge <- function(gene_expr,
 
             if(each.miRNA){
                 result <- foreach(mirna = mir_intersect,
-                                  .combine = rbind,
+                                  .combine = function(...) rbindlist(list(...)),
                                   .inorder = TRUE) %do%{
                     m_expr <- attached_mir_expr[,mirna]
 
-                    #if(conditional.mutual.information){
-                    #    return(compute_cmi(source_expr, target_expr, m_expr,
-                    #                geneA, geneB, dcor))
-                    #}
-                    #else{
-                    return(compute_pcor(source_expr, target_expr, m_expr,
-                                        geneA, geneB, dcor))
-                    #}
+                    compute_pcor(source_expr, target_expr, m_expr,
+                                        geneA, geneB, dcor)
                 }
                 result$miRNA <- mir_intersect
                 return(result)
@@ -270,9 +259,7 @@ sponge <- function(gene_expr,
             }
         }
 
-        curr_percentage <- round((i / num_of_tasks) * 100, 2)
-        loginfo(paste("SPONGE finished chunk: ", i, "->", curr_percentage,
-                      "% completed.", sep=""))
+        loginfo(paste("SPONGE finished chunk:", i, "of", parallel.chunks))
 
         return(result)
     }
@@ -287,10 +274,9 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
 
     pcor <- tryCatch({
         pcor.test(source_expr, target_expr, m_expr)
-
     }, warning = function(w) {
         logdebug(w)
-        return(NULL)
+        suppressWarnings(pcor.test(source_expr, target_expr, m_expr))
     }, error = function(e) {
         logerror(e)
         return(NULL)
@@ -299,36 +285,11 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
     if(is.null(pcor)) return(NULL)
 
     #result
-    data.frame(geneA = geneA,
-               geneB = geneB,
-               df = pcor$gp,
-               cor =  dcor,
-               pcor = pcor$estimate,
-               scor = dcor - pcor$estimate
-    )
-}
-
-compute_cmi <- function(source_expr, target_expr, m_expr,
-                         geneA, geneB, dcor){
-
-    cmi <- tryCatch({
-        condinformation(source_expr, target_expr, m_expr)
-
-    }, warning = function(w) {
-        logdebug(w)
-        return(NULL)
-    }, error = function(e) {
-        logerror(e)
-        return(NULL)
-    })
-
-    if(is.null(cmi)) return(NULL)
-
-    #result
-    data.frame(geneA = geneA,
-               geneB = geneB,
-               df = 1,
-               cor =  dcor,
-               cmi = cmi
+    list(geneA = geneA,
+         geneB = geneB,
+         df = pcor$gp,
+         cor =  dcor,
+         pcor = pcor$estimate,
+         scor = dcor - pcor$estimate
     )
 }
