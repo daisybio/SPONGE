@@ -4,13 +4,13 @@
 \alias{fn_gene_miRNA_F_test}
 \title{Perform F test for gene-miRNA elastic net model}
 \usage{
-fn_gene_miRNA_F_test(gene_expr, mir_expr, model, p.adj.threshold = NULL)
+fn_gene_miRNA_F_test(g_expr, m_expr, model, p.adj.threshold = NULL)
 }
 \arguments{
-\item{gene_expr}{A gene expression matrix with samples in rows and
+\item{g_expr}{A gene expression matrix with samples in rows and
 genes in columns}
 
-\item{mir_expr}{A miRNA expression matrix with samples in rows and
+\item{m_expr}{A miRNA expression matrix with samples in rows and
 genes in columns. Sample number and order has to agree with
 above gene expression matrix}
 

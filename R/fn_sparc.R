@@ -118,6 +118,9 @@ sponge <- function(gene_expr,
     if(anyNA(gene_expr)) stop("NA values found in gene expression data. Can not proceed")
     if(anyNA(mir_expr)) stop("NA values found in miRNA expression data. Can not proceed")
 
+    #filter out genes without miR interactions
+    mir_interactions <- Filter(Negate(is.null), mir_interactions)
+
     #names of genes for which we have expr and miRNA data
     genes <- intersect(colnames(gene_expr), names(mir_interactions))
 
@@ -137,20 +140,26 @@ sponge <- function(gene_expr,
         sel.genes <- available.selected.genes
     }
 
+    #use indices for faster access
     genes.as.indices <- FALSE
 
     #all pairwise combinations of selected genes
     if(is.null(gene.combinations)){
         loginfo("Computing all pairwise combinations of genes")
-
         #consider only genes that have miRNA interactions
-        sel.genes <- Filter(Negate(is.null), sel.genes)
 
         gene.combinations <-
            genes_pairwise_combinations(length(sel.genes))
 
         genes.as.indices <- TRUE
     }
+
+    #make sure sel.genes order is used
+    gene_expr <- gene_expr[,sel.genes]
+
+    #for getting indices of things
+    all_mirs <- colnames(mir_expr)
+    all_genes <- colnames(gene_expr)
 
     loginfo("Beginning SPONGE run...")
 
@@ -163,11 +172,11 @@ sponge <- function(gene_expr,
     num_of_tasks <- min(nrow(gene.combinations), parallel.chunks)
 
     #convert to big.matrix for shared memory operations
-    gene_expr <- as.big.matrix(gene_expr)
-    gene_expr_description <- describe(gene_expr)
+    gene_expr_bm <- as.big.matrix(gene_expr)
+    gene_expr_description <- describe(gene_expr_bm)
 
-    mir_expr <- as.big.matrix(mir_expr)
-    mir_expr_description <- describe(mir_expr)
+    mir_expr_bm <- as.big.matrix(mir_expr)
+    mir_expr_description <- describe(mir_expr_bm)
 
     SPONGE_result <- foreach(gene_combis =
                     itertools::isplitRows(gene.combinations,
@@ -190,19 +199,23 @@ sponge <- function(gene_expr,
                           .combine=function(...) rbindlist(list(...))) %do% {
 
             if(genes.as.indices){
-                geneA <- sel.genes[gene_combi[1]]
-                geneB <- sel.genes[gene_combi[2]]
+                geneA_idx <- gene_combi[1]
+                geneB_idx <- gene_combi[2]
+                geneA <- all_genes[geneA_idx]
+                geneB <- all_genes[geneB_idx]
             }
             else {
                 geneA <- as.character(gene_combi[1,1])
                 geneB <- as.character(gene_combi[1,2])
+                geneA_idx <- which(all_genes == geneA)
+                geneB_idx <- which(all_genes == geneB)
             }
 
             logdebug(paste("Processing source gene", geneA,
                            "and target gene", geneB ))
 
-            source_expr <- attached_gene_expr[,geneA]
-            target_expr <- attached_gene_expr[,geneB]
+            source_expr <- attached_gene_expr[,geneA_idx]
+            target_expr <- attached_gene_expr[,geneB_idx]
 
             #check correlation
             dcor <- cor(source_expr, target_expr, use = "complete.obs")
@@ -227,10 +240,10 @@ sponge <- function(gene_expr,
             }
 
             #check if shared miRNAs are in expression matrix
-            if(length(setdiff(mir_intersect, colnames(mir_expr))) > 0){
+            if(length(setdiff(mir_intersect, all_mirs)) > 0){
                 logdebug(paste("Source gene", geneA, "and target gene", geneB,
                               "shared miRNAs not found in mir_expr are discarded"))
-                mir_intersect <- intersect(mir_intersect, colnames(mir_expr))
+                mir_intersect <- intersect(mir_intersect, all_mirs)
             }
 
             #check if there are actually any shared mirnas
@@ -244,7 +257,7 @@ sponge <- function(gene_expr,
                 result <- foreach(mirna = mir_intersect,
                                   .combine = function(...) rbindlist(list(...)),
                                   .inorder = TRUE) %do%{
-                    m_expr <- attached_mir_expr[,mirna]
+                    m_expr <- attached_mir_expr[,which(all_mirs == mirna)]
 
                     compute_pcor(source_expr, target_expr, m_expr,
                                         geneA, geneB, dcor)
@@ -253,13 +266,12 @@ sponge <- function(gene_expr,
                 return(result)
             }
             else{
-                m_expr <- attached_mir_expr[,mir_intersect]
+                m_expr <- attached_mir_expr[,which(mir_intersect %in% all_mirs)]
                 compute_pcor(source_expr, target_expr, m_expr,
                              geneA, geneB, dcor)
             }
         }
-
-        loginfo(paste("SPONGE finished chunk:", i, "of", parallel.chunks))
+        loginfo(paste("SPONGE finished chunk:", i, "of", num_of_tasks))
 
         return(result)
     }

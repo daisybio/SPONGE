@@ -79,71 +79,100 @@
 gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          mir_predicted_targets = list(mircode, targetscan),
                                          elastic.net = TRUE,
-                                         log.every.n = 10,
+                                         log.every.n = 100,
                                          log.level='INFO',
                                          var.threshold = NULL,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
-                                         coefficient.threshold = 0,
-                                         randomize.predicted.targets = FALSE){
+                                         coefficient.threshold = 0){
     basicConfig(level = log.level)
+    with_target_info <- !is.null(mir_predicted_targets)
 
     #remove columns with little variance
     if(!is.null(var.threshold)){
+        loginfo("Removing genes and miRNAs below variance threshold")
         gene_expr <- gene_expr[,which(colVars(gene_expr) > var.threshold)]
         mir_expr <- mir_expr[,which(colVars(mir_expr) > var.threshold)]
+    } else{
+        loginfo("Removing genes and miRNAs with zero variance")
+        gene_expr <- gene_expr[,which(colVars(gene_expr) != 0)]
+        mir_expr <- mir_expr[,which(colVars(mir_expr) != 0)]
     }
-    num_of_genes <- ncol(gene_expr)
-
-    #convert to big.matrix for shared memory operations
-    gene_expr <- as.big.matrix(gene_expr)
-    gene_expr_description <- describe(gene_expr)
-
-    mir_expr <- as.big.matrix(mir_expr)
-    mir_expr_description <- describe(mir_expr)
 
     #merge mirna target annotation
     loginfo("merging miRNA target database annotations")
-    if(is.list(mir_predicted_targets)){
+    if(!with_target_info){
+        all_mirs <- colnames(mir_expr)
+        all_genes <- colnames(gene_expr)
+    }
+    else if(is.list(mir_predicted_targets)){
+
         list_of_mir_predicted_targets <- mir_predicted_targets
 
         all_mirs <- foreach(mir_db = mir_predicted_targets,
                             .combine = union) %do% {
                                 colnames(mir_db)
                             }
+        all_mirs <- intersect(all_mirs, colnames(mir_expr))
 
         all_genes <- foreach(mir_db = mir_predicted_targets,
                             .combine = union) %do% {
                                 rownames(mir_db)
                             }
+        all_genes <- intersect(all_genes, colnames(gene_expr))
 
-        mir_predicted_targets <- big.matrix(nrow = length(all_genes),
-                             ncol = length(all_mirs),
-                             dimnames = list(all_genes, all_mirs))
+        mir_predicted_targets <- big.matrix(
+            nrow = length(all_genes),
+            ncol = length(all_mirs),
+            dimnames = list(all_genes, all_mirs))
 
         mir_predicted_targets[,] <- 0
 
         #fill big matrix
         for(mir_db in list_of_mir_predicted_targets){
-            mir_predicted_targets[rownames(mir_db), colnames(mir_db)] <-
-                mir_predicted_targets[rownames(mir_db), colnames(mir_db)] + mir_db
+            mir_db_genes <- intersect(all_genes, rownames(mir_db))
+            mir_db_mirs <- intersect(all_mirs, colnames(mir_db))
+            mir_predicted_targets[mir_db_genes, mir_db_mirs] <-
+                mir_predicted_targets[mir_db_genes, mir_db_mirs] +
+                mir_db[mir_db_genes, mir_db_mirs]
         }
     }
     else{
-        mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
-    }
+        all_mirs <- intersect(colnames(mir_predicted_targets), colnames(mir_expr))
+        all_genes <- intersect(rownames(mir_predicted_targets), colnames(gene_expr))
 
-    #randomize target genes
-    if(randomize.predicted.targets){
-        options(bigmemory.allow.dimnames=TRUE)
-        rownames(mir_predicted_targets) <- sample(rownames(mir_predicted_targets))
+        mir_predicted_targets <- mir_predicted_targets[all_genes, all_mirs]
+        mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
     }
 
     mir_predicted_targets_description <- describe(mir_predicted_targets)
 
+    omitted_mirnas <- setdiff(colnames(mir_expr), all_mirs)
+    omitted_genes <- setdiff(colnames(gene_expr), all_genes)
+
+    if(length(omitted_mirnas) > 0){
+        logwarn(paste0(length(omitted_mirnas), " miRNAs were omitted because we do not have miRNA target interaction data for them"))
+        logdebug(paste0("miRNAs ",paste(omitted_mirnas, collapse = "/"), " were omitted because we do not have miRNA target interaction data for them"))
+    }
+
+    if(length(omitted_genes) > 0){
+        logwarn(paste0(length(omitted_genes), " genes were omitted because we do not have miRNA target interaction data for them"))
+        logdebug(paste0("genes ",paste(omitted_genes, collapse = "/"), " were omitted because we do not have miRNA target interaction data for them"))
+    }
+    gene_expr <- gene_expr[,all_genes]
+    mir_expr <- mir_expr[,all_mirs]
+    num_of_genes <- length(all_genes)
+
+    #convert to big.matrix for shared memory operations
+    gene_expr_bm <- as.big.matrix(gene_expr)
+    gene_expr_description <- describe(gene_expr_bm)
+
+    mir_expr_bm <- as.big.matrix(mir_expr)
+    mir_expr_description <- describe(mir_expr_bm)
+
     #loop over all genes and compute regression models to identify important miRNAs
-    foreach(col.num = 1:ncol(gene_expr),
-            .final = function(x) setNames(x, colnames(gene_expr)),
+    foreach(gene_idx = 1:num_of_genes,
+            .final = function(x) setNames(x, all_genes),
             .packages = c("logging", "glmnet", "dplyr", "bigmemory"),
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
             .inorder = TRUE) %dopar% {
@@ -154,45 +183,25 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
 
         #get gene name
-        gene <- colnames(attached_gene_expr)[col.num]
+        gene <- all_genes[gene_idx]
 
         #setup logging
         basicConfig(level = log.level)
 
-        curr_percentage <- round((col.num / num_of_genes) * 100, 2)
-        if(col.num %% log.every.n == 0) loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
+        if(gene_idx %% log.every.n == 0){
+            curr_percentage <- round((gene_idx / num_of_genes) * 100, 2)
+            loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
+        }
 
         logdebug(paste("Processing gene", gene))
 
         #expression values of this gene
-        g_expr <- attached_gene_expr[,gene]
-
-        #if there is zero variance this exercise is pointless
-        if(var(g_expr) == 0){
-            logdebug(paste("Zero variance found in gene", gene, ". Returning null for this gene"))
-            return(NULL)
-        }
+        g_expr <- attached_gene_expr[,gene_idx]
 
         #check if we have a target database
-        if(!is.null(attached_mir_predicted_targets)){
-            #miRNAs this genes has binding sites for
-            if(!(gene %in% rownames(attached_mir_predicted_targets))){
-                logdebug(paste("No information about miRNA target interaction found for ", gene, ". Returning null for this gene", sep=""))
-                return(NULL)
-            }
-            else{
-                logdebug(paste("Extracting miRNAs targeting gene", gene))
-            }
+        if(with_target_info){
 
-            mimats <- colnames(attached_mir_predicted_targets)[which(attached_mir_predicted_targets[gene,] > 0)]
-
-            if(length(mimats) == 0){
-                logdebug("Gene not found in miRNA target database. Returning null for this gene.")
-                return(NULL)
-            }
-
-            #expression of miRNAs selected above
-            mimats_matched <- intersect(mimats, colnames(attached_mir_expr))
+            mimats_matched <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] > 0)]
 
             if(length(mimats_matched) == 0){
                 logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
@@ -201,13 +210,11 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             else if(!elastic.net){
                 return(data.frame(mirna = mimats_matched))
             }
-            logdebug(paste(length(mimats_matched), "of", length(mimats), "mirnas found in expression data for gene", gene))
 
-            m_expr <- attached_mir_expr[,mimats_matched]
+            m_expr <- attached_mir_expr[,which(all_mirs %in% mimats_matched)]
         }
         else{
-            logwarn("No miRNA target database provided. Using all miRNAs")
-            mimats_matched <- colnames(attached_mir_expr)
+            mimats_matched <- all_mirs
             m_expr <- attached_mir_expr
         }
         #learn a regression model to figure out which miRNAs regulate this gene in
@@ -221,9 +228,13 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 if(F.test){
                     fstat <- as.numeric(summary(lm(g_expr ~ m_expr))$fstatistic[1])
                     pval <- pf(fstat, 1, length(m_expr), lower.tail=FALSE)
-                    lm_result <- data.frame(mirna=mimats_matched[1], fstats=fstat, pval=pval, p.adj = pval)
+                    lm_result <- data.frame(mirna = mimats_matched[1],
+                                            fstats = fstat,
+                                            pval=pval,
+                                            p.adj = pval)
                 }else{
-                    lm_result <- data.frame(mirna = mimats_matched[1], coefficient = coef(lm(g_expr ~ m_expr))[-1])
+                    lm_result <- data.frame(mirna = mimats_matched[1],
+                                            coefficient = coef(lm(g_expr ~ m_expr))[-1])
                 }
             }, warning = function(w) {
                 logdebug(w)
