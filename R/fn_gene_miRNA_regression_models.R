@@ -235,6 +235,9 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 }else{
                     lm_result <- data.frame(mirna = mimats_matched[1],
                                             coefficient = coef(lm(g_expr ~ m_expr))[-1])
+                    smaller.than.threshold <- which(lm_result$coefficient < coefficient.threshold)
+                    if(length(smaller.than.threshold) == 0) return(NULL)
+                    else return(lm_result[smaller.than.threshold,])
                 }
             }, warning = function(w) {
                 logdebug(w)
