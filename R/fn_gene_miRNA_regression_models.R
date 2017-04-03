@@ -214,8 +214,9 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             }
 
             if(select.non.targets){
-                mimats_matched <- sample(all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)],
-                       length(mimats_matched))
+                non_targets <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)]
+                mimats_matched <- sample(non_targets,
+                       min(length(mimats_matched), length(non_targets)))
             }
 
             if(!elastic.net){
