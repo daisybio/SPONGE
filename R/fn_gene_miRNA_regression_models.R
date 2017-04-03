@@ -50,6 +50,10 @@
 #' regression model considers only negative coefficients < threshold.
 #' This is a sensible strategy since only miRNA with a negative coefficient
 #' have an inhibitory role on gene expression.
+#' @param select.non.targets For testing effect of miRNA target information.
+#' If TRUE, the method determines as usual which miRNAs are potentially
+#' targeting a gene. However, these are then replaced by a random sample of
+#' non-targeting miRNAs of the same size.
 #' @return A list of genes, where for each gene, the regulating miRNA are
 #' included as a data frame. For F.test = TRUE this is a data frame with fstat
 #' and p-value for each miRNA. Else it is a data frame with the model
@@ -84,7 +88,8 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          var.threshold = NULL,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
-                                         coefficient.threshold = 0){
+                                         coefficient.threshold = 0,
+                                         select.non.targets = FALSE){
     basicConfig(level = log.level)
     with_target_info <- !is.null(mir_predicted_targets)
 
@@ -207,7 +212,13 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
                 return(NULL)
             }
-            else if(!elastic.net){
+
+            if(select.non.targets){
+                mimats_matched <- sample(all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)],
+                       length(mimats_matched))
+            }
+
+            if(!elastic.net){
                 return(data.frame(mirna = mimats_matched))
             }
 
