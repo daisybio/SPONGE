@@ -258,7 +258,6 @@ sponge <- function(gene_expr,
                                   .combine = function(...) rbindlist(list(...)),
                                   .inorder = TRUE) %do%{
                     m_expr <- attached_mir_expr[,which(all_mirs == mirna)]
-
                     compute_pcor(source_expr, target_expr, m_expr,
                                         geneA, geneB, dcor)
                 }
@@ -266,7 +265,7 @@ sponge <- function(gene_expr,
                 return(result)
             }
             else{
-                m_expr <- attached_mir_expr[,which(mir_intersect %in% all_mirs)]
+                m_expr <- attached_mir_expr[,which(all_mirs %in% mir_intersect)]
                 compute_pcor(source_expr, target_expr, m_expr,
                              geneA, geneB, dcor)
             }
@@ -276,7 +275,8 @@ sponge <- function(gene_expr,
         return(result)
     }
 
-    SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & scor > 0,]
+    SPONGE_result <- as.data.table(SPONGE_result)
+    #SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & scor > 0,]
     return(SPONGE_result)
 }
 

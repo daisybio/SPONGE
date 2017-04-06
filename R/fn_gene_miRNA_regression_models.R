@@ -111,7 +111,6 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         all_genes <- colnames(gene_expr)
     }
     else if(is.list(mir_predicted_targets)){
-
         list_of_mir_predicted_targets <- mir_predicted_targets
 
         all_mirs <- foreach(mir_db = mir_predicted_targets,
