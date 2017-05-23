@@ -40,10 +40,13 @@ compute_p_values <- function(partition,
     if(is.null(simulated.data)){
 
         cov.matrices.partition <- cov.matrices[[m]][[k]]
+        if(is.null(cov.matrices.partition)) test_data_dt <- NULL
 
-        test_data_dt <- compute_simulated_data(cov.matrices = cov.matrices.partition,
+        else{
+            test_data_dt <- compute_simulated_data(cov.matrices = cov.matrices.partition,
                                                number.of.datasets = number.of.datasets,
                                                number.of.samples = number.of.samples)
+        }
     }
     else{
         logdebug(paste0("Using simulation data provided for partition m = ", m,
@@ -51,26 +54,34 @@ compute_p_values <- function(partition,
         test_data_dt <- as.data.table(simulated.data)
     }
 
-    logdebug(paste0("Extracting p-values for partition m = ", m,
-                    " and k = ", k,
-                    "using simulated data from null model."))
-    number.of.datasets.on.right.side <- length(test_data_dt$scor)
+    if(is.null(test_data_dt)){
+        logdebug(paste0("No covariance matrix found for partition m = ", m,
+                        " and k = ", k))
+        partition$p.val <- NA
+        partition$p.adj <- NA
+        partition <- as.data.table(partition)
+    }
+    else{
+        logdebug(paste0("Extracting p-values for partition m = ", m,
+                        " and k = ", k,
+                        "using simulated data from null model."))
+        number.of.datasets.on.right.side <- length(test_data_dt$scor)
 
-    partition$p.val <- (number.of.datasets.on.right.side -
-        test_data_dt[J(partition$scor),
-                     .I,
-                     roll = "nearest",
-                 by = .EACHI]$I) / number.of.datasets.on.right.side
-
-    partition <- as.data.table(partition)
-    partition[df > max(ms), p.val := NA]
-    partition[, p.adj := p.adjust(p.val, method = "BH")]
+        partition$p.val <- (number.of.datasets.on.right.side -
+            test_data_dt[J(partition$scor),
+                         .I,
+                         roll = "nearest",
+                     by = .EACHI]$I) / number.of.datasets.on.right.side
+        partition <- as.data.table(partition)
+        #partition[df > max(ms), p.val := NA]
+        partition[, p.adj := p.adjust(p.val, method = "BH")]
+    }
 
     return(partition)
 }
 
 ks <- seq(0.2, 0.90, 0.1)
-ms <- seq(1, 8, 1)
+ms <- seq(1, 14, 1)
 
 #' Compute p-values for SPONGE interactions
 #'
