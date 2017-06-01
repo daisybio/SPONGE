@@ -53,20 +53,19 @@ sponge_subsampling <- function(
             return(result)
         }
     }
-
+    browser()
     if(subsample.plot){
         subsample_scor_plot <- ggplot(subsample_results,
                                       aes(x = paste(geneA, geneB, sep = " - "),
                                           y = cor - pcor)) +
             geom_boxplot(fill = "orange") +
-            geom_boxplot(aes(y = cor), fill = "grey") +
-            scale_fill_discrete(name = "",
-                    labels = c("sensitivity correlation", "correlation")) +
+            #geom_boxplot(aes(y = cor), fill = "grey") +
+            scale_fill_continuous(name = "",
+                    labels = c("multiple miRNA sensitivity correlation")) +
             theme_bw() +
             theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
-            ylab("") +
-            xlab("ceRNA interaction") +
-            theme(legend.position = "top")
+            ylab("mscor") +
+            xlab("ceRNA interaction")
 
         if(length(subsample.n) > 1){
             subsample_scor_plot <- subsample_scor_plot +

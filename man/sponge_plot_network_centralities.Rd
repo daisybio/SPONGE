@@ -5,7 +5,7 @@
 \title{plot node network centralities}
 \usage{
 sponge_plot_network_centralities(network_centralities, measure = "all",
-  x = "degree", top = 5)
+  x = "degree", top = 5, base_size = 18)
 }
 \arguments{
 \item{network_centralities}{a result from sponge_node_centralities()}

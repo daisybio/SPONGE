@@ -125,7 +125,7 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
         dplyr::mutate(edge = paste(source_gene, target_gene, sep="|"))
     ggplot(top_x, aes(x = reorder(edge, -edge_betweenness), y = edge_betweenness)) +
         geom_bar(stat = "identity") +
-        theme_bw() +
+        theme_bw(base_size = base_size) +
         xlab("ceRNA interaction") +
         ylab("Edge betweenness") +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
@@ -148,7 +148,8 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
 sponge_plot_network_centralities <- function(network_centralities,
                                              measure="all",
                                              x = "degree",
-                                             top = 5){
+                                             top = 5,
+                                             base_size = 18){
 
     network_centralities <- network_centralities %>% mutate(color =
         paste("#", substr(sapply(gene, function(x)
@@ -156,15 +157,15 @@ sponge_plot_network_centralities <- function(network_centralities,
 
     p1 <- ggplot(network_centralities, aes(x=degree)) +
         geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
-        theme_bw() +
+        theme_bw(base_size = base_size) +
         theme(strip.background = element_rect(fill="grey"))
     p2 <- ggplot(network_centralities, aes_string(x = x,
                                                   y = "eigenvector",
                                                   color= "color",
                                                   label = "gene")) +
         geom_point(alpha = 0.3) +
-        ylab("eigenvector centrality") +
-        theme_bw() +
+        ylab("eigenvector") +
+        theme_bw(base_size = base_size) +
         theme(legend.position = "none") +
         geom_label_repel(data = network_centralities %>% top_n(top, eigenvector))
     p3 <- ggplot(network_centralities, aes_string(x = x,
@@ -172,8 +173,8 @@ sponge_plot_network_centralities <- function(network_centralities,
                                                   color = "color",
                                                   label = "gene")) +
         geom_point(alpha = 0.3) +
-        ylab("betweenness centrality") +
-        theme_bw() +
+        ylab("betweenness") +
+    theme_bw(base_size = base_size) +
         theme(legend.position = "none") +
         geom_label_repel(data = network_centralities %>% top_n(top, betweenness))
     if(measure == "degree") return(p1)

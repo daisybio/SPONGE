@@ -2,6 +2,17 @@ library(SPONGE)
 
 context("Test sponge prediction method")
 
+test_that("manually selecting genes works",{
+    expect_equal(
+        sponge(gene_expr = gene_expr,
+               mir_expr = mir_expr,
+               mir_interactions = mir_interactions,
+               selected.genes = c("CDH1", "SERINC1", "TP53")),
+        0.175298,
+        tolerance = 1e-7
+    )
+})
+
 test_that("manually defining gene combinations works",{
           expect_equal(
               sponge(gene_expr = gene_expr,

@@ -8,7 +8,7 @@ gene_miRNA_interaction_filter(gene_expr, mir_expr,
   mir_predicted_targets = list(mircode, targetscan), elastic.net = TRUE,
   log.every.n = 100, log.level = "INFO", var.threshold = NULL,
   F.test = FALSE, F.test.p.adj.threshold = 0.05,
-  coefficient.threshold = 0)
+  coefficient.threshold = 0, select.non.targets = FALSE)
 }
 \arguments{
 \item{gene_expr}{A matrix of gene expression}
@@ -41,6 +41,11 @@ miRNAs to be included.}
 regression model considers only negative coefficients < threshold.
 This is a sensible strategy since only miRNA with a negative coefficient
 have an inhibitory role on gene expression.}
+
+\item{select.non.targets}{For testing effect of miRNA target information.
+If TRUE, the method determines as usual which miRNAs are potentially
+targeting a gene. However, these are then replaced by a random sample of
+non-targeting miRNAs of the same size.}
 
 \item{Some}{miRNA target databases do not use mature miRNAs but miRNA family
 ids since members of the same family have an identical seed sequence. To map
