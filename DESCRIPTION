@@ -11,7 +11,9 @@ RoxygenNote: 5.0.1
 Suggests:
     testthat,
     ggplot2,
-    d3network
+    d3network,
+    knitr,
+    rmarkdown
 Imports:
     ppcor,
     logging,
@@ -21,3 +23,4 @@ Imports:
     data.table,
     bigmemory,
     infotheo
+VignetteBuilder: knitr

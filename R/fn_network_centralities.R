@@ -140,6 +140,7 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
 #' @import ggplot2
 #' @import ggrepel
 #' @import digest
+#' @import gridExtra
 #'
 #' @return a plot
 #' @export
@@ -216,47 +217,4 @@ sponge_plot_betweenness_centralities_differences <- function(network_centralitie
         xlab("betweenness centrality in normal") +
         theme(legend.position = "none") +
         geom_label_repel(data = dplyr::filter(network_centralities, abs(betweenness_centrality.diff) > label.threshold))
-}
-
-sponge_plot_top_centralities <- function(network_centralities, top = 50,
-                                         known.sponge.genes = c("ESR1", "CD44", "LIN28B", "HULC", "KRAS1P", "HSUR1", "HSUR2", "BRAFP1", "VCAN", "LINCMD1", "H19"),
-                                         known.cancer.genes = c("TP53", "ESR1", "CD44", "KRAS")){
-
-    plot.bars <- function(plot.data, value, ylabel){
-        ggplot(plot.data) +
-            geom_bar(aes_string(x = "gene", y = value, fill = "ceRNA", color = "cancer"),
-                     stat="identity",
-                     alpha = 0.6) +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-            scale_fill_manual(values = c("black","red")) +
-            scale_color_manual(values = c("black","green"),
-                               guide = guide_legend(title = "cancer gene"))
-        }
-
-    network_centralities$ceRNA = "novel"
-    network_centralities[which(network_centralities$gene %in% known.sponge.genes), "ceRNA"] <- "known"
-    network_centralities$ceRNA <- factor(network_centralities$ceRNA, levels = c("novel", "known"))
-
-    network_centralities$cancer = FALSE
-    network_centralities[which(network_centralities$gene %in% known.cancer.genes), "cancer"] <- TRUE
-    network_centralities$cancer <- factor(network_centralities$cancer, levels = c(FALSE, TRUE))
-
-    top_eigenvector_centrality <- head(dplyr::arrange(network_centralities, desc(eigenvector)), top)
-    top_eigenvector_centrality <- within(top_eigenvector_centrality, gene <- factor(gene, levels=unique(as.character(gene))))
-
-    top_betweenness_centrality <- head(dplyr::arrange(network_centralities, desc(betweenness)), top)
-    top_betweenness_centrality <- within(top_betweenness_centrality, gene <- factor(gene, levels=unique(as.character(gene))))
-
-
-    p1 <- plot.bars(top_eigenvector_centrality,
-                    value = "eigenvector") +
-          ylab("weighted eigenvector centrality")
-
-
-    p2 <- plot.bars(top_betweenness_centrality,
-                    value = "betweenness") +
-          ylab("betweenness centrality")
-
-    grid.arrange(p1, p2)
-
 }

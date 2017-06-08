@@ -81,7 +81,7 @@ compute_p_values <- function(partition,
 }
 
 ks <- seq(0.2, 0.90, 0.1)
-ms <- seq(1, 14, 1)
+ms <- seq(1, 8, 1)
 
 #' Compute p-values for SPONGE interactions
 #'

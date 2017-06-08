@@ -46,14 +46,17 @@
 #' own risk.
 #' @param F.test.p.adj.threshold If F.test is TRUE, threshold to use for
 #' miRNAs to be included.
-#' @param coefficient.threshold If F.test is FALSE, the
-#' regression model considers only negative coefficients < threshold.
-#' This is a sensible strategy since only miRNA with a negative coefficient
-#' have an inhibitory role on gene expression.
+#' @param coefficient.direction If "<", coefficient has to be lower than
+#' coefficient.threshold, if ">", coefficient has to be larger than threshold.
+#' If NULL, the absolute value of the coefficient has to be larger than the
+#' threshold.
+#' @param coefficient.threshold threshold to cross for a regression coefficient
+#' to be called significant. depends on the parameter coefficient.direction.
 #' @param select.non.targets For testing effect of miRNA target information.
 #' If TRUE, the method determines as usual which miRNAs are potentially
 #' targeting a gene. However, these are then replaced by a random sample of
-#' non-targeting miRNAs of the same size.
+#' non-targeting miRNAs (without seeds) of the same size. Useful for testing
+#' if observed effects are caused by miRNA regulation.
 #' @return A list of genes, where for each gene, the regulating miRNA are
 #' included as a data frame. For F.test = TRUE this is a data frame with fstat
 #' and p-value for each miRNA. Else it is a data frame with the model
@@ -88,7 +91,8 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          var.threshold = NULL,
                                          F.test = FALSE,
                                          F.test.p.adj.threshold = 0.05,
-                                         coefficient.threshold = 0,
+                                         coefficient.threshold = -0.05,
+                                         coefficient.direction = "<",
                                          select.non.targets = FALSE){
     basicConfig(level = log.level)
     with_target_info <- !is.null(mir_predicted_targets)
@@ -246,9 +250,16 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 }else{
                     lm_result <- data.frame(mirna = mimats_matched[1],
                                             coefficient = coef(lm(g_expr ~ m_expr))[-1])
-                    smaller.than.threshold <- which(lm_result$coefficient < coefficient.threshold)
-                    if(length(smaller.than.threshold) == 0) return(NULL)
-                    else return(lm_result[smaller.than.threshold,])
+
+                    if(is.null(coefficient.direction && !is.null(coefficient.threshold)))
+                        outside.threshold <- which(abs(lm_result$coefficient) > coefficient.threshold)
+                    else if(coefficient.direction == "<")
+                        outside.threshold <- which(lm_result$coefficient < coefficient.threshold)
+                    else if(coefficient.direction == ">")
+                        outside.threshold <- which(lm_result$coefficient > coefficient.threshold)
+
+                    if(length(outside.threshold) == 0) return(NULL)
+                    else return(lm_result[outside.threshold,])
                 }
             }, warning = function(w) {
                 logdebug(w)
@@ -276,9 +287,16 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         #extract model coefficients
         if(!F.test){
             result <- fn_get_model_coef(model)
-            smaller.than.threshold <- which(result$coefficient < coefficient.threshold)
-            if(length(smaller.than.threshold) == 0) return(NULL)
-            else return(result[smaller.than.threshold,])
+
+            if(is.null(coefficient.direction && !is.null(coefficient.threshold)))
+                outside.threshold <- which(abs(result$coefficient) > coefficient.threshold)
+            else if(coefficient.direction == "<")
+                outside.threshold <- which(result$coefficient < coefficient.threshold)
+            else if(coefficient.direction == ">")
+                outside.threshold <- which(result$coefficient > coefficient.threshold)
+
+            if(length(outside.threshold) == 0) return(NULL)
+            else return(result[outside.threshold,])
         }
         #we use the F test to assess the significance of each feature
         else if(F.test){
