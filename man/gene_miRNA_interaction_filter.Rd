@@ -8,7 +8,8 @@ gene_miRNA_interaction_filter(gene_expr, mir_expr,
   mir_predicted_targets = list(mircode, targetscan), elastic.net = TRUE,
   log.every.n = 100, log.level = "INFO", var.threshold = NULL,
   F.test = FALSE, F.test.p.adj.threshold = 0.05,
-  coefficient.threshold = 0, select.non.targets = FALSE)
+  coefficient.threshold = -0.05, coefficient.direction = "<",
+  select.non.targets = FALSE)
 }
 \arguments{
 \item{gene_expr}{A matrix of gene expression}
@@ -37,15 +38,19 @@ own risk.}
 \item{F.test.p.adj.threshold}{If F.test is TRUE, threshold to use for
 miRNAs to be included.}
 
-\item{coefficient.threshold}{If F.test is FALSE, the
-regression model considers only negative coefficients < threshold.
-This is a sensible strategy since only miRNA with a negative coefficient
-have an inhibitory role on gene expression.}
+\item{coefficient.threshold}{threshold to cross for a regression coefficient
+to be called significant. depends on the parameter coefficient.direction.}
+
+\item{coefficient.direction}{If "<", coefficient has to be lower than
+coefficient.threshold, if ">", coefficient has to be larger than threshold.
+If NULL, the absolute value of the coefficient has to be larger than the
+threshold.}
 
 \item{select.non.targets}{For testing effect of miRNA target information.
 If TRUE, the method determines as usual which miRNAs are potentially
 targeting a gene. However, these are then replaced by a random sample of
-non-targeting miRNAs of the same size.}
+non-targeting miRNAs (without seeds) of the same size. Useful for testing
+if observed effects are caused by miRNA regulation.}
 
 \item{Some}{miRNA target databases do not use mature miRNAs but miRNA family
 ids since members of the same family have an identical seed sequence. To map

@@ -1,4 +1,4 @@
-#' run sponge benchmark
+#' run sponge benchmark where various settings, i.e. with or without regression, single or pooled miRNAs, are compared.
 #'
 #' @param gene_expr a gene expression matrix
 #' @param mir_expr a miRNA expression matrix
@@ -12,7 +12,7 @@
 #' @import logging
 #' @import foreach
 #'
-#' @examples
+#' @examples sponge_run_benchmark(gene_expr, mir_expr, mir_interactions, c(10), folder = NULL)
 sponge_run_benchmark <- function(gene_expr,
                                  mir_expr,
                                  mir_interactions,

@@ -13,7 +13,6 @@ vignette: >
 
 <img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/sponge_logo.png" alt="SPONGE logo" style="width: 600px; display: block; margin-left: auto; margin-right: auto;"/>
 
-
 SPONGE is the first method to solve the computationally demanding task of reporting significant ceRNA interactions efficiently on a genome-wide scale. Beyond ceRNAs, this method is well suited to infer other types of regulatory interactions such as transcription factor regulation.
 
 ## Introduction
@@ -221,14 +220,63 @@ sponge_plot_network_centralities(weighted_network_centralities, measure = "btw",
 ```
 
 
-## Parallelization
+## Parallelization and Shared Memory
 
-//TODO
+Even though SPONGE is quite fast in inferring ceRNA interactions it will still take a few days to process a dataset with hundred of samples on a single CPU. We thus built SPONGE on top of the foreach and bigmemory R packages:
+
+The foreach R package will allow you to parallelize SPONGE over multiple CPUs. The beauty of this approach is that it is up to the user to decide which backend to use for this. We refer to the foreach package for details. One of the most used backends for foreach is the doParallel R package. Once a parallel compute cluster is set up, SPONGE can use it automatically (no extra parameters needed):
+
+```{r, eval=FALSE}
+library(doParallel)
+library(foreach)
+
+num.of.cores <- 2 #many more on a compute cluster
+logging.file <- "logs/where_my_log_file_should_go.log"
+
+cl <- makeCluster(num.of.cores, outfile=logging.file) 
+registerDoParallel(cl)
+
+genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+gene_expr = gene_expr,
+mir_expr = mir_expr,
+binding_db = mircode)
+
+ceRNA_interactions <- sponge(
+gene_expr = gene_expr,
+mir_expr = mir_expr,
+mir_interactions = genes_miRNA_candidates)
+
+stopCluster(cl) 
+
+```
+
+A frequently encountered caveat of foreach is that each of the parallel workers will require a copy of the data its operating on. With large datasets this becomes an issue even on compute servers with large memory. We thus utilize the bigmemory R package to allow each parallel worker process / thread to access data in shared memory. If you have access to a compute server with 40-60 cores, you can typically compute a genome-wide ceRNA network within a few hours.
 
 ## Computing covariance matrices for the null model
 
-//TODO
+SPONGE allows for sampling covariance matrices given a gene-gene correlation and a specific number of miRNAs. The package contains a number of precomputed matrices for various parameter combinations. However, it is also possibel to compute additional matrices:
 
-## Final remarks
+```{r}
+more_covariance_matrices <- sample_zero_mscor_cov(m = 1, 
+                      number.of.solutions = 10,
+                      gene_gene_correlation = 0.5)
+```
 
-//TODO
+
+These can be used to simulate data to sample from the random distribution of \emph{mscor} coefficients given the number of samples available in the expression data.
+
+```{r}
+mscor_coefficients <- sample_zero_mscor_data(cov.matrices = more_covariance_matrices,
+number.of.samples = 200, number.of.datasets = 100)
+
+hist(unlist(mscor_coefficients), main = "Random distribution of mscor coefficients")
+```
+
+
+## Wider Application
+
+SPONGE was primarily designed to infer ceRNA interactions efficiently. We point out, however, that the principle behind SPONGE for infering partial associations is applicable to other types of regulation in molecular biology. SPONGE is not limited to negative regulation as it is the case with miRNA regulation and can thus also be useful to study, for instance, RNA binding protein regulation or transcription factor regulation. Moreover, we could envision that this approach is also applicable outside of bioinformatics where partial association is of interest. To our knowledge, SPONGE presents the first method to sample random covariance matrices under the null hypothesis that partial correlation and correlation are equal, which may be useful as a starting point to gain a deeper understanding of the theoretical properties of partial correlations in the future. 
+
+## Citation
+
+List et al., Genome-wide quantification of competitive endogenous RNA regulation (manuscript in preparation)

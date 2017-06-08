@@ -17,7 +17,6 @@
 #' foreach package. See example and the documentation of the
 #' foreach and doParallel packages.
 #' @importFrom matrixStats colVars
-#' @import targetscan.Hs.eg.db
 #' @import dplyr
 #' @import foreach
 #' @import glmnet
@@ -251,7 +250,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     lm_result <- data.frame(mirna = mimats_matched[1],
                                             coefficient = coef(lm(g_expr ~ m_expr))[-1])
 
-                    if(is.null(coefficient.direction && !is.null(coefficient.threshold)))
+                    if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
                         outside.threshold <- which(abs(lm_result$coefficient) > coefficient.threshold)
                     else if(coefficient.direction == "<")
                         outside.threshold <- which(lm_result$coefficient < coefficient.threshold)
@@ -288,7 +287,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         if(!F.test){
             result <- fn_get_model_coef(model)
 
-            if(is.null(coefficient.direction && !is.null(coefficient.threshold)))
+            if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
                 outside.threshold <- which(abs(result$coefficient) > coefficient.threshold)
             else if(coefficient.direction == "<")
                 outside.threshold <- which(result$coefficient < coefficient.threshold)

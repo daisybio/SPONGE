@@ -1,4 +1,4 @@
-sponge_plot_heatmap <- function(data, interactive=T, show = "scor"){
+sponge_plot_heatmap <- function(data, interactive=T, show = "mscor"){
     if(require(d3heatmap) && interactive){
         sponge.matrix <- xtabs(p.adj ~ geneA + geneB, data = data)
         d3heatmap(sponge.matrix, dendrogram = "none", symm=T)
@@ -23,7 +23,7 @@ sponge_plot_heatmap <- function(data, interactive=T, show = "scor"){
 sponge_plot_boxplot <- function(data){
     if(!require(ggplot2)) stop("library ggplot2 needs to be installed for this plot")
 
-    ggplot(data = data, aes(x = geneA, y = scor)) + geom_boxplot(fill = "skyblue", aes(outlier.color = p.adj)) + theme_bw()
+    ggplot(data = data, aes(x = geneA, y = mscor)) + geom_boxplot(fill = "skyblue", aes(outlier.color = p.adj)) + theme_bw()
 }
 
 sponge_network <- function(sponge_result,
@@ -44,7 +44,7 @@ sponge_network <- function(sponge_result,
 
     #sponge genes edges
     sponge.edges <- with(sponge_result, {
-        result <- data.frame(from=geneA, to=geneB, width = scor, color="red")
+        result <- data.frame(from=geneA, to=geneB, width = mscor, color="red")
 
         result[which(result$to %in% genes | result$from %in% genes),]
     })

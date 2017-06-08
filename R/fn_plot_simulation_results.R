@@ -2,7 +2,8 @@
 #'
 #' @param null_model_data the output of sponge_build_null_model
 #' @import ggplot2
-#' @import data.table
+#' @importFrom data.table rbindlist
+#' @importFrom dplyr filter
 #'
 #' @export
 #'
@@ -14,7 +15,7 @@ test.data$k_label <- paste("cor =", test.data$k)
 test.data$m_label <- factor(paste("m =", test.data$m), levels = paste("m =", seq(1:15)))
 
 ggplot(dplyr::filter(test.data, m < 9)) +
-    geom_density(aes(x = scor)) +
+    geom_density(aes(x = mscor)) +
     facet_grid(k_label ~ m_label) +
     theme_bw() +
     xlab("mscor") +

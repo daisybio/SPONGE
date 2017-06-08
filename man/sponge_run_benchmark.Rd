@@ -2,7 +2,7 @@
 % Please edit documentation in R/fn_benchmark.R
 \name{sponge_run_benchmark}
 \alias{sponge_run_benchmark}
-\title{run sponge benchmark}
+\title{run sponge benchmark where various settings, i.e. with or without regression, single or pooled miRNAs, are compared.}
 \usage{
 sponge_run_benchmark(gene_expr, mir_expr, mir_interactions,
   num_of_genes_to_test = c(25), folder = "")
@@ -22,6 +22,9 @@ sponge_run_benchmark(gene_expr, mir_expr, mir_interactions,
 a list (regression, no regression) of lists (single miRNA, pooled miRNAs) of benchmark results
 }
 \description{
-run sponge benchmark
+run sponge benchmark where various settings, i.e. with or without regression, single or pooled miRNAs, are compared.
+}
+\examples{
+sponge_run_benchmark(gene_expr, mir_expr, mir_interactions, c(10), folder = NULL)
 }
 

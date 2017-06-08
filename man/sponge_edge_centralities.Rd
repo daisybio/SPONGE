@@ -2,7 +2,7 @@
 % Please edit documentation in R/fn_network_centralities.R
 \name{sponge_edge_centralities}
 \alias{sponge_edge_centralities}
-\title{Computes various edge centralities}
+\title{Computes edge centralities}
 \usage{
 sponge_edge_centralities(sponge_result)
 }
@@ -16,6 +16,23 @@ data.table with gene, degree, eigenvector and betweenness
 Computes edge betweenness
 centrality for the ceRNA interaction network induced by the results of the
 SPONGE method.
+}
+\examples{
+#First we extract miRNA candidates for each of the genes
+genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+gene_expr = gene_expr,
+mir_expr = mir_expr,
+binding_db = NULL)
+
+#Second we compute ceRNA interactions for all pairwise combinations of genes
+#using all miRNAs remaining after filtering through elasticnet.
+ceRNA_interactions <- sponge(
+gene_expr = gene_expr,
+mir_expr = mir_expr,
+mir_interactions = genes_miRNA_candidates)
+
+#Third, we compute the edge centralities
+sponge_edge_centralities(ceRNA_interactions)
 }
 \seealso{
 sponge

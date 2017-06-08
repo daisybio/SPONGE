@@ -63,8 +63,11 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom iterators icount
 #' @importFrom itertools isplitRows
 #' @importFrom infotheo condinformation
-#' @import data.table
-#' @import bigmemory
+#' @importFrom data.table data.table
+#' @importFrom data.table as.data.table
+#' @importFrom bigmemory describe
+#' @importFrom bigmemory as.big.matrix
+#' @importFrom bigmemory attach.big.matrix
 #'
 #' @param gene_expr A gene expression matrix
 #' @param mir_expr A miRNA expression matrix
@@ -276,7 +279,7 @@ sponge <- function(gene_expr,
     }
 
     SPONGE_result <- as.data.table(SPONGE_result)
-    #SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & scor > 0,]
+    #SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & mscor > 0,]
     return(SPONGE_result)
 }
 
@@ -302,6 +305,6 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
          df = pcor$gp,
          cor =  dcor,
          pcor = pcor$estimate,
-         scor = dcor - pcor$estimate
+         mscor = dcor - pcor$estimate
     )
 }

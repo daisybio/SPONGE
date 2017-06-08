@@ -55,7 +55,7 @@ sponge_subsampling <- function(
     }
     browser()
     if(subsample.plot){
-        subsample_scor_plot <- ggplot(subsample_results,
+        subsample_mscor_plot <- ggplot(subsample_results,
                                       aes(x = paste(geneA, geneB, sep = " - "),
                                           y = cor - pcor)) +
             geom_boxplot(fill = "orange") +
@@ -64,15 +64,15 @@ sponge_subsampling <- function(
                     labels = c("multiple miRNA sensitivity correlation")) +
             theme_bw() +
             theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
-            ylab("mscor") +
+            ylab("mmscor") +
             xlab("ceRNA interaction")
 
         if(length(subsample.n) > 1){
-            subsample_scor_plot <- subsample_scor_plot +
+            subsample_mscor_plot <- subsample_mscor_plot +
                 facet_wrap(~sub.n, ncol = 1)
         }
 
-        print(subsample_scor_plot)
+        print(subsample_mscor_plot)
     }
 
     subsample_results %>% dplyr::group_by(geneA, geneB, df) %>%

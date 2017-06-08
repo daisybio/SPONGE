@@ -10,13 +10,28 @@
 #' @importFrom igraph eigen_centrality
 #' @importFrom igraph betweenness
 #' @importFrom igraph degree
+#' @importFrom data.table data.table
 #'
 #' @return data.table with gene, degree, eigenvector and betweenness
 #' @export
 #'
 #' @seealso sponge
 #'
-#' @examples
+#' @examples #First we extract miRNA candidates for each of the genes
+#'genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+#'gene_expr = gene_expr,
+#'mir_expr = mir_expr,
+#'binding_db = NULL)
+#'
+#'#Second we compute ceRNA interactions for all pairwise combinations of genes
+#'#using all miRNAs remaining after filtering through elasticnet.
+#'ceRNA_interactions <- sponge(
+#'gene_expr = gene_expr,
+#'mir_expr = mir_expr,
+#'mir_interactions = genes_miRNA_candidates)
+#'
+#'#Third, we compute the node centralities
+#'sponge_node_centralities(ceRNA_interactions)
 sponge_node_centralities <- function(sponge_result, directed = FALSE){
 
     network <- igraph::graph.data.frame(sponge_result)
@@ -35,7 +50,7 @@ sponge_node_centralities <- function(sponge_result, directed = FALSE){
     return(centrality_df)
 }
 
-#' Computes various edge centralities
+#' Computes edge centralities
 #'
 #' @description Computes edge betweenness
 #' centrality for the ceRNA interaction network induced by the results of the
@@ -54,7 +69,21 @@ sponge_node_centralities <- function(sponge_result, directed = FALSE){
 #'
 #' @seealso sponge
 #'
-#' @examples
+#' @examples #First we extract miRNA candidates for each of the genes
+#'genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+#'gene_expr = gene_expr,
+#'mir_expr = mir_expr,
+#'binding_db = NULL)
+#'
+#'#Second we compute ceRNA interactions for all pairwise combinations of genes
+#'#using all miRNAs remaining after filtering through elasticnet.
+#'ceRNA_interactions <- sponge(
+#'gene_expr = gene_expr,
+#'mir_expr = mir_expr,
+#'mir_interactions = genes_miRNA_candidates)
+#'
+#'#Third, we compute the edge centralities
+#'sponge_edge_centralities(ceRNA_interactions)
 sponge_edge_centralities <- function(sponge_result){
     directed <- FALSE
 
@@ -138,9 +167,9 @@ sponge_plot_edge_centralities <- function(edge_centralities, n){
 #' @param x plot against another column in the data table, defaults to degree
 #' @param top label the top x samples in the plot
 #' @import ggplot2
-#' @import ggrepel
-#' @import digest
-#' @import gridExtra
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom digest digest
+#' @importFrom gridExtra grid.arrange
 #'
 #' @return a plot
 #' @export

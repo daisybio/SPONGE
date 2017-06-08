@@ -1,11 +1,3 @@
-library(MASS)
-library(foreach)
-library(gRbase)
-library(testthat)
-library(ppcor)
-library(expm)
-library(logging)
-
 #generates a positive semi definite matrix
 posdef <- function (n, ev = runif(n, 0, 10))
 {
@@ -59,14 +51,32 @@ quadraticSolver <- function(a, b, c){
     })
 }
 
-#main method for sampling zero sensitivity covariance matrices
-sample_zero_scor_cov <- function(m, number.of.solutions,
+#' Sampling zero multiple miRNA sensitivity covariance matrices
+#'
+#' @param m number of miRNAs, i.e. number of columns of the matrix
+#' @param number.of.solutions stop after this many instances have been samples
+#' @param number.of.attempts give up after that many attempts
+#' @param gene_gene_correlation optional, define the correlation of the first two elements, i.e. the genes.
+#' @param log.level the log level, typically set to INFO, set to DEBUG for verbose logging
+#' @importFrom gRbase cov2pcor
+#' @import ppcor
+#' @import expm
+#' @import logging
+#' @import foreach
+#'
+#' @return a list of covariance matrices with zero sensitivity correlation
+#' @export
+#'
+#' @examples sample_zero_mmscor_cov(m = 1,
+#' number.of.solutions = 1,
+#' gene_gene_correlation = 0.5)
+sample_zero_mmscor_cov <- function(m, number.of.solutions,
                                  number.of.attempts = 1e3,
                                  gene_gene_correlation = NULL,
                                  log.level = "INFO"){
 
     solutions <- foreach(solution = 1:number.of.solutions,
-                         .packages = c("MASS", "gRbase", "testthat",
+                         .packages = c("MASS", "gRbase",
                                        "ppcor", "expm", "logging",
                                        "foreach"),
                          .export = c("quadraticSolver",
@@ -228,12 +238,12 @@ sample_zero_scor_cov <- function(m, number.of.solutions,
             }
 
             #test sensitivity correlation is zero
-            scor <- get.q(S)[1,2]
-            if(is.nan(scor)){
+            mscor <- get.q(S)[1,2]
+            if(is.nan(mscor)){
                 logdebug("sensitivity correlation is NaN")
                 next
             }
-            else if(abs(scor) > sqrt(.Machine$double.eps)){
+            else if(abs(mscor) > sqrt(.Machine$double.eps)){
                 logdebug("sensitivity correlation is not zero")
                 next
             }
@@ -265,7 +275,27 @@ sample_zero_scor_cov <- function(m, number.of.solutions,
 }
 
 
-sample_zero_scor_data <- function(cov.matrices,
+#' Sample mmscor coefficients from pre-computed covariance matrices
+#'
+#' @param cov.matrices a list of pre-computed covariance matrices
+#' @param number.of.samples  the number of samples available in the expression
+#' data
+#' @param number.of.datasets the number of mmscor coefficients to be sampled
+#' from each covariance matrix
+#' @seealso sample_zero_mmscor_cov
+#' @return a vector of mmscor coefficients
+#' @export
+#' @importFrom MASS mvrnorm
+#' @import foreach
+#' @importFrom gRbase cov2pcor
+#' @import ppcor
+#'
+#' @examples #we select from the pre-computed covariance matrices in SPONGE
+#' those 10 for m = 5 miRNAs and gene-gene correlation 0.6
+#' cov_matrices_selected <- cov.matrices[["5"]][["0.6"]]
+#' sample_zero_mmscor_data(cov.matrices = cov_matrices_selected,
+#' number.of.samples = 200, number.of.datasets = 10)
+sample_zero_mmscor_data <- function(cov.matrices,
                                   number.of.samples = 100,
                                   number.of.datasets = 100){
     foreach(cov.matrix = cov.matrices) %do% {

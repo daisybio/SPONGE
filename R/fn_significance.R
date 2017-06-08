@@ -6,14 +6,14 @@ compute_simulated_data <- function(cov.matrices,
     #datasets to construct from each covariance matrix we have
     number.of.datasets.per.matrix <- ceiling(number.of.datasets / length(cov.matrices))
 
-    scor <- sample(
-        unlist(sample_zero_scor_data(cov.matrices = cov.matrices,
+    mscor <- sample(
+        unlist(sample_zero_mscor_data(cov.matrices = cov.matrices,
                                          number.of.datasets = number.of.datasets.per.matrix,
                                          number.of.samples = number.of.samples)),
         number.of.datasets)
 
-    test_data_dt <- data.table(scor)
-    setkey(test_data_dt, scor)
+    test_data_dt <- data.table(mscor)
+    setkey(test_data_dt, mscor)
 
     return(test_data_dt)
 }
@@ -28,7 +28,7 @@ compute_p_values <- function(partition,
     if(is.null(cov.matrices) & is.null(simulated.data))
         stop("either covariance matrices or simulated data have to be provided.")
 
-    if(!("scor" %in% colnames(partition))) stop("sensitivity correlation missing")
+    if(!("mscor" %in% colnames(partition))) stop("sensitivity correlation missing")
 
     #check which k and m
     k <- as.character(partition[1,cor_cut])
@@ -65,15 +65,14 @@ compute_p_values <- function(partition,
         logdebug(paste0("Extracting p-values for partition m = ", m,
                         " and k = ", k,
                         "using simulated data from null model."))
-        number.of.datasets.on.right.side <- length(test_data_dt$scor)
+        number.of.datasets.on.right.side <- length(test_data_dt$mscor)
 
         partition$p.val <- (number.of.datasets.on.right.side -
-            test_data_dt[J(partition$scor),
+            test_data_dt[J(partition$mscor),
                          .I,
                          roll = "nearest",
                      by = .EACHI]$I) / number.of.datasets.on.right.side
         partition <- as.data.table(partition)
-        #partition[df > max(ms), p.val := NA]
         partition[, p.adj := p.adjust(p.val, method = "BH")]
     }
 
@@ -90,9 +89,10 @@ ms <- seq(1, 8, 1)
 #' @param number.of.datasets number of datasets to simulate.
 #' @param simulated.data optional, pre-computed simulated data
 #' affects the mimimum p-value that can be achieved
-#' @import data.table
-#' @import gRbase
-#' @import MASS
+#' @importFrom data.table as.data.table
+#' @importFrom data.table data.table
+#' @importFrom data.table rbindlist
+#' @importFrom gRbase combnPrim
 #' @import ppcor
 #' @import foreach
 #' @import logging
@@ -165,7 +165,7 @@ sponge_compute_p_values <- function(sponge_result,
         .combine='dtcomb',
         .multicombine=TRUE,
         .export = c("compute_p_values",
-                    "sample_zero_scor_data"),
+                    "sample_zero_mscor_data"),
         .packages = c("gRbase", "MASS", "ppcor", "foreach", "logging", "data.table"),
         .noexport = c("sponge_result")) %do% {
             partition <- dt.m$value
@@ -191,9 +191,8 @@ sponge_compute_p_values <- function(sponge_result,
 #' @return a list (for various values of m) of lists (for various values of k)
 #' of lists of simulated data sets, drawn from a set of precomputed covariance matrices
 #' @import foreach
-#' @import data.table
-#' @import gRbase
-#' @import MASS
+#' @importFrom gRbase combnPrim
+#' @importFrom MASS mvrnorm
 #' @import ppcor
 #' @import logging
 #' @export
