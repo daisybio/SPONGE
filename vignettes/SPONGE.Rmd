@@ -9,7 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Short description
+# Sparse Partial correlation ON Gene Expression (SPONGE)
+
+<img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/sponge_logo.png" alt="SPONGE logo" style="width: 600px; display: block; margin-left: auto; margin-right: auto;"/>
+
 
 SPONGE is the first method to solve the computationally demanding task of reporting significant ceRNA interactions efficiently on a genome-wide scale. Beyond ceRNAs, this method is well suited to infer other types of regulatory interactions such as transcription factor regulation.
 
