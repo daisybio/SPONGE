@@ -25,7 +25,7 @@ Further details demonstrating how SPONGE improves over the state of the art and 
 
 ## General Workflow
 
-<img src="overview.png" alt="SPONGE workflow" style="width: 600px; display: block; margin-left: auto; margin-right: auto;"/>
+<img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/overview.png" alt="SPONGE workflow" style="width: 600px; display: block; margin-left: auto; margin-right: auto;"/>
 
 Overview of the SPONGE workflow. (A) Predicted and/or experimentally validated gene-miRNA interactions are subjected to regularized regression on gene and miRNA expression data. Interactions with negative coefficients for miRNA regulators are retained since they indicate miRNA induced inhibition of gene expression. (B) We compute sensitivity correlation coefficients for gene pairs based on shared miRNAs identified in (A). (C) Given the sample number, we compute empirical null models for various gene-gene correlation coefficients (k, columns) and number of miRNAs (m, rows). Sensitivity correlation coefficients are assigned to the best matching null model and a p-value is inferred. (D) After multiple testing correction, significant ceRNA interactions can be used to construct a genome-wide, disease or tissue-specific ceRNA interaction network. In the following hands-on tutorial, we will highlight how each of these steps can be achieved with the SPONGE R package.
 
