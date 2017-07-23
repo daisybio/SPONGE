@@ -1,7 +1,7 @@
 #' Sponge subsampling
 #' @importFrom foreach foreach
 #' @import ggplot2
-#' @import dplyr
+#' @importFrom dplyr group_by summarize
 #'
 #' @param subsample.n the number of samples to be drawn in each round
 #' @param subsample.repeats how often should the subsampling be done?
@@ -53,7 +53,7 @@ sponge_subsampling <- function(
             return(result)
         }
     }
-    browser()
+
     if(subsample.plot){
         subsample_mscor_plot <- ggplot(subsample_results,
                                       aes(x = paste(geneA, geneB, sep = " - "),
@@ -64,7 +64,7 @@ sponge_subsampling <- function(
                     labels = c("multiple miRNA sensitivity correlation")) +
             theme_bw() +
             theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
-            ylab("mmscor") +
+            ylab("mscor") +
             xlab("ceRNA interaction")
 
         if(length(subsample.n) > 1){

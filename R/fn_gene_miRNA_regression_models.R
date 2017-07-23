@@ -17,7 +17,6 @@
 #' foreach package. See example and the documentation of the
 #' foreach and doParallel packages.
 #' @importFrom matrixStats colVars
-#' @import dplyr
 #' @import foreach
 #' @import glmnet
 #' @import bigmemory
@@ -27,11 +26,6 @@
 #' @param mir_predicted_targets A data frame with miRNA in cols and genes in rows.
 #' A 0 indicates the miRNA is not predicted to target the gene, >0 otherwise.
 #' If this parameter is NULL all miRNA-gene interactions are tested
-#' @param Some miRNA target databases do not use mature miRNAs but miRNA family
-#' ids since members of the same family have an identical seed sequence. To map
-#' miRNA expression to such a database we need a mapping table. It can be
-#' created by downloading the miR family info from the mirbase db and converting
-#' it with the function build_mir_family_dictionary
 #' @param log.every.n Log only ever n iterations to limit output
 #' @param log.level One of 'warn', 'error', 'info'
 #' @param var.threshold Only consider genes and miRNA with
@@ -56,33 +50,33 @@
 #' targeting a gene. However, these are then replaced by a random sample of
 #' non-targeting miRNAs (without seeds) of the same size. Useful for testing
 #' if observed effects are caused by miRNA regulation.
+#' @param elastic.net Whether to apply elastic net regression filtering or not.
 #' @return A list of genes, where for each gene, the regulating miRNA are
 #' included as a data frame. For F.test = TRUE this is a data frame with fstat
 #' and p-value for each miRNA. Else it is a data frame with the model
 #' coefficients.
 #' @export
 #'
-#' @seealso build_mir_family_dictionary
 #' @seealso sponge
 #' @examples
 #' #library(doParallel)
 #' #cl <- makePSOCKcluster(2)
 #' #registerDoParallel(cl)
-#' genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+#' genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
-#' mir_predicted_targets = NULL)
+#' mir_predicted_targets = targetscan)
 #' #stopCluster(cl)
 #'
 #' #If we also perform an F-test, only few of the above miRNAs remain
-#' genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+#' genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
+#' mir_predicted_targets = targetscan,
 #' F.test = TRUE,
-#' F.test.p.adj.threshold = 0.05,
-#' mir_predicted_targets = NULL)
+#' F.test.p.adj.threshold = 0.05)
 #'
-gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
+sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                          mir_predicted_targets = list(mircode, targetscan),
                                          elastic.net = TRUE,
                                          log.every.n = 100,
@@ -143,6 +137,8 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 mir_predicted_targets[mir_db_genes, mir_db_mirs] +
                 mir_db[mir_db_genes, mir_db_mirs]
         }
+
+        mir_predicted_targets_description <- describe(mir_predicted_targets)
     }
     else{
         all_mirs <- intersect(colnames(mir_predicted_targets), colnames(mir_expr))
@@ -150,9 +146,9 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
         mir_predicted_targets <- mir_predicted_targets[all_genes, all_mirs]
         mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
-    }
 
-    mir_predicted_targets_description <- describe(mir_predicted_targets)
+        mir_predicted_targets_description <- describe(mir_predicted_targets)
+    }
 
     omitted_mirnas <- setdiff(colnames(mir_expr), all_mirs)
     omitted_genes <- setdiff(colnames(gene_expr), all_genes)
@@ -187,7 +183,6 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         #attach shared data
         attached_gene_expr <- attach.big.matrix(gene_expr_description)
         attached_mir_expr <- attach.big.matrix(mir_expr_description)
-        attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
 
         #get gene name
         gene <- all_genes[gene_idx]
@@ -207,7 +202,7 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
         #check if we have a target database
         if(with_target_info){
-
+            attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
             mimats_matched <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] > 0)]
 
             if(length(mimats_matched) == 0){
@@ -220,17 +215,17 @@ gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 mimats_matched <- sample(non_targets,
                        min(length(mimats_matched), length(non_targets)))
             }
-
-            if(!elastic.net){
-                return(data.frame(mirna = mimats_matched))
-            }
-
             m_expr <- attached_mir_expr[,which(all_mirs %in% mimats_matched)]
         }
         else{
             mimats_matched <- all_mirs
-            m_expr <- attached_mir_expr
+            m_expr <- as.matrix(attached_mir_expr)
         }
+
+        if(!elastic.net){
+            return(data.frame(mirna = mimats_matched))
+        }
+
         #learn a regression model to figure out which miRNAs regulate this gene in
         #the given dataset
         logdebug(paste("Learning regression model for gene", gene))

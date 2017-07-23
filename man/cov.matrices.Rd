@@ -13,4 +13,3 @@ cov.matrices
 covariance matrices under the null hypothesis that sensitivity correlation is zero
 }
 \keyword{datasets}
-

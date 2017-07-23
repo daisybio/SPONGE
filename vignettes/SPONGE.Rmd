@@ -97,7 +97,7 @@ SPONGE combines user-provided matrices as the ones shown above by summing up the
 We apply step A of the SPONGE workflow as follows:
 
 ```{r, warning=FALSE,message=FALSE}
-genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
 mir_predicted_targets = list(mircode,targetscan))
@@ -145,7 +145,7 @@ A theory for the random distribution of \emph{mscor} values did not exist and pr
 This motivated us to develop a strategy for inferring the distribution of \emph{mscor} values under the null hypothesis that miRNAs do not affect the correlation between two genes, i.e. $mscor = 0$. At the basis of this is a method for sampling random covariance matrices under this null hypothesis in which we control i) the gene-gene correlation and ii) the number of miRNAs which corresponds to the number of columns in the covariance matrix. See [Computing additional covariance matrices] for details on how to construct these matrices. Since this sampling procedure is computationally intensive, we include pre-computed sets of covariance matrices for a range of parameter combinations, i.e. 10 covariance matrices for each pair of gene-gene correlation $cor = (0.2, ..., 0.9)$ and number of miRNAs $m = (1, 2,...,8)$. Using these covariance matrices and the package mvrnorm allows us to sample from the random distribution of \emph{mscor} values with respect to the available number of samples (the number of rows in our expression matrices):
 
 ```{r, message=FALSE, warning=FALSE}
-mscor_null_model <- sponge_build_null_model(number.of.datasets = 100, number.of.samples = nrow(gene_expr))
+mscor_null_model <- sponge_build_null_model(number_of_datasets = 100, number_of_samples = nrow(gene_expr))
 ```
 
 We can plot the result of these simulations to see how the distribution is affected by gene-gene correlation and number of miRNAs:
@@ -162,11 +162,11 @@ After computing p-values for all \emph{mscor} coefficients, we apply multiple te
 
 ```{r, message=FALSE, error=FALSE}
 ceRNA_interactions_sign <- sponge_compute_p_values(sponge_result = ceRNA_interactions, 
-                                                   number.of.datasets = nrow(gene_expr),
-                                                   simulated.data = mscor_null_model)
+                                                   number_of_datasets = nrow(gene_expr),
+                                                   simulated_data = mscor_null_model)
 ```
 
-Note that the parameter simulated.data can also be NULL. In this case, the null models are computed on the fly. The above method adds two additional columns to the ceRNA results, namely $p.val$ and $p.adj$.
+Note that the parameter simulated_data can also be NULL. In this case, the null models are computed on the fly. The above method adds two additional columns to the ceRNA results, namely $p.val$ and $p.adj$.
 
 ```{r, eval=FALSE}
 head(ceRNA_interactions_sign)
@@ -186,6 +186,12 @@ ceRNA_interactions_fdr <- ceRNA_interactions_sign[p.adj < 0.01,]
 
 ```{r, echo=FALSE, results='asis'}
 knitr::kable(head(ceRNA_interactions_fdr))
+```
+
+The resulting network can also be plotted
+
+```{r}
+sponge_plot_network(ceRNA_interactions_fdr, genes_miRNA_candidates)
 ```
 
 
@@ -236,7 +242,7 @@ logging.file <- "logs/where_my_log_file_should_go.log"
 cl <- makeCluster(num.of.cores, outfile=logging.file) 
 registerDoParallel(cl)
 
-genes_miRNA_candidates <- gene_miRNA_interaction_filter(
+genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
 binding_db = mircode)
@@ -258,7 +264,7 @@ SPONGE allows for sampling covariance matrices given a gene-gene correlation and
 
 ```{r}
 more_covariance_matrices <- sample_zero_mscor_cov(m = 1, 
-                      number.of.solutions = 10,
+                      number_of_solutions = 10,
                       gene_gene_correlation = 0.5)
 ```
 
@@ -266,8 +272,8 @@ more_covariance_matrices <- sample_zero_mscor_cov(m = 1,
 These can be used to simulate data to sample from the random distribution of \emph{mscor} coefficients given the number of samples available in the expression data.
 
 ```{r}
-mscor_coefficients <- sample_zero_mscor_data(cov.matrices = more_covariance_matrices,
-number.of.samples = 200, number.of.datasets = 100)
+mscor_coefficients <- sample_zero_mscor_data(cov_matrices = more_covariance_matrices,
+number_of_samples = 200, number_of_datasets = 100)
 
 hist(unlist(mscor_coefficients), main = "Random distribution of mscor coefficients")
 ```

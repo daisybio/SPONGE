@@ -13,8 +13,14 @@
 #' miRNA / gene interactions
 #'
 #' @format A data frame of regression coefficients
-#' typically provided by gene_miRNA_interaction_filter
+#' typically provided by sponge_gene_miRNA_interaction_filter
 "mir_interactions"
+
+#' ceRNA interactions
+#'
+#' @format A data table of ceRNA interactions
+#' typically provided by sponge
+"ceRNA_interactions"
 
 #' miRNA family mapping table
 #'
@@ -28,10 +34,16 @@
 #' covariance matrices
 "cov.matrices"
 
+
 #' mircode predicted miRNA gene interactions
 #' @source http://www.mircode.org/download.php
-#' @format A matrix gene symbols vs miRNA family names. 1 if interaction is predicted, 0 otherwise
+#' @format A matrix gene symbols vs miRNA family names. >=1 if interaction is predicted, 0 otherwise
 "mircode"
+
+#' targetscan predicted miRNA gene interactions
+#' @source http://www.targetscan.org/vert_71/
+#' @format A matrix gene symbols vs miRNA family names. >=1 if interaction is predicted, 0 otherwise
+"targetscan"
 
 #' mircode predicted miRNA gene interactions
 #' @source http://www.mircode.org/download.php

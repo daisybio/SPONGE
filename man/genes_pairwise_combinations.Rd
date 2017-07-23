@@ -17,7 +17,3 @@ as input for the sponge method.
 \description{
 Compute all pairwise interactions for a number of genes as indices
 }
-\examples{
-genes_pairwise_combinations(ncol(gene_expr))
-}
-

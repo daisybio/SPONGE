@@ -5,22 +5,35 @@ Version: 0.1.0
 Author: Markus List, Marcel Schulz, Azim Dehghani
 Maintainer: Markus List <markus.list@mpi-inf.mpg.de>
 Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input.
-License: GPLv3
+License: GPL (>=3) 
 LazyData: TRUE
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests:
     testthat,
-    ggplot2,
-    d3network,
     knitr,
     rmarkdown
 Imports:
+    ggplot2,
+    ggrepel,
+    gridExtra,
     ppcor,
     logging,
     foreach,
     dplyr,
     stringr,
     data.table,
+    visNetwork,
     bigmemory,
-    infotheo
+    tidyr,
+    digest,
+    MASS,
+    expm,
+    gRbase,
+    glmnet,
+    igraph,
+    infotheo,
+    iterators,
+    itertools,
+    matrixStats,
+    mirbase.db
 VignetteBuilder: knitr

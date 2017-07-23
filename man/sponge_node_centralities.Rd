@@ -8,6 +8,8 @@ sponge_node_centralities(sponge_result, directed = FALSE)
 }
 \arguments{
 \item{sponge_result}{output of the sponge method}
+
+\item{directed}{Whether to consider the input network as directed or not.}
 }
 \value{
 data.table with gene, degree, eigenvector and betweenness
@@ -18,23 +20,8 @@ centrality for the ceRNA interaction network induced by the results of the
 SPONGE method
 }
 \examples{
-#First we extract miRNA candidates for each of the genes
-genes_miRNA_candidates <- gene_miRNA_interaction_filter(
-gene_expr = gene_expr,
-mir_expr = mir_expr,
-binding_db = NULL)
-
-#Second we compute ceRNA interactions for all pairwise combinations of genes
-#using all miRNAs remaining after filtering through elasticnet.
-ceRNA_interactions <- sponge(
-gene_expr = gene_expr,
-mir_expr = mir_expr,
-mir_interactions = genes_miRNA_candidates)
-
-#Third, we compute the node centralities
 sponge_node_centralities(ceRNA_interactions)
 }
 \seealso{
 sponge
 }
-

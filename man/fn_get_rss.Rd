@@ -19,4 +19,3 @@ the RSS
 \description{
 Compute the residual sum of squares error for an elastic net model
 }
-

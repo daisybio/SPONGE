@@ -4,13 +4,17 @@
 \alias{sponge_build_null_model}
 \title{Build null model for p-value computation}
 \usage{
-sponge_build_null_model(number.of.datasets = 1e+05, number.of.samples,
-  log.level = "INFO")
+sponge_build_null_model(number_of_datasets = 1e+05, number_of_samples,
+  cov_matrices = cov.matrices, log.level = "INFO")
 }
 \arguments{
-\item{number.of.datasets}{the number of datesets defining the precision of the p-value}
+\item{number_of_datasets}{the number of datesets defining the precision of the p-value}
 
-\item{number.of.samples}{the number of samples in the expression data}
+\item{number_of_samples}{the number of samples in the expression data}
+
+\item{cov_matrices}{pre-computed covariance matrices}
+
+\item{log.level}{The log level of the logging package}
 }
 \value{
 a list (for various values of m) of lists (for various values of k)
@@ -22,4 +26,3 @@ Build null model for p-value computation
 \examples{
 sponge_build_null_model(100, 100)
 }
-

@@ -22,4 +22,3 @@ A vector with shared RNAs of the two genes.
 Identify miRNAs for which both genes have miRNA binding sites aka miRNA
 response elements in the competing endogeneous RNA hypothesis
 }
-

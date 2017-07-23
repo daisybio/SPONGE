@@ -15,7 +15,3 @@ a vector of miRNA names
 \description{
 Helper function to map MIMAT identifers to miRNA names
 }
-\examples{
-fn_map_mimat_to_mir(c("MIMAT0000086", "MIMAT0000426"))
-}
-

@@ -54,8 +54,8 @@ quadraticSolver <- function(a, b, c){
 #' Sampling zero multiple miRNA sensitivity covariance matrices
 #'
 #' @param m number of miRNAs, i.e. number of columns of the matrix
-#' @param number.of.solutions stop after this many instances have been samples
-#' @param number.of.attempts give up after that many attempts
+#' @param number_of_solutions stop after this many instances have been samples
+#' @param number_of_attempts give up after that many attempts
 #' @param gene_gene_correlation optional, define the correlation of the first two elements, i.e. the genes.
 #' @param log.level the log level, typically set to INFO, set to DEBUG for verbose logging
 #' @importFrom gRbase cov2pcor
@@ -67,15 +67,15 @@ quadraticSolver <- function(a, b, c){
 #' @return a list of covariance matrices with zero sensitivity correlation
 #' @export
 #'
-#' @examples sample_zero_mmscor_cov(m = 1,
-#' number.of.solutions = 1,
+#' @examples sample_zero_mscor_cov(m = 1,
+#' number_of_solutions = 1,
 #' gene_gene_correlation = 0.5)
-sample_zero_mmscor_cov <- function(m, number.of.solutions,
-                                 number.of.attempts = 1e3,
+sample_zero_mscor_cov <- function(m, number_of_solutions,
+                                 number_of_attempts = 1e3,
                                  gene_gene_correlation = NULL,
                                  log.level = "INFO"){
 
-    solutions <- foreach(solution = 1:number.of.solutions,
+    solutions <- foreach(solution = 1:number_of_solutions,
                          .packages = c("MASS", "gRbase",
                                        "ppcor", "expm", "logging",
                                        "foreach"),
@@ -90,7 +90,7 @@ sample_zero_mmscor_cov <- function(m, number.of.solutions,
         loginfo(paste("Looking for zero sensitivity covariance matrix for case m =",
                       m, "solution no.", solution))
         #a lot of solutions are not within our constraints, so we repeat
-        while(total < number.of.attempts){
+        while(total < number_of_attempts){
             total <- total + 1
             if(is.null(gene_gene_correlation)) K = runif(1,-1,1) # R11
             else K = gene_gene_correlation
@@ -275,37 +275,37 @@ sample_zero_mmscor_cov <- function(m, number.of.solutions,
 }
 
 
-#' Sample mmscor coefficients from pre-computed covariance matrices
+#' Sample mscor coefficients from pre-computed covariance matrices
 #'
-#' @param cov.matrices a list of pre-computed covariance matrices
-#' @param number.of.samples  the number of samples available in the expression
+#' @param cov_matrices a list of pre-computed covariance matrices
+#' @param number_of_samples  the number of samples available in the expression
 #' data
-#' @param number.of.datasets the number of mmscor coefficients to be sampled
+#' @param number_of_datasets the number of mscor coefficients to be sampled
 #' from each covariance matrix
-#' @seealso sample_zero_mmscor_cov
-#' @return a vector of mmscor coefficients
+#' @seealso sample_zero_mscor_cov
+#' @return a vector of mscor coefficients
 #' @export
-#' @importFrom MASS mvrnorm
+#' @import MASS
 #' @import foreach
-#' @importFrom gRbase cov2pcor
+#' @import gRbase
 #' @import ppcor
 #'
 #' @examples #we select from the pre-computed covariance matrices in SPONGE
-#' those 10 for m = 5 miRNAs and gene-gene correlation 0.6
+#' #10 for m = 5 miRNAs and gene-gene correlation 0.6
 #' cov_matrices_selected <- cov.matrices[["5"]][["0.6"]]
-#' sample_zero_mmscor_data(cov.matrices = cov_matrices_selected,
-#' number.of.samples = 200, number.of.datasets = 10)
-sample_zero_mmscor_data <- function(cov.matrices,
-                                  number.of.samples = 100,
-                                  number.of.datasets = 100){
-    foreach(cov.matrix = cov.matrices) %do% {
+#' sample_zero_mscor_data(cov_matrices = cov_matrices_selected,
+#' number_of_samples = 200, number_of_datasets = 10)
+sample_zero_mscor_data <- function(cov_matrices,
+                                  number_of_samples = 100,
+                                  number_of_datasets = 100){
+    foreach(cov.matrix = cov_matrices) %do% {
         #check that sensitivity correlation is zero
         if(abs(cov2pcor(cov.matrix)[1,2] - cov2cor(cov.matrix)[1,2]) > sqrt(.Machine$double.eps))
             stop("sensitivity correlation of a given covariance matrix is not zero.")
 
         #sample data under this covariance matrix
-        foreach(i = 1:number.of.datasets, .combine = c) %do%{
-            sample.data <- mvrnorm(n = number.of.samples,
+        foreach(i = 1:number_of_datasets, .combine = c) %do%{
+            sample.data <- mvrnorm(n = number_of_samples,
                                    rep(0, ncol(cov.matrix)),
                                    cov.matrix,
                                    empirical = FALSE)

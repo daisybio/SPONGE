@@ -15,4 +15,3 @@ Plot simulation results for different null models
 \examples{
 sponge_plot_simulation_results(sponge_build_null_model(100, 100))
 }
-

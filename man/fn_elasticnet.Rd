@@ -20,4 +20,3 @@ smalles residual sum of squares error
 \description{
 Computes an elastic net model
 }
-

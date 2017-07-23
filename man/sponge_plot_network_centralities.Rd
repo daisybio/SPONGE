@@ -15,6 +15,8 @@ sponge_plot_network_centralities(network_centralities, measure = "all",
 \item{x}{plot against another column in the data table, defaults to degree}
 
 \item{top}{label the top x samples in the plot}
+
+\item{base_size}{size of the text in the plot}
 }
 \value{
 a plot
@@ -25,4 +27,3 @@ plot node network centralities
 \examples{
 #sponge_plot_network_centralities
 }
-

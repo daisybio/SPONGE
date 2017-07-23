@@ -5,6 +5,7 @@
 #' @param m_expr A miRNA expression matrix with samples in rows and
 #' genes in columns. Sample number and order has to agree with
 #' above gene expression matrix
+#' @param p.adj.threshold Threshold for FDR corrected p-value
 #' @param model A nested elastic net model to be tested
 #'
 #' @return return data frame with miRNA, fstat and adjusted p.value (BH).

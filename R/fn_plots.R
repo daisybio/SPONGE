@@ -1,41 +1,26 @@
-sponge_plot_heatmap <- function(data, interactive=T, show = "mscor"){
-    if(require(d3heatmap) && interactive){
-        sponge.matrix <- xtabs(p.adj ~ geneA + geneB, data = data)
-        d3heatmap(sponge.matrix, dendrogram = "none", symm=T)
-    }
-    else if(require(ggplot2))
-    {
-        if(interactive) warn("Library d3heatmap not found but required for interactive plotting")
-        data$significance <- ""
-        data[data$p.adj < 0.05, "significance"] <- "*"
-        data[data$p.adj < 0.01, "significance"] <- "**"
-        data[data$p.adj < 0.001, "significance"] <- "***"
-        ggplot(data = data, aes_string(fill = show, x = "geneA", y = "geneB")) +
-            geom_tile() +
-            theme_bw() +
-            geom_text(label=data$significance)
-    }
-    else{
-        stop("No suitable plotting library found. Please install d3heatmap for interactive and ggplot2 for static heatmaps")
-    }
-}
-
-sponge_plot_boxplot <- function(data){
-    if(!require(ggplot2)) stop("library ggplot2 needs to be installed for this plot")
-
-    ggplot(data = data, aes(x = geneA, y = mscor)) + geom_boxplot(fill = "skyblue", aes(outlier.color = p.adj)) + theme_bw()
-}
-
+#' Prepare a sponge network for plotting
+#' @import foreach
+#' @import iterators
+#' @importFrom dplyr filter
+#' @param sponge_result ceRNA interactions as produced by the sponge method.
+#' @param mir_data miRNA interactions as produced by sponge_gene_miRNA_interaction_filter
+#' @param target.genes a character vector  to select a subset of genes
+#' @param show.sponge.interaction whether to connect ceRNAs
+#' @param show.mirnas one of none, shared, all
+#' @param replace.mirna.with.name uses mirbase to replace mimats with names
+#' @param min.interactions minimum degree of a gene to be shown
+#'
+#' @return a list of nodes and edges
+#' @export
+#'
+#' @examples sponge_network(ceRNA_interactions, mir_interactions)
 sponge_network <- function(sponge_result,
                            mir_data,
                            target.genes = NULL,
                            show.sponge.interaction = TRUE,
-                           show.mirnas = c("none", "all", "shared"),
+                           show.mirnas = "none",
                            replace.mirna.with.name = TRUE,
                            min.interactions = 3){
-    library(foreach)
-    library(iterators)
-    library(dplyr)
 
     genes <- unique(c(as.character(sponge_result$geneA), as.character(sponge_result$geneB)))
 
@@ -106,10 +91,23 @@ sponge_network <- function(sponge_result,
     return(list(nodes=nodes, edges=edges))
 }
 
+#' Plot a sponge network
+#'
+#' @param sponge_result ceRNA interactions as produced by the sponge method.
+#' @param mir_data miRNA interactions as produced by sponge_gene_miRNA_interaction_filter
+#' @param layout one of the layout methods supported in the visNetwork package
+#' @param force.directed whether to produce a force directed network, gets
+#' slow for large networks
+#' @param ... further params for sponge_network
+#' @import visNetwork
+#'
+#' @return shows a plot
+#' @export
+#'
+#' @examples sponge_plot_network(ceRNA_interactions, mir_interactions)
 sponge_plot_network <- function(sponge_result, mir_data,
                                 layout="layout.fruchterman.reingold",
                                 force.directed = FALSE, ...){
-    library(visNetwork)
     network <- sponge_network(sponge_result, mir_data, ...)
     nodes <- network$nodes
     edges <- network$edges

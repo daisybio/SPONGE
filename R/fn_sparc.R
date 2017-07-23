@@ -31,7 +31,6 @@ fn_get_shared_miRNAs <- function(geneA, geneB, mir_interactions){
 #'
 #' @return a vector of miRNA names
 #'
-#' @examples fn_map_mimat_to_mir(c("MIMAT0000086", "MIMAT0000426"))
 fn_map_mimats_to_mir <- function(mimats){
     mature_mirnas <- toTable(mirbaseMATURE)
     mature_mirna_names <- mature_mirnas$mature_name
@@ -48,7 +47,6 @@ fn_map_mimats_to_mir <- function(mimats){
 #' @return data frame with one row per unique pairwise combination. To be used
 #' as input for the sponge method.
 #'
-#' @examples genes_pairwise_combinations(ncol(gene_expr))
 genes_pairwise_combinations <- function(number.of.genes){
     t(combnPrim(number.of.genes, 2))
 }
@@ -68,6 +66,9 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom bigmemory describe
 #' @importFrom bigmemory as.big.matrix
 #' @importFrom bigmemory attach.big.matrix
+#' @importFrom gRbase combnPrim
+#' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm
+#' runif sd setNames xtabs
 #'
 #' @param gene_expr A gene expression matrix
 #' @param mir_expr A miRNA expression matrix
@@ -87,24 +88,26 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' computing time than can be saved by parallel execution. Register a parallel
 #' backend that is compatible with foreach to use this feature. More information
 #' can be found in the documentation of the foreach / doParallel packages.
+#' @param each.miRNA Whether to consider individual miRNAs or pooling
+#' them.
+#' @param min.cor Consider only gene pairs with a minimum correlation specified
+#' here.
 #'
 #' @return A data frame with significant gene-gene competetive endogenous RNA
 #' or 'sponge' interactions
 #' @export
 #'
 #' @examples
-#' #First we extract miRNA candidates for each of the genes
-#' genes_miRNA_candidates <- gene_miRNA_interaction_filter(
-#' gene_expr = gene_expr,
-#' mir_expr = mir_expr,
-#' binding_db = NULL)
+#' #First, extract miRNA candidates for each of the genes
+#' #using sponge_gene_miRNA_interaction_filter. Here we use a prepared
+#' #dataset mir_interactions.
 #'
 #' #Second we compute ceRNA interactions for all pairwise combinations of genes
 #' #using all miRNAs remaining after filtering through elasticnet.
 #' ceRNA_interactions <- sponge(
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
-#' mir_interactions = genes_miRNA_candidates)
+#' mir_interactions = mir_interactions)
 sponge <- function(gene_expr,
                    mir_expr,
                    mir_interactions = NULL,

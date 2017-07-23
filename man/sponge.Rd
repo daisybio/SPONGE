@@ -28,6 +28,12 @@ useful for bootstrapping}
 Gene names are taken from the first two columns and have to match the names
 used for gene_expr}
 
+\item{each.miRNA}{Whether to consider individual miRNAs or pooling
+them.}
+
+\item{min.cor}{Consider only gene pairs with a minimum correlation specified
+here.}
+
 \item{parallel.chunks}{Split into this number of tasks if parallel processing
 is set up. The number should be high enough to guarantee equal distribution
 of the work load in parallel execution. However, if the number is too large,
@@ -45,17 +51,14 @@ Compute competing endogeneous RNA interactions using
 Sparse Partial correlations ON Gene Expression (SPONGE)
 }
 \examples{
-#First we extract miRNA candidates for each of the genes
-genes_miRNA_candidates <- gene_miRNA_interaction_filter(
-gene_expr = gene_expr,
-mir_expr = mir_expr,
-binding_db = NULL)
+#First, extract miRNA candidates for each of the genes
+#using sponge_gene_miRNA_interaction_filter. Here we use a prepared
+#dataset mir_interactions.
 
 #Second we compute ceRNA interactions for all pairwise combinations of genes
 #using all miRNAs remaining after filtering through elasticnet.
 ceRNA_interactions <- sponge(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
-mir_interactions = genes_miRNA_candidates)
+mir_interactions = mir_interactions)
 }
-

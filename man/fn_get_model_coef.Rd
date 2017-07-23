@@ -15,4 +15,3 @@ A data frame with miRNAs and coefficients
 \description{
 Extract the model coefficients from an elastic net model
 }
-

@@ -4,17 +4,22 @@
 \alias{sponge_run_benchmark}
 \title{run sponge benchmark where various settings, i.e. with or without regression, single or pooled miRNAs, are compared.}
 \usage{
-sponge_run_benchmark(gene_expr, mir_expr, mir_interactions,
-  num_of_genes_to_test = c(25), folder = "")
+sponge_run_benchmark(gene_expr, mir_expr, mir_predicted_targets = targetscan,
+  number_of_samples = 100, number_of_datasets = 100,
+  number_of_genes_to_test = c(25), folder = "")
 }
 \arguments{
 \item{gene_expr}{a gene expression matrix}
 
 \item{mir_expr}{a miRNA expression matrix}
 
-\item{mir_interactions}{a list of mir interaction sources such as targetscan, mircode, etc.}
+\item{mir_predicted_targets}{(a list of) mir interaction sources such as targetscan, mircode, etc.}
 
-\item{num_of_genes_to_test}{a vector of numbers of genes to be tested, e.g. c(250,500)}
+\item{number_of_samples}{number of samples in the null model}
+
+\item{number_of_datasets}{number of datasets to sample from the null model}
+
+\item{number_of_genes_to_test}{a vector of numbers of genes to be tested, e.g. c(250,500)}
 
 \item{folder}{where the results should be saved}
 }
@@ -25,6 +30,6 @@ a list (regression, no regression) of lists (single miRNA, pooled miRNAs) of ben
 run sponge benchmark where various settings, i.e. with or without regression, single or pooled miRNAs, are compared.
 }
 \examples{
-sponge_run_benchmark(gene_expr, mir_expr, mir_interactions, c(10), folder = NULL)
+sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
+mir_predicted_targets = targetscan, number_of_genes_to_test = c(10), folder = NULL)
 }
-

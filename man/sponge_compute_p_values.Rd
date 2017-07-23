@@ -4,18 +4,24 @@
 \alias{sponge_compute_p_values}
 \title{Compute p-values for SPONGE interactions}
 \usage{
-sponge_compute_p_values(sponge_result, number.of.samples,
-  number.of.datasets = 1e+05, simulated.data = NULL, log.level = "INFO")
+sponge_compute_p_values(sponge_result, number_of_samples,
+  number_of_datasets = 1e+05, cov_matrices = cov.matrices,
+  simulated_data = NULL, log.level = "INFO")
 }
 \arguments{
 \item{sponge_result}{A data frame from a sponge call}
 
-\item{number.of.samples}{number of samples in the expression matrices}
+\item{number_of_samples}{number of samples in the expression matrices}
 
-\item{number.of.datasets}{number of datasets to simulate.}
+\item{number_of_datasets}{number of datasets to simulate.}
 
-\item{simulated.data}{optional, pre-computed simulated data
+\item{cov_matrices}{pre-computed covariance matrices to use in case s
+simulated data is not already provided via simulated_data.
 affects the mimimum p-value that can be achieved}
+
+\item{simulated_data}{optional, pre-computed simulated data}
+
+\item{log.level}{The log level of the logging package}
 }
 \value{
 A data frame with sponge results, now including p-values
@@ -38,4 +44,3 @@ combination using Benjamini-Hochberg FDR correction.
 \seealso{
 sponge_build_null_model
 }
-

@@ -15,6 +15,8 @@ genes in columns. Sample number and order has to agree with
 above gene expression matrix}
 
 \item{model}{A nested elastic net model to be tested}
+
+\item{p.adj.threshold}{Threshold for FDR corrected p-value}
 }
 \value{
 return data frame with miRNA, fstat and adjusted p.value (BH).
@@ -22,4 +24,3 @@ return data frame with miRNA, fstat and adjusted p.value (BH).
 \description{
 Perform F test for gene-miRNA elastic net model
 }
-
