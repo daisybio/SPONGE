@@ -7,8 +7,8 @@
 #' @return a ggplot2 object
 #' @export
 #'
-#' @examples null_model <- sponge_build_null_model(100, 100)
-#' sponge_plot_simulation_results(null_model)
+#' @examples #null_model <- sponge_build_null_model(100, 100)
+#' #sponge_plot_simulation_results(null_model)
 sponge_plot_simulation_results <- function(null_model_data)
 {
     test.data <- rbindlist(lapply(null_model_data, rbindlist, idcol = "k"), idcol = "m")

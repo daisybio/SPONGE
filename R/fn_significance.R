@@ -212,7 +212,7 @@ sponge_compute_p_values <- function(sponge_result,
 #' @import logging
 #' @export
 #'
-#' @examples sponge_build_null_model(100, 100)
+#' @examples #sponge_build_null_model(100, 100)
 sponge_build_null_model <- function(number_of_datasets = 1e5,
                                     number_of_samples,
                                     cov_matrices = cov.matrices,
