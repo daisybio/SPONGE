@@ -8,7 +8,8 @@ sponge_build_null_model(number_of_datasets = 1e+05, number_of_samples,
   cov_matrices = cov.matrices, log.level = "INFO")
 }
 \arguments{
-\item{number_of_datasets}{the number of datesets defining the precision of the p-value}
+\item{number_of_datasets}{the number of datesets defining the
+precision of the p-value}
 
 \item{number_of_samples}{the number of samples in the expression data}
 
@@ -18,7 +19,8 @@ sponge_build_null_model(number_of_datasets = 1e+05, number_of_samples,
 }
 \value{
 a list (for various values of m) of lists (for various values of k)
-of lists of simulated data sets, drawn from a set of precomputed covariance matrices
+of lists of simulated data sets, drawn from a set of precomputed
+covariance matrices
 }
 \description{
 Build null model for p-value computation

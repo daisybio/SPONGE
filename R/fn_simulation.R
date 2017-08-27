@@ -13,21 +13,24 @@ posdef <- function (n, ev = runif(n, 0, 10))
 }
 
 #computes the schur complement with respect to R22
-schur<-function(R) {
-    ((R[1:2,1:2]) - (R[1:2,3:ncol(R)]) %*% (solve(R[3:nrow(R),3:ncol(R)])) %*% t(R[1:2,3:ncol(R)]))
+schur <- function(R) {
+    ((R[1:2,1:2]) - (R[1:2,3:ncol(R)]) %*%
+         (solve(R[3:nrow(R),3:ncol(R)])) %*% t(R[1:2,3:ncol(R)]))
 }
 
 #computes sensitivity correlation
-get.q = function(S) {
-    s11  = S[1:2,1:2] #gene-gene covariance
-    pva  = schur(S) #partial covariance
-    q    = s11/outer(sqrt(diag(s11)),sqrt(diag(s11))) - pva / outer(sqrt(diag(pva)),sqrt(diag(pva))) #- sens - corr
+get.q <- function(S) {
+    s11 <- S[1:2,1:2] #gene-gene covariance
+    pva <- schur(S) #partial covariance
+    q <- s11/outer(sqrt(diag(s11)),sqrt(diag(s11))) - pva /
+        outer(sqrt(diag(pva)),sqrt(diag(pva))) #- sens - corr
     return(q)
 }
 
 #computes lambda from the dot product
 checkLambda <- function(x,y){
-    if(length(x) != length(y)) stop("input should be two vectors of equal length")
+    if(length(x) != length(y))
+        stop("input should be two vectors of equal length")
     beta <- foreach(i = 1:length(x), .combine = sum) %do% {x[i] * y[i]}
     norm.x <- base::norm(x,type="2")
     norm.y <- base::norm(y,type="2")
@@ -56,8 +59,10 @@ quadraticSolver <- function(a, b, c){
 #' @param m number of miRNAs, i.e. number of columns of the matrix
 #' @param number_of_solutions stop after this many instances have been samples
 #' @param number_of_attempts give up after that many attempts
-#' @param gene_gene_correlation optional, define the correlation of the first two elements, i.e. the genes.
-#' @param log.level the log level, typically set to INFO, set to DEBUG for verbose logging
+#' @param gene_gene_correlation optional, define the correlation of the first
+#' two elements, i.e. the genes.
+#' @param log.level the log level, typically set to INFO, set to DEBUG for
+#' verbose logging
 #' @importFrom gRbase cov2pcor
 #' @import ppcor
 #' @import expm
@@ -87,7 +92,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
         total <- 0
         basicConfig(level = log.level)
 
-        loginfo(paste("Looking for zero sensitivity covariance matrix for case m =",
+        loginfo(
+            paste("Looking for zero sensitivity covariance matrix for case m =",
                       m, "solution no.", solution))
         #a lot of solutions are not within our constraints, so we repeat
         while(total < number_of_attempts){
@@ -136,10 +142,12 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 u2.norm.1 <- u2.solutions[[1]]
                 u2.norm.2 <- u2.solutions[[2]]
 
-                r12.m <- (K - sqrt(u1.norm^2) * sqrt(u2.norm.1^2) * lambda) * (1 - u1.norm^2)^-(1/2) * (1 - u2.norm.1^2)^-(1/2)
+                r12.m <- (K - sqrt(u1.norm^2) * sqrt(u2.norm.1^2) * lambda) *
+                    (1 - u1.norm^2)^-(1/2) * (1 - u2.norm.1^2)^-(1/2)
 
                 if(is.nan(r12.m)){
-                    r12.m <- (K - sqrt(u1.norm^2) * sqrt(u2.norm.2^2) * lambda) * (1 - u1.norm^2)^-(1/2) * (1 - u2.norm.2^2)^-(1/2)
+                    r12.m <- (K - sqrt(u1.norm^2) * sqrt(u2.norm.2^2) *lambda) *
+                    (1 - u1.norm^2)^-(1/2) * (1 - u2.norm.2^2)^-(1/2)
                 }
 
                 if(is.nan(r12.m)){
@@ -169,7 +177,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                     next
                 }
 
-                beta <- foreach(i = 1:(m-1), .combine = sum) %do% {u1[i] * u2.wo_m[i]}
+                beta <- foreach(i = 1:(m-1), .combine = sum) %do%
+                    {u1[i] * u2.wo_m[i]}
 
                 A <- u1.m^2 - lambda^2 * u1.norm^2
                 B <- 2 * beta * u1.m
@@ -198,7 +207,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 i <- 1
                 within_constraints <- TRUE
                 while(i < length(u2.scaled)){
-                    if(u2.scaled[i] > constraints[i] || u2.scaled[i] < -constraints[i]) {
+                    if((u2.scaled[i] > constraints[i]) ||
+                       (u2.scaled[i] < -constraints[i])) {
                         within_constraints <- FALSE
                         break
                     }
@@ -228,8 +238,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
             R[3:(2+m), 2] <- v2
 
             #generate covariance matrix S
-            L = diag(exp(rnorm(2+m))) 							#- variances
-            S = L %*% R %*% L 									#- covariance matrix
+            L = diag(exp(rnorm(2+m)))
+            S = L %*% R %*% L
 
             #test for negative variance
             if(any(diag(schur(S)) < 0)){
@@ -300,7 +310,8 @@ sample_zero_mscor_data <- function(cov_matrices,
                                   number_of_datasets = 100){
     foreach(cov.matrix = cov_matrices) %do% {
         #check that sensitivity correlation is zero
-        if(abs(cov2pcor(cov.matrix)[1,2] - cov2cor(cov.matrix)[1,2]) > sqrt(.Machine$double.eps))
+        if(abs(cov2pcor(cov.matrix)[1,2] - cov2cor(cov.matrix)[1,2]) >
+           sqrt(.Machine$double.eps))
             stop("sensitivity correlation of a given covariance matrix is not zero.")
 
         #sample data under this covariance matrix

@@ -2,7 +2,7 @@ Package: SPONGE
 Type: Package
 Title: Sparse Partial Correlations On Gene Expression
 Version: 0.1.0
-Author: Markus List, Marcel Schulz, Azim Dehghani
+Author: Markus List, Marcel Schulz
 Maintainer: Markus List <markus.list@mpi-inf.mpg.de>
 Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input.
 License: GPL (>=3) 
@@ -13,6 +13,7 @@ Suggests:
     knitr,
     rmarkdown
 Imports:
+    stats,
     ggplot2,
     ggrepel,
     gridExtra,
@@ -20,7 +21,6 @@ Imports:
     logging,
     foreach,
     dplyr,
-    stringr,
     data.table,
     visNetwork,
     bigmemory,
@@ -37,3 +37,10 @@ Imports:
     matrixStats,
     mirbase.db
 VignetteBuilder: knitr
+biocViews: GeneExpression,
+    Transcription,
+    GeneRegulation,
+    NetworkInference,
+    Transcriptomics,
+    SystemsBiology,
+    Regression

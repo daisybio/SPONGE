@@ -121,8 +121,10 @@ sponge <- function(gene_expr,
     basicConfig(level = log.level)
 
     #check for toxic NA values that crash elasticnet
-    if(anyNA(gene_expr)) stop("NA values found in gene expression data. Can not proceed")
-    if(anyNA(mir_expr)) stop("NA values found in miRNA expression data. Can not proceed")
+    if(anyNA(gene_expr))
+        stop("NA values found in gene expression data. Can not proceed")
+    if(anyNA(mir_expr))
+        stop("NA values found in miRNA expression data. Can not proceed")
 
     #filter out genes without miR interactions
     mir_interactions <- Filter(Negate(is.null), mir_interactions)
@@ -248,7 +250,7 @@ sponge <- function(gene_expr,
             #check if shared miRNAs are in expression matrix
             if(length(setdiff(mir_intersect, all_mirs)) > 0){
                 logdebug(paste("Source gene", geneA, "and target gene", geneB,
-                              "shared miRNAs not found in mir_expr are discarded"))
+                          "shared miRNAs not found in mir_expr are discarded"))
                 mir_intersect <- intersect(mir_intersect, all_mirs)
             }
 

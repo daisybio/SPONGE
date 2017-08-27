@@ -73,21 +73,21 @@ First, the user may incorporate prior knowledge to narrow down the number of gen
 SPONGE allows for an arbitrary number of miRNA-gene interaction matrices $I$ that need to be formatted with genes $G$ in rows and miRNAs $M$ in columns. For each element $i_{g, m} \in I$, we consider the miRNA-gene interaction if $i_{g, m} > 0$. While SPONGE only checks if an entry is zero or not, this approach allows for additional information such as the respective number of binding sites or a score to be encoded in the matrix for later analysis. We included examples for TargetScan:
 
 ```{r, eval = FALSE}
-head(targetscan)
+head(targetscan_symbol)
 ```
 
 ```{r, echo=FALSE, results='asis'}
-knitr::kable(targetscan[1:5,1:5])
+knitr::kable(targetscan_symbol[1:5,1:5])
 ```
 
 ...and miRcode
 
 ```{r, eval = FALSE}
-head(mircode)
+head(mircode_symbol)
 ```
 
 ```{r, echo=FALSE, results='asis'}
-knitr::kable(mircode[1:5,1:5])
+knitr::kable(mircode_symbol[1:5,1:5])
 ```
 
 Note that the gene and miRNA identifiers in the interaction matrices need to be of the same type and format as the ones used in the expression matrices. Otherwise they can not be matched by SPONGE.
@@ -100,7 +100,7 @@ We apply step A of the SPONGE workflow as follows:
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
-mir_predicted_targets = list(mircode,targetscan))
+mir_predicted_targets = list(mircode_symbol,targetscan_symbol))
 ```
 
 The result is a list of genes, where each entry holds a data frame with retained miRNAs and their coefficients (or p-values in case the F-test is used). Note that the mir_predicted_targets parameter may also be NULL. In this case, no prior knowledge is used and all putative miRNA-gene interactions are used in elasticnet regression.
@@ -230,14 +230,17 @@ sponge_plot_network_centralities(weighted_network_centralities, measure = "btw",
 
 Even though SPONGE is quite fast in inferring ceRNA interactions it will still take a few days to process a dataset with hundred of samples on a single CPU. We thus built SPONGE on top of the foreach and bigmemory R packages:
 
-The foreach R package will allow you to parallelize SPONGE over multiple CPUs. The beauty of this approach is that it is up to the user to decide which backend to use for this. We refer to the foreach package for details. One of the most used backends for foreach is the doParallel R package. Once a parallel compute cluster is set up, SPONGE can use it automatically (no extra parameters needed):
+The foreach R package will allow you to parallelize SPONGE over multiple CPUs. The beauty of this approach is that it is up to the user to decide which backend to use for this. We refer to the foreach package for details. One of the most used backends for foreach is the doParallel R package. Once a parallel compute environment is set up, SPONGE can use it automatically (no extra parameters needed):
 
 ```{r, eval=FALSE}
 library(doParallel)
 library(foreach)
 
 num.of.cores <- 2 #many more on a compute cluster
-logging.file <- "logs/where_my_log_file_should_go.log"
+
+#if you want to use logging
+#logging.file <- "where_my_log_file_should_go.log"
+logging.file <- NULL
 
 cl <- makeCluster(num.of.cores, outfile=logging.file) 
 registerDoParallel(cl)
@@ -245,7 +248,7 @@ registerDoParallel(cl)
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
-binding_db = mircode)
+binding_db = mircode_symbol)
 
 ceRNA_interactions <- sponge(
 gene_expr = gene_expr,
@@ -255,6 +258,15 @@ mir_interactions = genes_miRNA_candidates)
 stopCluster(cl) 
 
 ```
+
+Note that if you would like to use the BiocParallel package you can simply 
+register any parallel foreach backend such as the one used above as follows:
+
+```{r, eval = FALSE}
+library("BiocParallel")
+register(DoparParam(), default = TRUE)
+```
+
 
 A frequently encountered caveat of foreach is that each of the parallel workers will require a copy of the data its operating on. With large datasets this becomes an issue even on compute servers with large memory. We thus utilize the bigmemory R package to allow each parallel worker process / thread to access data in shared memory. If you have access to a compute server with 40-60 cores, you can typically compute a genome-wide ceRNA network within a few hours.
 

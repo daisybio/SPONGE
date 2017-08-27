@@ -9,9 +9,13 @@ sponge_plot_simulation_results(null_model_data)
 \arguments{
 \item{null_model_data}{the output of sponge_build_null_model}
 }
+\value{
+a ggplot2 object
+}
 \description{
 Plot simulation results for different null models
 }
 \examples{
-sponge_plot_simulation_results(sponge_build_null_model(100, 100))
+null_model <- sponge_build_null_model(100, 100)
+sponge_plot_simulation_results(null_model)
 }

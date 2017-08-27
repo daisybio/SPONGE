@@ -4,7 +4,8 @@
 \name{mircode_noncoding}
 \alias{mircode_noncoding}
 \title{mircode predicted miRNA gene interactions}
-\format{A matrix gene symbols vs miRNA family names. 1 if interaction is predicted, 0 otherwise}
+\format{A matrix gene symbols vs miRNA family names. 1 if interaction is
+predicted, 0 otherwise}
 \source{
 http://www.mircode.org/download.php
 }
@@ -12,7 +13,8 @@ http://www.mircode.org/download.php
 mircode_noncoding
 }
 \description{
-This is a subset of the mircode highly conserved interactions for non-coding RNAs
+This is a subset of the mircode highly conserved interactions
+for non-coding RNAs
 and showing very high total conservation > 20%
 }
 \keyword{datasets}

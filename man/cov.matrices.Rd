@@ -3,13 +3,16 @@
 \docType{data}
 \name{cov.matrices}
 \alias{cov.matrices}
-\title{covariance matrices under the null hypothesis that sensitivity correlation is zero}
-\format{A list (different gene-gene correlations k) of lists (different number of miRNAs m) of
+\title{covariance matrices under the null hypothesis that sensitivity correlation
+is zero}
+\format{A list (different gene-gene correlations k) of lists
+(different number of miRNAs m) of
 covariance matrices}
 \usage{
 cov.matrices
 }
 \description{
-covariance matrices under the null hypothesis that sensitivity correlation is zero
+covariance matrices under the null hypothesis that sensitivity correlation
+is zero
 }
 \keyword{datasets}

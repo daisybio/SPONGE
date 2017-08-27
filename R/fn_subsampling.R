@@ -17,8 +17,9 @@
 #' correlation and sensitive correlation.
 #' @export
 #'
-#' @examples test <- sponge_subsampling(gene_expr = gene_expr,
-#' mir_expr = mir_expr, mir_interactions = mir_interactions)
+#' @examples sponge_subsampling(gene_expr = gene_expr,
+#' mir_expr = mir_expr, mir_interactions = mir_interactions,
+#' subsample.n = 10, subsample.repeats = 1)
 
 
 

@@ -14,9 +14,11 @@ sample_zero_mscor_cov(m, number_of_solutions, number_of_attempts = 1000,
 
 \item{number_of_attempts}{give up after that many attempts}
 
-\item{gene_gene_correlation}{optional, define the correlation of the first two elements, i.e. the genes.}
+\item{gene_gene_correlation}{optional, define the correlation of the first
+two elements, i.e. the genes.}
 
-\item{log.level}{the log level, typically set to INFO, set to DEBUG for verbose logging}
+\item{log.level}{the log level, typically set to INFO, set to DEBUG for
+verbose logging}
 }
 \value{
 a list of covariance matrices with zero sensitivity correlation

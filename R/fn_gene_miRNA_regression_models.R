@@ -65,28 +65,30 @@
 #' genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
-#' mir_predicted_targets = targetscan)
+#' mir_predicted_targets = targetscan_symbol)
 #' #stopCluster(cl)
 #'
 #' #If we also perform an F-test, only few of the above miRNAs remain
 #' genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 #' gene_expr = gene_expr,
 #' mir_expr = mir_expr,
-#' mir_predicted_targets = targetscan,
+#' mir_predicted_targets = targetscan_symbol,
 #' F.test = TRUE,
 #' F.test.p.adj.threshold = 0.05)
 #'
 sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                         mir_predicted_targets = list(mircode, targetscan),
-                                         elastic.net = TRUE,
-                                         log.every.n = 100,
-                                         log.level='INFO',
-                                         var.threshold = NULL,
-                                         F.test = FALSE,
-                                         F.test.p.adj.threshold = 0.05,
-                                         coefficient.threshold = -0.05,
-                                         coefficient.direction = "<",
-                                         select.non.targets = FALSE){
+                                                 mir_predicted_targets = list(
+                                                     mircode_ensg,
+                                                     targetscan_ensg),
+                                                 elastic.net = TRUE,
+                                                 log.every.n = 100,
+                                                 log.level='INFO',
+                                                 var.threshold = NULL,
+                                                 F.test = FALSE,
+                                                 F.test.p.adj.threshold = 0.05,
+                                                 coefficient.threshold = -0.05,
+                                                 coefficient.direction = "<",
+                                                 select.non.targets = FALSE){
     basicConfig(level = log.level)
     with_target_info <- !is.null(mir_predicted_targets)
 
@@ -117,9 +119,9 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         all_mirs <- intersect(all_mirs, colnames(mir_expr))
 
         all_genes <- foreach(mir_db = mir_predicted_targets,
-                            .combine = union) %do% {
-                                rownames(mir_db)
-                            }
+                             .combine = union) %do% {
+                                 rownames(mir_db)
+                             }
         all_genes <- intersect(all_genes, colnames(gene_expr))
 
         mir_predicted_targets <- big.matrix(
@@ -180,132 +182,132 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
             .inorder = TRUE) %dopar% {
 
-        #attach shared data
-        attached_gene_expr <- attach.big.matrix(gene_expr_description)
-        attached_mir_expr <- attach.big.matrix(mir_expr_description)
+                #attach shared data
+                attached_gene_expr <- attach.big.matrix(gene_expr_description)
+                attached_mir_expr <- attach.big.matrix(mir_expr_description)
 
-        #get gene name
-        gene <- all_genes[gene_idx]
+                #get gene name
+                gene <- all_genes[gene_idx]
 
-        #setup logging
-        basicConfig(level = log.level)
+                #setup logging
+                basicConfig(level = log.level)
 
-        if(gene_idx %% log.every.n == 0){
-            curr_percentage <- round((gene_idx / num_of_genes) * 100, 2)
-            loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
-        }
+                if(gene_idx %% log.every.n == 0){
+                    curr_percentage <- round((gene_idx / num_of_genes) * 100, 2)
+                    loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
+                }
 
-        logdebug(paste("Processing gene", gene))
+                logdebug(paste("Processing gene", gene))
 
-        #expression values of this gene
-        g_expr <- attached_gene_expr[,gene_idx]
+                #expression values of this gene
+                g_expr <- attached_gene_expr[,gene_idx]
 
-        #check if we have a target database
-        if(with_target_info){
-            attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
-            mimats_matched <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] > 0)]
+                #check if we have a target database
+                if(with_target_info){
+                    attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
+                    mimats_matched <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] > 0)]
 
-            if(length(mimats_matched) == 0){
-                logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
-                return(NULL)
-            }
+                    if(length(mimats_matched) == 0){
+                        logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
+                        return(NULL)
+                    }
 
-            if(select.non.targets){
-                non_targets <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)]
-                mimats_matched <- sample(non_targets,
-                       min(length(mimats_matched), length(non_targets)))
-            }
-            m_expr <- attached_mir_expr[,which(all_mirs %in% mimats_matched)]
-        }
-        else{
-            mimats_matched <- all_mirs
-            m_expr <- as.matrix(attached_mir_expr)
-        }
+                    if(select.non.targets){
+                        non_targets <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)]
+                        mimats_matched <- sample(non_targets,
+                                                 min(length(mimats_matched), length(non_targets)))
+                    }
+                    m_expr <- attached_mir_expr[,which(all_mirs %in% mimats_matched)]
+                }
+                else{
+                    mimats_matched <- all_mirs
+                    m_expr <- as.matrix(attached_mir_expr)
+                }
 
-        if(!elastic.net){
-            return(data.frame(mirna = mimats_matched))
-        }
+                if(!elastic.net){
+                    return(data.frame(mirna = mimats_matched))
+                }
 
-        #learn a regression model to figure out which miRNAs regulate this gene in
-        #the given dataset
-        logdebug(paste("Learning regression model for gene", gene))
+                #learn a regression model to figure out which miRNAs regulate this gene in
+                #the given dataset
+                logdebug(paste("Learning regression model for gene", gene))
 
-        #if we have only one miRNA we can't use glmnet.
-        #We use lm instead and check if this miRNA is sigificant
-        if(length(mimats_matched) == 1) {
-            tryCatch({
-                if(F.test){
-                    fstat <- as.numeric(summary(lm(g_expr ~ m_expr))$fstatistic[1])
-                    pval <- pf(fstat, 1, length(m_expr), lower.tail=FALSE)
-                    lm_result <- data.frame(mirna = mimats_matched[1],
-                                            fstats = fstat,
-                                            pval=pval,
-                                            p.adj = pval)
-                }else{
-                    lm_result <- data.frame(mirna = mimats_matched[1],
-                                            coefficient = coef(lm(g_expr ~ m_expr))[-1])
+                #if we have only one miRNA we can't use glmnet.
+                #We use lm instead and check if this miRNA is sigificant
+                if(length(mimats_matched) == 1) {
+                    tryCatch({
+                        if(F.test){
+                            fstat <- as.numeric(summary(lm(g_expr ~ m_expr))$fstatistic[1])
+                            pval <- pf(fstat, 1, length(m_expr), lower.tail=FALSE)
+                            lm_result <- data.frame(mirna = mimats_matched[1],
+                                                    fstats = fstat,
+                                                    pval=pval,
+                                                    p.adj = pval)
+                        }else{
+                            lm_result <- data.frame(mirna = mimats_matched[1],
+                                                    coefficient = coef(lm(g_expr ~ m_expr))[-1])
+
+                            if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
+                                outside.threshold <- which(abs(lm_result$coefficient) > coefficient.threshold)
+                            else if(coefficient.direction == "<")
+                                outside.threshold <- which(lm_result$coefficient < coefficient.threshold)
+                            else if(coefficient.direction == ">")
+                                outside.threshold <- which(lm_result$coefficient > coefficient.threshold)
+
+                            if(length(outside.threshold) == 0) return(NULL)
+                            else return(lm_result[outside.threshold,])
+                        }
+                    }, warning = function(w) {
+                        logdebug(w)
+                        return(NULL)
+                    }, error = function(e) {
+                        logerror(e)
+                        return(NULL)
+                    })
+                    return(lm_result)
+                }
+
+                #if we have more than one miRNA we can use elasticnet to
+                #find out which are the essential features
+                model <- tryCatch({
+                    fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
+                }, warning = function(w) {
+                    logdebug(w)
+                    return(NULL)
+                }, error = function(e) {
+                    logerror(e)
+                    return(NULL)
+                })
+                if(is.null(model)) return(NULL)
+
+                #extract model coefficients
+                if(!F.test){
+                    result <- fn_get_model_coef(model)
 
                     if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
-                        outside.threshold <- which(abs(lm_result$coefficient) > coefficient.threshold)
+                        outside.threshold <- which(abs(result$coefficient) > coefficient.threshold)
                     else if(coefficient.direction == "<")
-                        outside.threshold <- which(lm_result$coefficient < coefficient.threshold)
+                        outside.threshold <- which(result$coefficient < coefficient.threshold)
                     else if(coefficient.direction == ">")
-                        outside.threshold <- which(lm_result$coefficient > coefficient.threshold)
+                        outside.threshold <- which(result$coefficient > coefficient.threshold)
 
                     if(length(outside.threshold) == 0) return(NULL)
-                    else return(lm_result[outside.threshold,])
+                    else return(result[outside.threshold,])
                 }
-            }, warning = function(w) {
-                logdebug(w)
-                return(NULL)
-            }, error = function(e) {
-                logerror(e)
-                return(NULL)
-            })
-            return(lm_result)
-        }
+                #we use the F test to assess the significance of each feature
+                else if(F.test){
+                    result <- tryCatch({
+                        fn_gene_miRNA_F_test(g_expr, m_expr, model,
+                                             F.test.p.adj.threshold)
+                    }, warning = function(w) {
+                        logdebug(w)
+                        return(NULL)
+                    }, error = function(e) {
+                        logerror(e)
+                        return(NULL)
+                    })
 
-        #if we have more than one miRNA we can use elasticnet to
-        #find out which are the essential features
-        model <- tryCatch({
-            fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
-        }, warning = function(w) {
-            logdebug(w)
-            return(NULL)
-        }, error = function(e) {
-            logerror(e)
-            return(NULL)
-        })
-	    if(is.null(model)) return(NULL)
-
-        #extract model coefficients
-        if(!F.test){
-            result <- fn_get_model_coef(model)
-
-            if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
-                outside.threshold <- which(abs(result$coefficient) > coefficient.threshold)
-            else if(coefficient.direction == "<")
-                outside.threshold <- which(result$coefficient < coefficient.threshold)
-            else if(coefficient.direction == ">")
-                outside.threshold <- which(result$coefficient > coefficient.threshold)
-
-            if(length(outside.threshold) == 0) return(NULL)
-            else return(result[outside.threshold,])
-        }
-        #we use the F test to assess the significance of each feature
-        else if(F.test){
-            result <- tryCatch({
-                fn_gene_miRNA_F_test(g_expr, m_expr, model,
-                                     F.test.p.adj.threshold)
-            }, warning = function(w) {
-                logdebug(w)
-                return(NULL)
-            }, error = function(e) {
-                logerror(e)
-                return(NULL)
-            })
-
-    	    return(result)
-        }
-    }
+                    return(result)
+                }
+            }
 }

@@ -5,9 +5,9 @@
 \title{Determine miRNA-gene interactions to be considered in SPONGE}
 \usage{
 sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr,
-  mir_predicted_targets = list(mircode, targetscan), elastic.net = TRUE,
-  log.every.n = 100, log.level = "INFO", var.threshold = NULL,
-  F.test = FALSE, F.test.p.adj.threshold = 0.05,
+  mir_predicted_targets = list(mircode_ensg, targetscan_ensg),
+  elastic.net = TRUE, log.every.n = 100, log.level = "INFO",
+  var.threshold = NULL, F.test = FALSE, F.test.p.adj.threshold = 0.05,
   coefficient.threshold = -0.05, coefficient.direction = "<",
   select.non.targets = FALSE)
 }
@@ -86,14 +86,14 @@ foreach and doParallel packages.
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
-mir_predicted_targets = targetscan)
+mir_predicted_targets = targetscan_symbol)
 #stopCluster(cl)
 
 #If we also perform an F-test, only few of the above miRNAs remain
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
-mir_predicted_targets = targetscan,
+mir_predicted_targets = targetscan_symbol,
 F.test = TRUE,
 F.test.p.adj.threshold = 0.05)
 
