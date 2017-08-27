@@ -19,8 +19,8 @@
 #' @import foreach
 #'
 #' @examples #sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
-#' mir_predicted_targets = targetscan_symbol,
-#' number_of_genes_to_test = c(10), folder = NULL)
+#' #mir_predicted_targets = targetscan_symbol,
+#' #number_of_genes_to_test = c(10), folder = NULL)
 sponge_run_benchmark <- function(gene_expr,
                                  mir_expr,
                                  mir_predicted_targets = targetscan_ensg,

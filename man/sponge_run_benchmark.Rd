@@ -35,7 +35,7 @@ run sponge benchmark where various settings, i.e. with or without
 regression, single or pooled miRNAs, are compared.
 }
 \examples{
-sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
-mir_predicted_targets = targetscan_symbol,
-number_of_genes_to_test = c(10), folder = NULL)
+#sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
+#mir_predicted_targets = targetscan_symbol,
+#number_of_genes_to_test = c(10), folder = NULL)
 }
