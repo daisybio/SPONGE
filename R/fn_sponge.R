@@ -197,7 +197,7 @@ sponge <- function(gene_expr,
                     .export = c("fn_get_shared_miRNAs")) %dopar% {
         basicConfig(level = log.level)
 
-        loginfo(paste("SPONGE: worker is processing chunk: ", i, sep=""))
+        logdebug(paste("SPONGE: worker is processing chunk: ", i, sep=""))
 
         #attach bigmemory objects
         attached_gene_expr <- attach.big.matrix(gene_expr_description)
@@ -278,7 +278,7 @@ sponge <- function(gene_expr,
                              geneA, geneB, dcor)
             }
         }
-        loginfo(paste("SPONGE finished chunk:", i, "of", num_of_tasks))
+        logdebug(paste("SPONGE finished chunk:", i, "of", num_of_tasks))
 
         return(result)
     }

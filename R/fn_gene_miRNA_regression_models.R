@@ -77,9 +77,7 @@
 #' F.test.p.adj.threshold = 0.05)
 #'
 sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
-                                                 mir_predicted_targets = list(
-                                                     mircode_ensg,
-                                                     targetscan_ensg),
+                                                 mir_predicted_targets,
                                                  elastic.net = TRUE,
                                                  log.every.n = 100,
                                                  log.level='INFO',

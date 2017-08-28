@@ -80,6 +80,12 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                                  gene_gene_correlation = NULL,
                                  log.level = "INFO"){
 
+    loginfo(
+        paste0(
+            "Sampling covariance matrices for cor = ",
+            gene_gene_correlation
+        )
+    )
     solutions <- foreach(solution = 1:number_of_solutions,
                          .packages = c("MASS", "gRbase",
                                        "ppcor", "expm", "logging",
@@ -92,7 +98,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
         total <- 0
         basicConfig(level = log.level)
 
-        loginfo(
+        logdebug(
             paste("Looking for zero sensitivity covariance matrix for case m =",
                       m, "solution no.", solution))
         #a lot of solutions are not within our constraints, so we repeat
@@ -302,7 +308,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
 #'
 #' @examples #we select from the pre-computed covariance matrices in SPONGE
 #' #10 for m = 5 miRNAs and gene-gene correlation 0.6
-#' cov_matrices_selected <- cov.matrices[["5"]][["0.6"]]
+#' cov_matrices_selected <- precomputed_cov_matrices[["5"]][["0.6"]]
 #' sample_zero_mscor_data(cov_matrices = cov_matrices_selected,
 #' number_of_samples = 200, number_of_datasets = 10)
 sample_zero_mscor_data <- function(cov_matrices,

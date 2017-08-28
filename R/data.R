@@ -22,31 +22,13 @@
 #' typically provided by sponge
 "ceRNA_interactions"
 
-#' miRNA family mapping table
-#'
-#' @source ftp://mirbase.org/pub/mirbase/CURRENT/miFam.dat.gz
-#' @format A data frame used to map miR.family ids to MiRBase.Accession ids
-"mir_family_info"
-
 #' covariance matrices under the null hypothesis that sensitivity correlation
 #' is zero
 #'
 #' @format A list (different gene-gene correlations k) of lists
 #' (different number of miRNAs m) of
 #' covariance matrices
-"cov.matrices"
-
-#' mircode predicted miRNA gene interactions
-#' @source http://www.mircode.org/download.php
-#' @format A matrix gene symbols vs miRNA family names. >=1 if interaction is
-#' predicted, 0 otherwise
-"mircode_symbol"
-
-#' mircode predicted miRNA gene interactions
-#' @source http://www.mircode.org/download.php
-#' @format A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
-#' is predicted, 0 otherwise
-"mircode_ensg"
+"precomputed_cov_matrices"
 
 #' targetscan predicted miRNA gene interactions
 #' @source http://www.targetscan.org/vert_71/
@@ -59,12 +41,3 @@
 #' @format A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
 #' is predicted, 0 otherwise
 "targetscan_ensg"
-
-#' mircode predicted miRNA gene interactions
-#' @source http://www.mircode.org/download.php
-#' @description This is a subset of the mircode highly conserved interactions
-#' for non-coding RNAs
-#' and showing very high total conservation > 20%
-#' @format A matrix gene symbols vs miRNA family names. 1 if interaction is
-#' predicted, 0 otherwise
-"mircode_noncoding"

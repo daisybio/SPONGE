@@ -5,7 +5,7 @@
 \title{Compute p-values for SPONGE interactions}
 \usage{
 sponge_compute_p_values(sponge_result, number_of_samples,
-  number_of_datasets = 1e+05, cov_matrices = cov.matrices,
+  number_of_datasets = 1e+05, cov_matrices = precomputed_cov_matrices,
   simulated_data = NULL, log.level = "INFO")
 }
 \arguments{

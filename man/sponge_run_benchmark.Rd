@@ -5,9 +5,9 @@
 \title{run sponge benchmark where various settings, i.e. with or without
 regression, single or pooled miRNAs, are compared.}
 \usage{
-sponge_run_benchmark(gene_expr, mir_expr,
-  mir_predicted_targets = targetscan_ensg, number_of_samples = 100,
-  number_of_datasets = 100, number_of_genes_to_test = c(25), folder = "")
+sponge_run_benchmark(gene_expr, mir_expr, mir_predicted_targets,
+  number_of_samples = 100, number_of_datasets = 100,
+  number_of_genes_to_test = c(25), folder = "")
 }
 \arguments{
 \item{gene_expr}{a gene expression matrix}
@@ -15,7 +15,7 @@ sponge_run_benchmark(gene_expr, mir_expr,
 \item{mir_expr}{a miRNA expression matrix}
 
 \item{mir_predicted_targets}{(a list of) mir interaction sources such as
-targetscan, mircode, etc.}
+targetscan, etc.}
 
 \item{number_of_samples}{number of samples in the null model}
 

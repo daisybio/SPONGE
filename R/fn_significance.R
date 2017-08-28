@@ -7,9 +7,11 @@ compute_simulated_data <- function(cov_matrices,
     number_of_datasets_per_matrix <- ceiling(number_of_datasets /
                                                  length(cov_matrices))
 
+    precomputed_cov_matrices <- cov_matrices
+
     mscor <- sample(
         unlist(sample_zero_mscor_data(
-            cov_matrices = cov_matrices,
+            cov_matrices = precomputed_cov_matrices,
             number_of_datasets = number_of_datasets_per_matrix,
             number_of_samples = number_of_samples)),
             number_of_datasets)
@@ -37,7 +39,7 @@ compute_p_values <- function(partition,
     k <- as.character(partition[1,cor_cut])
     m <- as.character(partition[1,df_cut])
 
-    loginfo(paste0("Computing p-values for partition m = ", m, " and k = ", k))
+    logdebug(paste0("Computing p-values for partition m = ", m, " and k = ", k))
 
     #simulate data using the appropriate covariance matrices
     if(is.null(simulated_data)){
@@ -124,7 +126,7 @@ ms <- seq(1, 8, 1)
 sponge_compute_p_values <- function(sponge_result,
                                     number_of_samples,
                                     number_of_datasets = 1e5,
-                                    cov_matrices = cov.matrices,
+                                    cov_matrices = precomputed_cov_matrices,
                                     simulated_data = NULL,
                                     log.level = "INFO"){
 
@@ -212,13 +214,15 @@ sponge_compute_p_values <- function(sponge_result,
 #' @import logging
 #' @export
 #'
-#' @examples #sponge_build_null_model(100, 100)
+#' @examples sponge_build_null_model(100, 100)
 sponge_build_null_model <- function(number_of_datasets = 1e5,
                                     number_of_samples,
-                                    cov_matrices = cov.matrices,
+                                    cov_matrices = precomputed_cov_matrices,
                                     log.level = "INFO"){
 
-    foreach(cov.matrices.m = cov_matrices[as.character(ms)],
+    loginfo("Constructing SPONGE null model.")
+
+    null_model <- foreach(cov.matrices.m = cov_matrices[as.character(ms)],
             m = ms,
             .final = function(x) setNames(x, as.character(ms)),
             .inorder = TRUE) %:%
@@ -232,7 +236,7 @@ sponge_build_null_model <- function(number_of_datasets = 1e5,
                         stop("Covariance matrix missing for simulating data.")
                     basicConfig(level = log.level)
 
-                    loginfo(
+                    logdebug(
                         paste0(
                             "Simulating data for null model of partition m = ",
                             m, " and k = ", k))
@@ -241,5 +245,7 @@ sponge_build_null_model <- function(number_of_datasets = 1e5,
                         cov_matrices = cov.matrices.k,
                         number_of_datasets = number_of_datasets,
                         number_of_samples = number_of_samples)
-                }
+                              }
+    loginfo("Finished constructing SPONGE null model.")
+    return(null_model)
 }

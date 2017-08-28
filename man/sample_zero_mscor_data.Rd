@@ -25,7 +25,7 @@ Sample mscor coefficients from pre-computed covariance matrices
 \examples{
 #we select from the pre-computed covariance matrices in SPONGE
 #10 for m = 5 miRNAs and gene-gene correlation 0.6
-cov_matrices_selected <- cov.matrices[["5"]][["0.6"]]
+cov_matrices_selected <- precomputed_cov_matrices[["5"]][["0.6"]]
 sample_zero_mscor_data(cov_matrices = cov_matrices_selected,
 number_of_samples = 200, number_of_datasets = 10)
 }
