@@ -32,9 +32,9 @@ correlation and sensitive correlation.
 Sponge subsampling
 }
 \examples{
-sponge_subsampling(gene_expr = gene_expr,
-mir_expr = mir_expr, mir_interactions = mir_interactions,
-subsample.n = 10, subsample.repeats = 1)
+#sponge_subsampling(gene_expr = gene_expr,
+#mir_expr = mir_expr, mir_interactions = mir_interactions,
+#subsample.n = 10, subsample.repeats = 1)
 }
 \references{
 sponge

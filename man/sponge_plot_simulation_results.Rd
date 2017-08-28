@@ -16,6 +16,6 @@ a ggplot2 object
 Plot simulation results for different null models
 }
 \examples{
-null_model <- sponge_build_null_model(100, 100)
-sponge_plot_simulation_results(null_model)
+#null_model <- sponge_build_null_model(100, 100)
+#sponge_plot_simulation_results(null_model)
 }
