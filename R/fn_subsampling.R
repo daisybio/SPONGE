@@ -34,7 +34,7 @@ sponge_subsampling <- function(
 
     subsample_results <-
     foreach(sub.n = subsample.n, .combine = rbind) %do%{
-        foreach(r = 1:subsample.repeats, .combine = rbind) %do% {
+        foreach(r = seq_len(subsample.repeats), .combine = rbind) %do% {
             random_draw <- sample.int(nrow(gene_expr), sub.n, replace = subsample.with.replacement)
 
             sub_gene_expr <- gene_expr[random_draw,]

@@ -14,12 +14,16 @@ posdef <- function (n, ev = runif(n, 0, 10))
 
 #computes the schur complement with respect to R22
 schur <- function(R) {
+    if(ncol(R) < 3) stop("Input matrix needs to have dimensions 3x3 or larger")
+    if(nrow(R) != ncol(R)) stop("Input matrix needs to be square")
     ((R[1:2,1:2]) - (R[1:2,3:ncol(R)]) %*%
          (solve(R[3:nrow(R),3:ncol(R)])) %*% t(R[1:2,3:ncol(R)]))
 }
 
 #computes sensitivity correlation
 get.q <- function(S) {
+    if(ncol(S) < 3) stop("Input matrix needs to have dimensions 3x3 or larger")
+    if(nrow(S) != ncol(R)) stop("Input matrix needs to be square")
     s11 <- S[1:2,1:2] #gene-gene covariance
     pva <- schur(S) #partial covariance
     q <- s11/outer(sqrt(diag(s11)),sqrt(diag(s11))) - pva /
@@ -31,7 +35,7 @@ get.q <- function(S) {
 checkLambda <- function(x,y){
     if(length(x) != length(y))
         stop("input should be two vectors of equal length")
-    beta <- foreach(i = 1:length(x), .combine = sum) %do% {x[i] * y[i]}
+    beta <- foreach(i = seq_along(x), .combine = sum) %do% {x[i] * y[i]}
     norm.x <- base::norm(x,type="2")
     norm.y <- base::norm(y,type="2")
     (beta / (norm.x * norm.y))
@@ -78,7 +82,7 @@ quadraticSolver <- function(a, b, c){
 sample_zero_mscor_cov <- function(m, number_of_solutions,
                                  number_of_attempts = 1e3,
                                  gene_gene_correlation = NULL,
-                                 log.level = "INFO"){
+                                 log.level = "OFF"){
 
     loginfo(
         paste0(
@@ -86,7 +90,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
             gene_gene_correlation
         )
     )
-    solutions <- foreach(solution = 1:number_of_solutions,
+    solutions <- foreach(solution = seq_len(number_of_solutions),
                          .packages = c("MASS", "gRbase",
                                        "ppcor", "expm", "logging",
                                        "foreach"),
@@ -174,7 +178,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 }
 
                 u1.m <- u1[m]
-                u2.wo_m <- foreach(i = 1:(m-1), .combine = c) %do%{
+                u2.wo_m <- foreach(i = seq_len(m-1), .combine = c) %do%{
                     runif(1, -constraints[i], constraints[i])
                 }
 
@@ -183,7 +187,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                     next
                 }
 
-                beta <- foreach(i = 1:(m-1), .combine = sum) %do%
+                beta <- foreach(i = seq_len(m-1), .combine = sum) %do%
                     {u1[i] * u2.wo_m[i]}
 
                 A <- u1.m^2 - lambda^2 * u1.norm^2
@@ -210,16 +214,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 #normalize and then multiply by ||u2||
                 u2.scaled <- u2 / base::norm(u2, type = "2") * u2.norm.1
 
-                i <- 1
-                within_constraints <- TRUE
-                while(i < length(u2.scaled)){
-                    if((u2.scaled[i] > constraints[i]) ||
-                       (u2.scaled[i] < -constraints[i])) {
-                        within_constraints <- FALSE
-                        break
-                    }
-                    i <- i+1
-                }
+                within_constraints <- any(abs(u2.scaled) > constraints)
 
                 if(!within_constraints){
                     logdebug("solution violates constraints")
@@ -321,7 +316,7 @@ sample_zero_mscor_data <- function(cov_matrices,
             stop("sensitivity correlation of a given covariance matrix is not zero.")
 
         #sample data under this covariance matrix
-        foreach(i = 1:number_of_datasets, .combine = c) %do%{
+        foreach(i = seq_len(number_of_datasets), .combine = c) %do%{
             sample.data <- mvrnorm(n = number_of_samples,
                                    rep(0, ncol(cov.matrix)),
                                    cov.matrix,

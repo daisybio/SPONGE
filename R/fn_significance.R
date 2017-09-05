@@ -128,7 +128,7 @@ sponge_compute_p_values <- function(sponge_result,
                                     number_of_datasets = 1e5,
                                     cov_matrices = precomputed_cov_matrices,
                                     simulated_data = NULL,
-                                    log.level = "INFO"){
+                                    log.level = "OFF"){
 
     basicConfig(level = log.level)
 
@@ -218,7 +218,7 @@ sponge_compute_p_values <- function(sponge_result,
 sponge_build_null_model <- function(number_of_datasets = 1e5,
                                     number_of_samples,
                                     cov_matrices = precomputed_cov_matrices,
-                                    log.level = "INFO"){
+                                    log.level = "OFF"){
 
     loginfo("Constructing SPONGE null model.")
 

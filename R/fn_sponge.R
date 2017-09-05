@@ -59,10 +59,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom ppcor pcor
 #' @importFrom iterators iter
 #' @importFrom iterators icount
-#' @importFrom itertools isplitRows
-#' @importFrom infotheo condinformation
 #' @importFrom data.table data.table
-#' @importFrom data.table as.data.table
 #' @importFrom bigmemory describe
 #' @importFrom bigmemory as.big.matrix
 #' @importFrom bigmemory attach.big.matrix
@@ -111,7 +108,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 sponge <- function(gene_expr,
                    mir_expr,
                    mir_interactions = NULL,
-                   log.level = "INFO",
+                   log.level = "OFF",
                    log.every.n = 1e5,
                    selected.genes = NULL,
                    gene.combinations = NULL,
@@ -187,7 +184,7 @@ sponge <- function(gene_expr,
     mir_expr_description <- describe(mir_expr_bm)
 
     SPONGE_result <- foreach(gene_combis =
-                    itertools::isplitRows(gene.combinations,
+                    split_rows(gene.combinations,
                                             chunks = parallel.chunks),
                     i = iterators::icount(),
                     .combine=function(...) rbindlist(list(...)),
@@ -283,11 +280,24 @@ sponge <- function(gene_expr,
         return(result)
     }
 
-    SPONGE_result <- as.data.table(SPONGE_result)
-    #SPONGE_result <- SPONGE_result[pcor > 0 & cor > 0 & mscor > 0,]
     return(SPONGE_result)
 }
 
+
+split_rows <- function(x, ...)
+{
+    it <- idiv(nrow(x), ...)
+    i <- 1L
+    nextEl <- function() {
+        n <- as.integer(nextElem(it))
+        j <- i
+        i <<- i + n
+        x[seq(j, length = n), , drop = FALSE]
+    }
+    object <- list(nextElem = nextEl)
+    class(object) <- c("abstractiter", "iter")
+    object
+}
 
 compute_pcor <- function(source_expr, target_expr, m_expr,
                          geneA, geneB, dcor){
@@ -304,7 +314,6 @@ compute_pcor <- function(source_expr, target_expr, m_expr,
 
     if(is.null(pcor)) return(NULL)
 
-    #result
     list(geneA = geneA,
          geneB = geneB,
          df = pcor$gp,

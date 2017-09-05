@@ -13,9 +13,9 @@ sponge_plot_simulation_results <- function(null_model_data)
 {
     test.data <- rbindlist(lapply(null_model_data, rbindlist, idcol = "k"), idcol = "m")
     test.data$k_label <- paste("cor =", test.data$k)
-    test.data$m_label <- factor(paste("m =", test.data$m), levels = paste("m =", seq(1:15)))
+    test.data$m_label <- factor(paste("m =", test.data$m), levels = paste("m =", seq_len(8)))
 
-    ggplot(dplyr::filter(test.data, m < 9)) +
+    ggplot(test.data) +
         geom_density(aes(x = mscor)) +
         facet_grid(k_label ~ m_label) +
         theme_bw() +

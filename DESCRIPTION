@@ -13,31 +13,26 @@ Depends:
 Suggests:
     testthat,
     knitr,
-    rmarkdown
-Imports:
-    stats,
+    rmarkdown,
+    visNetwork,
     ggplot2,
     ggrepel,
     gridExtra,
+    digest
+Imports:
+    stats,
     ppcor,
     logging,
     foreach,
     dplyr,
     data.table,
-    visNetwork,
     bigmemory,
-    tidyr,
-    digest,
     MASS,
     expm,
     gRbase,
     glmnet,
     igraph,
-    infotheo,
     iterators,
-    itertools,
-    matrixStats,
-    mirbase.db
 VignetteBuilder: knitr
 biocViews: GeneExpression,
     Transcription,

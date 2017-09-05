@@ -16,7 +16,6 @@
 #' We strongly recommend setting up a parallel backend compatible with the
 #' foreach package. See example and the documentation of the
 #' foreach and doParallel packages.
-#' @importFrom matrixStats colVars
 #' @import foreach
 #' @import glmnet
 #' @import bigmemory
@@ -80,7 +79,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                                  mir_predicted_targets,
                                                  elastic.net = TRUE,
                                                  log.every.n = 100,
-                                                 log.level='INFO',
+                                                 log.level = "OFF",
                                                  var.threshold = NULL,
                                                  F.test = FALSE,
                                                  F.test.p.adj.threshold = 0.05,
@@ -97,8 +96,8 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         mir_expr <- mir_expr[,which(colVars(mir_expr) > var.threshold)]
     } else{
         loginfo("Removing genes and miRNAs with zero variance")
-        gene_expr <- gene_expr[,which(colVars(gene_expr) != 0)]
-        mir_expr <- mir_expr[,which(colVars(mir_expr) != 0)]
+        gene_expr <- gene_expr[,which(apply(gene_expr, 2, var)) != 0)]
+        mir_expr <- mir_expr[,which(apply(mir_expr, 2, var)) != 0)]
     }
 
     #merge mirna target annotation
@@ -174,7 +173,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     mir_expr_description <- describe(mir_expr_bm)
 
     #loop over all genes and compute regression models to identify important miRNAs
-    foreach(gene_idx = 1:num_of_genes,
+    foreach(gene_idx = seq_len(num_of_genes),
             .final = function(x) setNames(x, all_genes),
             .packages = c("logging", "glmnet", "dplyr", "bigmemory"),
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),

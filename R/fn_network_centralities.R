@@ -49,7 +49,7 @@ sponge_node_centralities <- function(sponge_result, directed = FALSE){
 #' @importFrom igraph E
 #' @importFrom igraph edge_betweenness
 #' @importFrom igraph degree
-#' @importFrom tidyr separate
+#' @importFrom dplyr select
 #'
 #' @return data.table with gene, degree, eigenvector and betweenness
 #' @export
@@ -65,9 +65,7 @@ sponge_edge_centralities <- function(sponge_result){
 
     edge_labels <- attr(E(network), "vnames")
     ebtw <- edge_betweenness(network, directed = directed)
-    ebtw <- data.frame(labels = edge_labels, edge_betweenness = ebtw)
-    ebtw <- tidyr::separate(ebtw, col = "labels", into = c("source_gene", "target_gene"), sep = "\\|")
-    return(ebtw)
+    data.frame(dplyr::select(sponge_result, geneA, geneB), edge_betweennenss = ebtw)
 }
 
 #' plot node network centralities

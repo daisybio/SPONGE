@@ -6,7 +6,7 @@
 \usage{
 sponge_compute_p_values(sponge_result, number_of_samples,
   number_of_datasets = 1e+05, cov_matrices = precomputed_cov_matrices,
-  simulated_data = NULL, log.level = "INFO")
+  simulated_data = NULL, log.level = "OFF")
 }
 \arguments{
 \item{sponge_result}{A data frame from a sponge call}

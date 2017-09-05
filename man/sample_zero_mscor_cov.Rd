@@ -5,7 +5,7 @@
 \title{Sampling zero multiple miRNA sensitivity covariance matrices}
 \usage{
 sample_zero_mscor_cov(m, number_of_solutions, number_of_attempts = 1000,
-  gene_gene_correlation = NULL, log.level = "INFO")
+  gene_gene_correlation = NULL, log.level = "OFF")
 }
 \arguments{
 \item{m}{number of miRNAs, i.e. number of columns of the matrix}
