@@ -96,8 +96,8 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         mir_expr <- mir_expr[,which(colVars(mir_expr) > var.threshold)]
     } else{
         loginfo("Removing genes and miRNAs with zero variance")
-        gene_expr <- gene_expr[,which(apply(gene_expr, 2, var)) != 0)]
-        mir_expr <- mir_expr[,which(apply(mir_expr, 2, var)) != 0)]
+        gene_expr <- gene_expr[,which(apply(gene_expr, 2, var) != 0)]
+        mir_expr <- mir_expr[,which(apply(mir_expr, 2, var) != 0)]
     }
 
     #merge mirna target annotation
