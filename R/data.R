@@ -30,6 +30,18 @@
 #' covariance matrices
 "precomputed_cov_matrices"
 
+#' mircode predicted miRNA gene interactions
+#' @source http://www.mircode.org/download.php
+#' @format A matrix gene symbols vs miRNA family names. >=1 if interaction is
+#' predicted, 0 otherwise
+"mircode_symbol"
+
+#' mircode predicted miRNA gene interactions
+#' @source http://www.mircode.org/download.php
+#' @format A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
+#' is predicted, 0 otherwise
+"mircode_ensg"
+
 #' targetscan predicted miRNA gene interactions
 #' @source http://www.targetscan.org/vert_71/
 #' @format A matrix gene symbols vs miRNA family names. >=1 if interaction

@@ -56,6 +56,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #'
 #' @import foreach
 #' @import logging
+#' @import doRNG
 #' @importFrom ppcor pcor
 #' @importFrom iterators iter
 #' @importFrom iterators icount
@@ -108,26 +109,36 @@ genes_pairwise_combinations <- function(number.of.genes){
 sponge <- function(gene_expr,
                    mir_expr,
                    mir_interactions = NULL,
-                   log.level = "OFF",
+                   log.level = "ERROR",
                    log.every.n = 1e5,
                    selected.genes = NULL,
                    gene.combinations = NULL,
                    each.miRNA = FALSE,
                    min.cor = 0.1,
-                   parallel.chunks = 1e3){
+                   parallel.chunks = 1e3,
+                   random_seed = NULL){
     basicConfig(level = log.level)
 
-    #check for toxic NA values that crash elasticnet
+    #check for NA values that make elasticnet crash
     if(anyNA(gene_expr))
         stop("NA values found in gene expression data. Can not proceed")
     if(anyNA(mir_expr))
         stop("NA values found in miRNA expression data. Can not proceed")
 
-    #filter out genes without miR interactions
-    mir_interactions <- Filter(Negate(is.null), mir_interactions)
+    if(is.null(mir_interactions)){
+        logwarn("No information on miRNA gene interactions was provided,
+                all miRNAs will be considered and runtime will likely explode.")
+        mir_intersect <- colnames(mir_expr)
 
-    #names of genes for which we have expr and miRNA data
-    genes <- intersect(colnames(gene_expr), names(mir_interactions))
+        genes <- colnames(gene_expr)
+    }
+    else{
+        #filter out genes without miR interactions
+        mir_interactions <- Filter(Negate(is.null), mir_interactions)
+
+        #names of genes for which we have expr and miRNA data
+        genes <- intersect(colnames(gene_expr), names(mir_interactions))
+    }
 
     #now only compute for selected genes
     if(is.null(selected.genes)){
@@ -168,11 +179,6 @@ sponge <- function(gene_expr,
 
     loginfo("Beginning SPONGE run...")
 
-    if(is.null(mir_interactions)){
-        logwarn("No information on miRNA gene interactions was provided,
-                all miRNAs will be considered and runtime will likely explode.")
-        mir_intersect <- colnames(mir_expr)
-    }
     num_of_samples <- nrow(gene_expr)
     num_of_tasks <- min(nrow(gene.combinations), parallel.chunks)
 
@@ -191,7 +197,8 @@ sponge <- function(gene_expr,
                     .multicombine=TRUE,
                     .packages = c("logging", "ppcor", "foreach", "iterators",
                                   "data.table", "bigmemory"),
-                    .export = c("fn_get_shared_miRNAs")) %dopar% {
+                    .export = c("fn_get_shared_miRNAs"),
+                    .options.RNG = random_seed) %dorng% {
         basicConfig(level = log.level)
 
         logdebug(paste("SPONGE: worker is processing chunk: ", i, sep=""))
@@ -224,17 +231,19 @@ sponge <- function(gene_expr,
 
             #check correlation
             dcor <- cor(source_expr, target_expr, use = "complete.obs")
+
             if(is.na(dcor)){
                 logdebug(paste("Source gene", geneA, "or target gene", geneB,
                                "have a correlation of", dcor,
                                "there is no variance in one of the genes"))
                 return(NULL)
             }
-            if(dcor < min.cor){
-                logdebug(paste("Source gene", geneA, "and target gene", geneB,
+            if(!is.null(min.cor))
+                if(dcor < min.cor){
+                    logdebug(paste("Source gene", geneA, "and target gene", geneB,
                                "have a correlation of", dcor,
                                "which is below the threshold of", min.cor))
-                return(NULL)
+                    return(NULL)
             }
 
             #check if miRNA interaction information is provided, otherwise we
@@ -242,20 +251,20 @@ sponge <- function(gene_expr,
             if(!is.null(mir_interactions)){
                 mir_intersect <- fn_get_shared_miRNAs(geneA, geneB,
                                                       mir_interactions)
-            }
 
-            #check if shared miRNAs are in expression matrix
-            if(length(setdiff(mir_intersect, all_mirs)) > 0){
-                logdebug(paste("Source gene", geneA, "and target gene", geneB,
-                          "shared miRNAs not found in mir_expr are discarded"))
-                mir_intersect <- intersect(mir_intersect, all_mirs)
-            }
+                #check if shared miRNAs are in expression matrix
+                if(length(setdiff(mir_intersect, all_mirs)) > 0){
+                    logdebug(paste("Source gene", geneA, "and target gene", geneB,
+                              "shared miRNAs not found in mir_expr are discarded"))
+                    mir_intersect <- intersect(mir_intersect, all_mirs)
+                }
 
-            #check if there are actually any shared mirnas
-            if(length(mir_intersect) == 0){
-                logdebug(paste("Source gene", geneA, "and target gene", geneB,
-                        "do not share any miRNAs with significant regulation"))
-                return(NULL)
+                #check if there are actually any shared mirnas
+                if(length(mir_intersect) == 0){
+                    logdebug(paste("Source gene", geneA, "and target gene", geneB,
+                            "do not share any miRNAs with significant regulation"))
+                    return(NULL)
+                }
             }
 
             if(each.miRNA){
@@ -277,13 +286,13 @@ sponge <- function(gene_expr,
         }
         logdebug(paste("SPONGE finished chunk:", i, "of", num_of_tasks))
 
-        return(result)
+        return(as.data.table(result))
     }
 
     return(SPONGE_result)
 }
 
-
+#iterate over chunks of rows for efficient parallel computation
 split_rows <- function(x, ...)
 {
     it <- idiv(nrow(x), ...)
@@ -299,6 +308,7 @@ split_rows <- function(x, ...)
     object
 }
 
+#compute partial correlation
 compute_pcor <- function(source_expr, target_expr, m_expr,
                          geneA, geneB, dcor){
 

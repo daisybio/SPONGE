@@ -4,22 +4,12 @@
 \alias{sponge_compute_p_values}
 \title{Compute p-values for SPONGE interactions}
 \usage{
-sponge_compute_p_values(sponge_result, number_of_samples,
-  number_of_datasets = 1e+05, cov_matrices = precomputed_cov_matrices,
-  simulated_data = NULL, log.level = "OFF")
+sponge_compute_p_values(sponge_result, null_model, log.level = "ERROR")
 }
 \arguments{
 \item{sponge_result}{A data frame from a sponge call}
 
-\item{number_of_samples}{number of samples in the expression matrices}
-
-\item{number_of_datasets}{number of datasets to simulate.}
-
-\item{cov_matrices}{pre-computed covariance matrices to use in case s
-simulated data is not already provided via simulated_data.
-affects the mimimum p-value that can be achieved}
-
-\item{simulated_data}{optional, pre-computed simulated data}
+\item{null_model}{optional, pre-computed simulated data}
 
 \item{log.level}{The log level of the logging package}
 }
@@ -40,8 +30,8 @@ combination using Benjamini-Hochberg FDR correction.
 }
 \examples{
 null_model <- sponge_build_null_model(100, 100)
-sponge_compute_p_values(ceRNA_interactions, 100, 100,
-simulated_data = null_model)
+sponge_compute_p_values(ceRNA_interactions,
+null_model = null_model)
 }
 \seealso{
 sponge_build_null_model

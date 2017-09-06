@@ -23,7 +23,7 @@ schur <- function(R) {
 #computes sensitivity correlation
 get.q <- function(S) {
     if(ncol(S) < 3) stop("Input matrix needs to have dimensions 3x3 or larger")
-    if(nrow(S) != ncol(R)) stop("Input matrix needs to be square")
+    if(nrow(S) != ncol(S)) stop("Input matrix needs to be square")
     s11 <- S[1:2,1:2] #gene-gene covariance
     pva <- schur(S) #partial covariance
     q <- s11/outer(sqrt(diag(s11)),sqrt(diag(s11))) - pva /
@@ -68,6 +68,7 @@ quadraticSolver <- function(a, b, c){
 #' @param log.level the log level, typically set to INFO, set to DEBUG for
 #' verbose logging
 #' @importFrom gRbase cov2pcor
+#' @import doRNG
 #' @import ppcor
 #' @import expm
 #' @import logging
@@ -82,7 +83,8 @@ quadraticSolver <- function(a, b, c){
 sample_zero_mscor_cov <- function(m, number_of_solutions,
                                  number_of_attempts = 1e3,
                                  gene_gene_correlation = NULL,
-                                 log.level = "OFF"){
+                                 random_seed = NULL,
+                                 log.level = "ERROR"){
 
     loginfo(
         paste0(
@@ -90,6 +92,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
             gene_gene_correlation
         )
     )
+
     solutions <- foreach(solution = seq_len(number_of_solutions),
                          .packages = c("MASS", "gRbase",
                                        "ppcor", "expm", "logging",
@@ -98,7 +101,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                                      "checkLambda",
                                      "get.q",
                                      "schur",
-                                     "posdef")) %dopar% {
+                                     "posdef"),
+                         .options.RNG = random_seed) %dorng% {
         total <- 0
         basicConfig(level = log.level)
 
@@ -265,6 +269,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 attr(S, "iterations") <- total
                 attr(S, "k") <- K
                 attr(S, "m") <- m
+
                 return(S)
             }
         }
@@ -302,7 +307,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
 #' @import ppcor
 #'
 #' @examples #we select from the pre-computed covariance matrices in SPONGE
-#' #10 for m = 5 miRNAs and gene-gene correlation 0.6
+#' #100 for m = 5 miRNAs and gene-gene correlation 0.6
 #' cov_matrices_selected <- precomputed_cov_matrices[["5"]][["0.6"]]
 #' sample_zero_mscor_data(cov_matrices = cov_matrices_selected,
 #' number_of_samples = 200, number_of_datasets = 10)

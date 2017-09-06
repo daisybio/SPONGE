@@ -19,6 +19,7 @@
 #' @import foreach
 #' @import glmnet
 #' @import bigmemory
+#' @import doRNG
 #'
 #' @param gene_expr A matrix of gene expression
 #' @param mir_expr A matrix of miRNA expression
@@ -79,26 +80,40 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                                  mir_predicted_targets,
                                                  elastic.net = TRUE,
                                                  log.every.n = 100,
-                                                 log.level = "OFF",
+                                                 log.level = "ERROR",
                                                  var.threshold = NULL,
                                                  F.test = FALSE,
                                                  F.test.p.adj.threshold = 0.05,
                                                  coefficient.threshold = -0.05,
                                                  coefficient.direction = "<",
-                                                 select.non.targets = FALSE){
+                                                 select.non.targets = FALSE,
+                                                 random_seed = NULL){
     basicConfig(level = log.level)
     with_target_info <- !is.null(mir_predicted_targets)
+
+    if(select.non.targets)
+        logwarn("Selecting only miRNA targets not predicted as targets")
+
+    if(!is.matrix(gene_expr) | any(dim(gene_expr) < 2)) stop("gene_expr matrix not properly formatted")
+    if(!is.matrix(gene_expr) | any(dim(mir_expr) < 2)) stop("mir_expr matrix not properly formatted")
+    if(nrow(mir_expr) != nrow(gene_expr))
+        stop("mir_expr and gene_expr matrix differ in row numbers")
 
     #remove columns with little variance
     if(!is.null(var.threshold)){
         loginfo("Removing genes and miRNAs below variance threshold")
-        gene_expr <- gene_expr[,which(colVars(gene_expr) > var.threshold)]
-        mir_expr <- mir_expr[,which(colVars(mir_expr) > var.threshold)]
+        gene_expr <- gene_expr[,which(apply(gene_expr, 2, var) > var.threshold)]
+        mir_expr <- mir_expr[,which(apply(mir_expr, 2, var) > var.threshold)]
     } else{
         loginfo("Removing genes and miRNAs with zero variance")
         gene_expr <- gene_expr[,which(apply(gene_expr, 2, var) != 0)]
         mir_expr <- mir_expr[,which(apply(mir_expr, 2, var) != 0)]
     }
+
+    if(!is.matrix(gene_expr) | any(dim(gene_expr) < 2))
+        stop("variance threshold too strict in gene_expr")
+    if(!is.matrix(mir_expr) | any(dim(mir_expr) < 2))
+        stop("variance threshold too strict in mir_expr")
 
     #merge mirna target annotation
     loginfo("merging miRNA target database annotations")
@@ -177,7 +192,8 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
             .final = function(x) setNames(x, all_genes),
             .packages = c("logging", "glmnet", "dplyr", "bigmemory"),
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
-            .inorder = TRUE) %dopar% {
+            .inorder = TRUE,
+            .options.RNG = random_seed) %dorng% {
 
                 #attach shared data
                 attached_gene_expr <- attach.big.matrix(gene_expr_description)

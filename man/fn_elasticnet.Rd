@@ -15,7 +15,7 @@ fn_elasticnet(x, y, alpha.step = 0.1)
 }
 \value{
 The best model, i.e. the one for which the selected alpha yielded the
-smalles residual sum of squares error
+smallest residual sum of squares error
 }
 \description{
 Computes an elastic net model

@@ -5,7 +5,8 @@
 \title{Build null model for p-value computation}
 \usage{
 sponge_build_null_model(number_of_datasets = 1e+05, number_of_samples,
-  cov_matrices = precomputed_cov_matrices, log.level = "OFF")
+  cov_matrices = precomputed_cov_matrices, ks = seq(0.2, 0.9, 0.1),
+  m_max = 8, log.level = "ERROR")
 }
 \arguments{
 \item{number_of_datasets}{the number of datesets defining the

@@ -12,13 +12,16 @@ Depends:
     R (>= 3.4)
 Suggests:
     testthat,
+    doRNG,
     knitr,
     rmarkdown,
     visNetwork,
     ggplot2,
     ggrepel,
     gridExtra,
-    digest
+    digest,
+    doParallel,
+    mirbase
 Imports:
     stats,
     ppcor,

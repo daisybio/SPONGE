@@ -50,7 +50,7 @@ fn_get_model_coef <- function(model){
 #' @param alpha.step Step size for alpha, the tuning parameter for elastic net.
 #'
 #' @return The best model, i.e. the one for which the selected alpha yielded the
-#' smalles residual sum of squares error
+#' smallest residual sum of squares error
 fn_elasticnet <- function(x, y, alpha.step = 0.1){
     models <- foreach(alpha = seq(0, 1, alpha.step)) %do%{
         tryCatch({
