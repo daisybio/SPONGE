@@ -24,20 +24,6 @@ fn_get_shared_miRNAs <- function(geneA, geneB, mir_interactions){
     return(mir_intersect)
 }
 
-#' Helper function to map MIMAT identifers to miRNA names
-#'
-#' @param mimats to map
-#' @import mirbase.db
-#'
-#' @return a vector of miRNA names
-#'
-fn_map_mimats_to_mir <- function(mimats){
-    mature_mirnas <- toTable(mirbaseMATURE)
-    mature_mirna_names <- mature_mirnas$mature_name
-    names(mature_mirna_names) <- mature_mirnas$mature_acc
-    mature_mirna_names[mimats]
-}
-
 #' Compute all pairwise interactions for a number of genes as indices
 #'
 #' @param number.of.genes Number of genes for which all pairwise interactions
@@ -66,7 +52,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom bigmemory attach.big.matrix
 #' @importFrom gRbase combnPrim
 #' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm
-#' runif sd setNames xtabs
+#' runif sd setNames xtabs var
 #'
 #' @param gene_expr A gene expression matrix
 #' @param mir_expr A miRNA expression matrix
@@ -79,6 +65,8 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @param gene.combinations A data frame of combinations of genes to be tested.
 #' Gene names are taken from the first two columns and have to match the names
 #' used for gene_expr
+#' @param random_seed A random seed to be used for reproducible results
+#' @param result_as_dt whether to return results as data table or data frame
 #' @param parallel.chunks Split into this number of tasks if parallel processing
 #' is set up. The number should be high enough to guarantee equal distribution
 #' of the work load in parallel execution. However, if the number is too large,
@@ -116,7 +104,8 @@ sponge <- function(gene_expr,
                    each.miRNA = FALSE,
                    min.cor = 0.1,
                    parallel.chunks = 1e3,
-                   random_seed = NULL){
+                   random_seed = NULL,
+                   result_as_dt = FALSE){
     basicConfig(level = log.level)
 
     #check for NA values that make elasticnet crash
@@ -288,8 +277,8 @@ sponge <- function(gene_expr,
 
         return(as.data.table(result))
     }
-
-    return(SPONGE_result)
+    if(result_as_dt) return(SPONGE_result)
+    else return(as.data.frame(SPONGE_result))
 }
 
 #iterate over chunks of rows for efficient parallel computation

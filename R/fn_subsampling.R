@@ -1,7 +1,5 @@
 #' Sponge subsampling
 #' @importFrom foreach foreach
-#' @import ggplot2
-#' @importFrom dplyr group_by summarize
 #'
 #' @param subsample.n the number of samples to be drawn in each round
 #' @param subsample.repeats how often should the subsampling be done?
@@ -20,9 +18,6 @@
 #' @examples sponge_subsampling(gene_expr = gene_expr,
 #' mir_expr = mir_expr, mir_interactions = mir_interactions,
 #' subsample.n = 10, subsample.repeats = 1)
-
-
-
 sponge_subsampling <- function(
                     subsample.n = 100,
                     subsample.repeats = 10,
@@ -56,30 +51,29 @@ sponge_subsampling <- function(
     }
 
     if(subsample.plot){
-        subsample_mscor_plot <- ggplot(subsample_results,
-                                      aes(x = paste(geneA, geneB, sep = " - "),
-                                          y = cor - pcor)) +
-            geom_boxplot(fill = "orange") +
-            #geom_boxplot(aes(y = cor), fill = "grey") +
-            scale_fill_continuous(name = "",
-                    labels = c("multiple miRNA sensitivity correlation")) +
-            theme_bw() +
-            theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
-            ylab("mscor") +
-            xlab("ceRNA interaction")
-
-        if(length(subsample.n) > 1){
-            subsample_mscor_plot <- subsample_mscor_plot +
-                facet_wrap(~sub.n, ncol = 1)
+        if(!require("ggplot2")){
+            warning("You need to install the package ggplot2 for plotting.")
         }
+        else{
+            subsample_mscor_plot <- ggplot(subsample_results,
+                                          aes(x = paste(geneA, geneB, sep = " - "),
+                                              y = cor - pcor)) +
+                geom_boxplot(fill = "orange") +
+                scale_fill_continuous(name = "",
+                        labels = c("multiple miRNA sensitivity correlation")) +
+                theme_bw() +
+                theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
+                ylab("mscor") +
+                xlab("ceRNA interaction")
 
-        print(subsample_mscor_plot)
+            if(length(subsample.n) > 1){
+                subsample_mscor_plot <- subsample_mscor_plot +
+                    facet_wrap(~sub.n, ncol = 1)
+            }
+
+            print(subsample_mscor_plot)
+        }
     }
 
-    subsample_results %>% dplyr::group_by(geneA, geneB, df) %>%
-        dplyr::summarize(cor_mean = mean(cor),
-                  cor_sd = sd(cor),
-                  pcor_mean = mean(pcor),
-                  pcor_sd = sd(pcor))
-
+    return(subsample_results)
 }

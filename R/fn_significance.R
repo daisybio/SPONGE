@@ -152,9 +152,7 @@ dtcomb <- function(...) {
 #' @param sponge_result A data frame from a sponge call
 #' @param null_model optional, pre-computed simulated data
 #' @param log.level The log level of the logging package
-#' @import data.table
-#' @import gRbase
-#' @import ppcor
+#' @importFrom data.table data.table as.data.table
 #' @import foreach
 #' @import logging
 #' @import iterators
@@ -201,8 +199,7 @@ sponge_compute_p_values <- function(sponge_result,
                       .multicombine=TRUE,
                       .export = c("compute_p_values",
                                   "sample_zero_mscor_data"),
-                      .packages = c("gRbase", "MASS", "ppcor",
-                                    "foreach", "logging", "data.table"),
+                      .packages = c("foreach", "logging", "data.table"),
                       .noexport = c("sponge_result")) %dopar% {
                           partition <- dt.m$value
                           if(is.null(partition)) return(NULL)
@@ -225,14 +222,15 @@ sponge_compute_p_values <- function(sponge_result,
 #' @param number_of_samples  the number of samples in the expression data
 #' @param cov_matrices pre-computed covariance matrices
 #' @param log.level The log level of the logging package
+#' @param ks a sequence of gene-gene correlation values for which null models
+#' are computed
+#' @param m_max null models are build for each elt in ks for 1 to m_max miRNAs
 #' @return a list (for various values of m) of lists (for various values of k)
 #' of lists of simulated data sets, drawn from a set of precomputed
 #' covariance matrices
 #' @import foreach
-#' @import gRbase
-#' @importFrom MASS mvrnorm
-#' @import ppcor
 #' @import logging
+#' @importFrom data.table data.table
 #' @export
 #'
 #' @examples sponge_build_null_model(100, 100)

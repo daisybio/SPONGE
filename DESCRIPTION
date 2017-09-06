@@ -12,7 +12,6 @@ Depends:
     R (>= 3.4)
 Suggests:
     testthat,
-    doRNG,
     knitr,
     rmarkdown,
     visNetwork,
@@ -20,14 +19,13 @@ Suggests:
     ggrepel,
     gridExtra,
     digest,
-    doParallel,
-    mirbase
+    doParallel
 Imports:
     stats,
     ppcor,
     logging,
     foreach,
-    dplyr,
+    doRNG,
     data.table,
     bigmemory,
     MASS,

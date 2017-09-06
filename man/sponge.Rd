@@ -8,7 +8,7 @@ Sparse Partial correlations ON Gene Expression (SPONGE)}
 sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "ERROR",
   log.every.n = 1e+05, selected.genes = NULL, gene.combinations = NULL,
   each.miRNA = FALSE, min.cor = 0.1, parallel.chunks = 1000,
-  random_seed = NULL)
+  random_seed = NULL, result_as_dt = FALSE)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix}
@@ -42,6 +42,10 @@ e.g. in the worst case one chunk per computation, the overhead causes more
 computing time than can be saved by parallel execution. Register a parallel
 backend that is compatible with foreach to use this feature. More information
 can be found in the documentation of the foreach / doParallel packages.}
+
+\item{random_seed}{A random seed to be used for reproducible results}
+
+\item{result_as_dt}{whether to return results as data table or data frame}
 }
 \value{
 A data frame with significant gene-gene competetive endogenous RNA

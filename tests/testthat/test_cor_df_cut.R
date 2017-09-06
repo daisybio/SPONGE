@@ -1,6 +1,6 @@
 library(SPONGE)
 
-context("Test SPONGE assigning ceRNA interactions to partitions correctly")
+context("TEST assigning ceRNA interactions to partitions correctly")
 
 test_that("test if cor_cut and df_cut are selecte appropriately",{
     set.seed(12345)

@@ -52,6 +52,8 @@ If TRUE, the method determines as usual which miRNAs are potentially
 targeting a gene. However, these are then replaced by a random sample of
 non-targeting miRNAs (without seeds) of the same size. Useful for testing
 if observed effects are caused by miRNA regulation.}
+
+\item{random_seed}{A random seed to be used for reproducible results}
 }
 \value{
 A list of genes, where for each gene, the regulating miRNA are

@@ -1,4 +1,6 @@
 library(SPONGE)
+library(doParallel)
+cl <- makeCluster(2)
 
 context("TEST sponge prediction method")
 
@@ -131,10 +133,35 @@ test_that("computing partial correlations works",{
                  dcor - pcor)
 })
 
-test_that("mapping mimats to mir names works",{
-    stop("implement me")
+test_that("getting shared miRNAs of two genes works",{
+    expect_equal(fn_get_shared_miRNAs("DNMT3A", "ESR1",
+                         mir_interactions = mir_interactions),
+                 character(0))
+    expect_length(fn_get_shared_miRNAs(geneA = "TMEM132A",
+                                      geneB = "DNMT3A",
+                                      mir_interactions = mir_interactions), 5)
+
 })
 
-test_that("getting shared miRNAs of two genes works",{
-    stop("implement me")
+test_that("pairwise combinations of genes can be computed", {
+    expect_equal(genes_pairwise_combinations(3), cbind(c(1,1,2), c(2,3,3)))
 })
+
+test_that("sponge works in parallel",{
+    registerDoParallel(cl)
+
+    result <- sponge(gene_expr = gene_expr[,1:3],
+                     mir_expr = mir_expr,
+                     mir_interactions = mir_interactions,
+                     random_seed = 1234)
+
+    expect_equal(nrow(result), 3)
+    expect_equal(result$geneA, c("UST", "UST", "FBXO32"))
+    expect_equal(result$mscor, c(0.2275383, 0.0972899, 0.1855703),
+                 tolerance = 1e-7)
+
+
+    registerDoSEQ()
+})
+
+stopCluster(cl)

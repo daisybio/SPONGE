@@ -17,6 +17,8 @@ sample_zero_mscor_cov(m, number_of_solutions, number_of_attempts = 1000,
 \item{gene_gene_correlation}{optional, define the correlation of the first
 two elements, i.e. the genes.}
 
+\item{random_seed}{A random seed to be used for reproducible results}
+
 \item{log.level}{the log level, typically set to INFO, set to DEBUG for
 verbose logging}
 }

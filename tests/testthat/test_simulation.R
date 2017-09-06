@@ -2,7 +2,7 @@ library(SPONGE)
 library(doParallel)
 cl <- makeCluster(2)
 
-context("Test SPONGE functions for generating cov matrices under the NULL")
+context("TEST functions for generating cov matrices under the NULL")
 
 test_that("Test that posdef returns positive semi-definite matrices",{
     for(i in 3:10){
@@ -40,33 +40,33 @@ test_that("Solving quadrativ equations works as expected", {
 })
 
 test_that("Sampling cov. matrices works for m = 1", {
-    set.seed(12345)
+
     simple_case <- sample_zero_mscor_cov(m = 1,number_of_solutions = 1,
-                          gene_gene_correlation = 0.5)[[1]]
-    expect_equal(as.vector(simple_case), c(10.0565802, 5.2969926, 0.5318631,
-                                             5.2969926, 11.1601081, 1.2557925,
-                                             0.5318631,  1.2557925,  0.1441062))
+                          gene_gene_correlation = 0.5,
+                          random_seed = 12345)[[1]]
+    expect_equal(as.vector(simple_case)[1], 1.409278, tolerance = 1e-6)
+    expect_equal(ncol(simple_case), 3)
 
 })
 
 test_that("Sampling cov. matrices works for m = 3", {
-    load("testdata/sample_zero_mscor_test_data.RData")
 
-    run_complex_case <- sample_zero_mscor_cov(m = 3,number_of_solutions = 1,
+    complex_case <- sample_zero_mscor_cov(m = 3,number_of_solutions = 1,
                                          gene_gene_correlation = 0.5,
                                          random_seed = 1274)
-    expect_equal(complex_case, run_complex_case)
+    expect_equal(complex_case[[1]][1,1], 2.3165434, tolerance = 1e-6)
+    expect_equal(ncol(complex_case[[1]]), 5)
 })
 
 test_that("Sampling cov. matrices works for m = 3 in parallel", {
-    load("testdata/sample_zero_mscor_test_data.RData")
 
     registerDoParallel(cl)
 
-    run_complex_case <- sample_zero_mscor_cov(m = 3, number_of_solutions = 1,
+    complex_case <- sample_zero_mscor_cov(m = 3, number_of_solutions = 1,
                                               gene_gene_correlation = 0.5,
                                               random_seed = 1274)
-    expect_equal(complex_case, run_complex_case)
+    expect_equal(complex_case[[1]][1,1], 2.3165434, tolerance = 1e-6)
+    expect_equal(ncol(complex_case[[1]]), 5)
 
     registerDoSEQ()
 })

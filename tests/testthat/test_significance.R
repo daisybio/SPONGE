@@ -1,12 +1,12 @@
 library(SPONGE)
 library(iterators)
 
-context("Test SPONGE significance functions")
+context("TEST significance functions")
 
 test_that("drawing sample data from a set of covariance matrices works",{
     set.seed(12345)
     expect_equal(
-        compute_simulated_data(cov_matrices = precomputed_cov_matrices[[1]][[1]],
+        compute_null_model(cov_matrices = precomputed_cov_matrices[[1]][[1]],
                                number_of_datasets = 5,
                                number_of_samples = 100)$mscor,
         c(-0.049660461, -0.014332844, -0.014073490, 0.001340915, 0.012055526),
@@ -49,12 +49,12 @@ test_that("isplitDT2 returns a working iterator",{
         sponge_result = ceRNA_interactions)
 
     iterator <- isplitDT2(x = partitions, ks = ks, ms = seq(1,3,1),
-                          simulated_data = null_model)
+                          null_model = null_model)
     first_elt <- nextElem(iterator)
 
     expect_equal(first_elt$key, c(Var1 = 0.2, Var2 = 1.0))
     expect_true(nrow(first_elt$sim.data) == 5)
-    expect_true(nrow(first_elt$value) == 19)
+    expect_true(nrow(first_elt$value) == 10)
     expect_true(all(first_elt$value$cor_cut == "0.2"))
     expect_true(all(first_elt$value$df_cut == "1"))
     for(i in seq_len(((length(ks) * 3) - 1))) nextElem(iterator)
@@ -71,14 +71,15 @@ test_that("isplitDT2 throws error if simulated data is missing",{
         sponge_result = ceRNA_interactions)
 
     iterator <- isplitDT2(x = partitions, ks = ks, ms = seq(1,8,1),
-                          simulated_data = null_model)
+                          null_model = null_model)
     for(i in seq_len(8*3)) nextElem(iterator)
     expect_error(nextElem(iterator))
 })
 
 test_that("computing p-values is working", {
     p_vals <- sponge_compute_p_values(sponge_result = ceRNA_interactions,
-                                      null_model = null_model)[1:10,]
-    expect_true(all(p_vals$p.val %in% c(0.2, 0.4)))
+                                      null_model = null_model)
+    expect_true(all(p_vals$p.val <= 1))
+    expect_true(all(p_vals$p.val > 0))
     expect_true(all(p_vals$p.adj >= p_vals$p.val))
 })

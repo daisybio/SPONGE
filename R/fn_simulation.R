@@ -67,12 +67,11 @@ quadraticSolver <- function(a, b, c){
 #' two elements, i.e. the genes.
 #' @param log.level the log level, typically set to INFO, set to DEBUG for
 #' verbose logging
-#' @importFrom gRbase cov2pcor
+#' @param random_seed A random seed to be used for reproducible results
 #' @import doRNG
-#' @import ppcor
-#' @import expm
 #' @import logging
 #' @import foreach
+#' @import expm
 #'
 #' @return a list of covariance matrices with zero sensitivity correlation
 #' @export
@@ -95,8 +94,8 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
 
     solutions <- foreach(solution = seq_len(number_of_solutions),
                          .packages = c("MASS", "gRbase",
-                                       "ppcor", "expm", "logging",
-                                       "foreach"),
+                                       "ppcor",  "logging",
+                                       "foreach", "expm"),
                          .export = c("quadraticSolver",
                                      "checkLambda",
                                      "get.q",
@@ -137,7 +136,7 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
                 lambda = runif(1,-1,1) #cos theta
 
                 R22 <- cov2cor(posdef(m)) #miRNA correlation
-                R22_invsqrt <- ginv(sqrtm(R22)) #R^-1/2
+                R22_invsqrt <- ginv(expm::sqrtm(R22)) #R^-1/2
 
                 u1 <- (R22_invsqrt %*% v1)[,1]
                 u1.norm = base::norm(u1, type = "2")
@@ -301,10 +300,10 @@ sample_zero_mscor_cov <- function(m, number_of_solutions,
 #' @seealso sample_zero_mscor_cov
 #' @return a vector of mscor coefficients
 #' @export
-#' @import MASS
+#' @importFrom MASS mvrnorm
 #' @import foreach
-#' @import gRbase
-#' @import ppcor
+#' @importFrom gRbase cov2pcor
+#' @importFrom ppcor pcor
 #'
 #' @examples #we select from the pre-computed covariance matrices in SPONGE
 #' #100 for m = 5 miRNAs and gene-gene correlation 0.6

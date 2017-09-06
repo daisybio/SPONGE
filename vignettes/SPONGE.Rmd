@@ -9,9 +9,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Sparse Partial correlation ON Gene Expression (SPONGE)
+## Purpose
 
-<img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/sponge_logo.png" alt="SPONGE logo" style="width: 600px; display: block; margin-left: auto; margin-right: auto;"/>
+<div style="float:right;"><img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/sponge_logo.png" alt="SPONGE logo" style="width: 200px; display: block; margin-left: auto; margin-right: auto;"/></div>
 
 SPONGE is the first method to solve the computationally demanding task of reporting significant ceRNA interactions efficiently on a genome-wide scale. Beyond ceRNAs, this method is well suited to infer other types of regulatory interactions such as transcription factor regulation.
 
@@ -138,7 +138,7 @@ This motivated us to develop a strategy for inferring the distribution of \emph{
 mscor_null_model <- sponge_build_null_model(number_of_datasets = 100, number_of_samples = nrow(gene_expr))
 ```
 
-We can plot the result of these simulations to see how the distribution is affected by gene-gene correlation and number of miRNAs:
+We can plot the result of these simulations to see how the distribution is affected by gene-gene correlation and number of miRNAs (if ggplot2 is installed):
 
 ```{r, fig.width = 12, fig.height = 7}
 sponge_plot_simulation_results(mscor_null_model)
@@ -152,11 +152,10 @@ After computing p-values for all \emph{mscor} coefficients, we apply multiple te
 
 ```{r, message=FALSE, error=FALSE}
 ceRNA_interactions_sign <- sponge_compute_p_values(sponge_result = ceRNA_interactions, 
-                                                   number_of_datasets = nrow(gene_expr),
-                                                   simulated_data = mscor_null_model)
+                                                   null_model = mscor_null_model)
 ```
 
-Note that the parameter simulated_data can also be NULL. In this case, the null models are computed on the fly. The above method adds two additional columns to the ceRNA results, namely $p.val$ and $p.adj$.
+The above method adds two additional columns to the ceRNA results, namely $p.val$ and $p.adj$.
 
 ```{r, eval=FALSE}
 head(ceRNA_interactions_sign)
@@ -171,7 +170,7 @@ knitr::kable(head(ceRNA_interactions_sign))
 The last step is fairly straight-forward. We decide on an FDR cutoff for selecting significant ceRNA interactions, e.g. FDR < 0.01 and extract those from the result.
 
 ```{r}
-ceRNA_interactions_fdr <- ceRNA_interactions_sign[p.adj < 0.01,]
+ceRNA_interactions_fdr <- ceRNA_interactions_sign[which(ceRNA_interactions_sign$p.adj < 0.2),]
 ```
 
 ```{r, echo=FALSE, results='asis'}
@@ -205,14 +204,14 @@ weighted_network_centralities <- sponge_node_centralities(ceRNA_interactions_fdr
 
 We can also plot these results with a node degree distribution on top and centrality vs node degree below. The parameter top controls how many of the top x samples are labelled.
 
-```{r, fig.height = 7, fig.width = 12, warning=FALSE,message=FALSE,error=FALSE}
-sponge_plot_network_centralities(weighted_network_centralities, top = 5)
+```{r, fig.height = 7, fig.width = 7, warning=FALSE,message=FALSE,error=FALSE}
+sponge_plot_network_centralities(weighted_network_centralities, top = 1)
 ```
 
 You can also select individual plots
 
-```{r, fig.height = 7, fig.width = 12, warning=FALSE,message=FALSE,error=FALSE}
-sponge_plot_network_centralities(weighted_network_centralities, measure = "btw", top = 25)
+```{r, fig.height = 7, fig.width = 7, warning=FALSE,message=FALSE,error=FALSE}
+sponge_plot_network_centralities(weighted_network_centralities, measure = "btw", top = 1)
 ```
 
 
@@ -273,7 +272,7 @@ more_covariance_matrices <- sample_zero_mscor_cov(m = 1,
 
 These can be used to simulate data to sample from the random distribution of \emph{mscor} coefficients given the number of samples available in the expression data.
 
-```{r, message=FALSE, warning=FALSE, error=FALSE, fig.width = 12, fig.height = 7}
+```{r, message=FALSE, warning=FALSE, error=FALSE, fig.width = 7, fig.height = 7}
 mscor_coefficients <- sample_zero_mscor_data(cov_matrices = more_covariance_matrices,
 number_of_samples = 200, number_of_datasets = 100)
 

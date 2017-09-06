@@ -12,7 +12,7 @@
 #' @importFrom igraph degree
 #' @importFrom data.table data.table
 #'
-#' @return data.table with gene, degree, eigenvector and betweenness
+#' @return data table or data frame with gene, degree, eigenvector and betweenness
 #' @export
 #'
 #' @seealso sponge
@@ -49,9 +49,8 @@ sponge_node_centralities <- function(sponge_result, directed = FALSE){
 #' @importFrom igraph E
 #' @importFrom igraph edge_betweenness
 #' @importFrom igraph degree
-#' @importFrom dplyr select
 #'
-#' @return data.table with gene, degree, eigenvector and betweenness
+#' @return data table or data frame with gene, degree, eigenvector and betweenness
 #' @export
 #'
 #' @seealso sponge
@@ -65,7 +64,7 @@ sponge_edge_centralities <- function(sponge_result){
 
     edge_labels <- attr(E(network), "vnames")
     ebtw <- edge_betweenness(network, directed = directed)
-    data.frame(dplyr::select(sponge_result, geneA, geneB), edge_betweennenss = ebtw)
+    data.frame(sponge_result[,c("geneA", "geneB")], edge_betweenness = ebtw)
 }
 
 #' plot node network centralities
@@ -75,10 +74,6 @@ sponge_edge_centralities <- function(sponge_result){
 #' @param x plot against another column in the data table, defaults to degree
 #' @param top label the top x samples in the plot
 #' @param base_size size of the text in the plot
-#' @import ggplot2
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom digest digest
-#' @importFrom gridExtra grid.arrange
 #'
 #' @return a plot
 #' @export
@@ -89,10 +84,23 @@ sponge_plot_network_centralities <- function(network_centralities,
                                              x = "degree",
                                              top = 5,
                                              base_size = 18){
-
-    network_centralities <- network_centralities %>% mutate(color =
-        paste("#", substr(sapply(gene, function(x)
-                  digest(x, algo = "crc32")), 1, 6), sep=""))
+    if(!require("ggplot2")){
+        stop("Install the package ggplot2 for producing this plot")
+    }
+    if(!requireNamespace("ggrepel", quietly = TRUE)){
+        warning("Install the package ggrepel for non-overlapping labels")
+        geom_label_repel <- geom_label
+    }else{
+        geom_label_repel <- ggrepel::geom_label_repel
+    }
+    if(!requireNamespace("digest", quietly = TRUE)){
+        warning("Install the package digest for better coloring")
+        network_centralities$color <- "#000000"
+    }else{
+        network_centralities$color <-
+            paste("#", substr(sapply(network_centralities$gene, function(x)
+                digest::digest(x, algo = "crc32")), 1, 6), sep="")
+    }
 
     p1 <- ggplot(network_centralities, aes(x=degree)) +
         geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
@@ -106,20 +114,33 @@ sponge_plot_network_centralities <- function(network_centralities,
         ylab("eigenvector") +
         theme_bw(base_size = base_size) +
         theme(legend.position = "none") +
-        geom_label_repel(data = network_centralities %>% top_n(top, eigenvector))
+        geom_label_repel(data =
+                             head(network_centralities[
+                                 order(-network_centralities$eigenvector),
+                                 ], top))
     p3 <- ggplot(network_centralities, aes_string(x = x,
                                                   y = "betweenness",
                                                   color = "color",
                                                   label = "gene")) +
         geom_point(alpha = 0.3) +
         ylab("betweenness") +
-    theme_bw(base_size = base_size) +
+        theme_bw(base_size = base_size) +
         theme(legend.position = "none") +
-        geom_label_repel(data = network_centralities %>% top_n(top, betweenness))
+        geom_label_repel(data =
+                             head(network_centralities[
+                                 order(-network_centralities$betweenness),
+                                 ], top))
+
     if(measure == "degree") return(p1)
     else if(measure == "ev") return(p2)
     else if(measure == "btw") return(p3)
-    else grid.arrange(p1,
+    else{
+        if(!requireNamespace("gridExtra", quietly = TRUE)){
+            warning("You need to install package gridExtra to combine plots")
+            return(p1)
+        }
+        else{
+        gridExtra::grid.arrange(p1,
                       p2 + theme(strip.background = element_blank(),
                                 strip.text.x = element_blank(),
                                 legend.position = "none"),
@@ -127,5 +148,7 @@ sponge_plot_network_centralities <- function(network_centralities,
                                   strip.text.x = element_blank(),
                                   legend.position = "none"),
                       ncol = 1)
+        }
+    }
 }
 

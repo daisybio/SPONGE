@@ -12,7 +12,7 @@ sponge_node_centralities(sponge_result, directed = FALSE)
 \item{directed}{Whether to consider the input network as directed or not.}
 }
 \value{
-data.table with gene, degree, eigenvector and betweenness
+data table or data frame with gene, degree, eigenvector and betweenness
 }
 \description{
 Computes degree, eigenvector centrality and betweenness

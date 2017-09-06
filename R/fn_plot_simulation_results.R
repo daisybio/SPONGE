@@ -1,9 +1,7 @@
 #' Plot simulation results for different null models
 #'
 #' @param null_model_data the output of sponge_build_null_model
-#' @import ggplot2
 #' @importFrom data.table rbindlist
-#' @importFrom dplyr filter
 #' @return a ggplot2 object
 #' @export
 #'
@@ -11,12 +9,15 @@
 #' sponge_plot_simulation_results(null_model)
 sponge_plot_simulation_results <- function(null_model_data)
 {
+    if(!require("ggplot2"))
+        stop("install package ggplot2 to produce this plot")
+
     test.data <- rbindlist(lapply(null_model_data, rbindlist, idcol = "k"), idcol = "m")
     test.data$k_label <- paste("cor =", test.data$k)
     test.data$m_label <- factor(paste("m =", test.data$m), levels = paste("m =", seq_len(8)))
 
     ggplot(test.data) +
-        geom_density(aes(x = mscor)) +
+        geom_density(ggplot2::aes(x = mscor)) +
         facet_grid(k_label ~ m_label) +
         theme_bw() +
         xlab("mscor") +

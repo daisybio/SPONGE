@@ -31,6 +31,7 @@
 #' @param var.threshold Only consider genes and miRNA with
 #' variance > var.threshold. If this parameter is NULL no variance filtering
 #' is performed.
+#' @param random_seed A random seed to be used for reproducible results
 #' @param F.test If true, an F-test is performed on each model parameter to
 #' assess its importance for the model based on the RSS of the full model vs
 #' the RSS of the nested model without the miRNA in question. This is time
@@ -190,7 +191,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     #loop over all genes and compute regression models to identify important miRNAs
     foreach(gene_idx = seq_len(num_of_genes),
             .final = function(x) setNames(x, all_genes),
-            .packages = c("logging", "glmnet", "dplyr", "bigmemory"),
+            .packages = c("logging", "glmnet", "bigmemory"),
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
             .inorder = TRUE,
             .options.RNG = random_seed) %dorng% {

@@ -41,7 +41,8 @@ fn_gene_miRNA_F_test <- function(g_expr, m_expr, model,
     if(!is.null(model.stats)){
         model.stats$p.adj <- p.adjust(model.stats$pval, "BH")
         if(!is.null(p.adj.threshold)){
-            model.stats <- dplyr::filter(model.stats, p.adj < p.adj.threshold)
+            model.stats <-
+                model.stats[which(model.stats$p.adj < p.adj.threshold),]
         }
     }
 

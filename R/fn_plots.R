@@ -1,7 +1,6 @@
 #' Prepare a sponge network for plotting
 #' @import foreach
 #' @import iterators
-#' @importFrom dplyr filter
 #' @param sponge_result ceRNA interactions as produced by the sponge method.
 #' @param mir_data miRNA interactions as produced by sponge_gene_miRNA_interaction_filter
 #' @param target.genes a character vector  to select a subset of genes
@@ -50,7 +49,7 @@ sponge_network <- function(sponge_result,
 
         mirna.edges <- foreach(gene = nodes$id, .combine=rbind) %do% {
             gene_mirnas <- mir_data[[as.character(gene)]]
-            gene_mirnas <- dplyr::filter(gene_mirnas, coefficient < 0)
+            gene_mirnas <- gene_mirnas[which(gene_mirnas$coefficient < 0),]
             foreach(mir = iter(gene_mirnas, by="row"), .combine = rbind) %do% {
                 with(mir, { data.frame(from = gene, to = mirna, width = abs(log2(coefficient)), color="blue")})
             }
@@ -99,30 +98,32 @@ sponge_network <- function(sponge_result,
 #' @param force.directed whether to produce a force directed network, gets
 #' slow for large networks
 #' @param ... further params for sponge_network
-#' @import visNetwork
 #'
 #' @return shows a plot
 #' @export
 #'
-#' @examples sponge_plot_network(ceRNA_interactions, mir_interactions)
+#' @examples #sponge_plot_network(ceRNA_interactions, mir_interactions)
 sponge_plot_network <- function(sponge_result, mir_data,
                                 layout="layout.fruchterman.reingold",
                                 force.directed = FALSE, ...){
+
+    if(!require("visNetwork")){
+        stop("You need to install package visNetwork to produce this plot.")
+    }
     network <- sponge_network(sponge_result, mir_data, ...)
     nodes <- network$nodes
     edges <- network$edges
 
     if(nrow(edges) < 10000){
         plot <- visNetwork(nodes, edges)
-        plot <- plot %>% visIgraphLayout(layout = layout, type="full", physics = force.directed)
-        plot <- plot %>% visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
-        plot <- plot %>% visNodes(font = list(size = 32))
-        plot <- plot %>% visEdges(color = list(opacity = 1))
+        plot <- visIgraphLayout(plot, layout = layout, type="full", physics = force.directed)
+        plot <- visOptions(plot, highlightNearest = TRUE, nodesIdSelection = TRUE)
+        plot <- visNodes(plot, font = list(size = 32))
+        plot <- visEdges(plot, color = list(opacity = 1))
 
         return(plot)
     }
     else{
-        warning("With more than 10000 edges, this plot is omitted for performance reasons")
+        stop("With more than 10000 edges, this plot is omitted for performance reasons")
     }
-    return(edges)
 }
