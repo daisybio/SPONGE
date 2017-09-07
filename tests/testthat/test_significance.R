@@ -5,8 +5,9 @@ context("TEST significance functions")
 
 test_that("drawing sample data from a set of covariance matrices works",{
     set.seed(12345)
+    selected_cov_matrices <- precomputed_cov_matrices[[1]]
     expect_equal(
-        compute_null_model(cov_matrices = precomputed_cov_matrices[[1]][[1]],
+        compute_null_model(cov_matrices = selected_cov_matrices[[1]],
                                number_of_datasets = 5,
                                number_of_samples = 100)$mscor,
         c(-0.049660461, -0.014332844, -0.014073490, 0.001340915, 0.012055526),

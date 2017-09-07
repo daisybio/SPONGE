@@ -55,9 +55,9 @@ test_that("Sampling cov. matrices works for m = 3", {
 
     complex_case <- sample_zero_mscor_cov(m = 3,number_of_solutions = 1,
                                          gene_gene_correlation = 0.5,
-                                         random_seed = 1274)
-    expect_equal(complex_case[[1]][1,1], 2.3165434, tolerance = 1e-6)
-    expect_equal(ncol(complex_case[[1]]), 5)
+                                         random_seed = 1274)[[1]]
+    expect_equal(complex_case[1,1], 2.3165434, tolerance = 1e-6)
+    expect_equal(ncol(complex_case), 5)
 })
 
 test_that("Sampling cov. matrices works for m = 3 in parallel", {
@@ -66,9 +66,9 @@ test_that("Sampling cov. matrices works for m = 3 in parallel", {
 
     complex_case <- sample_zero_mscor_cov(m = 3, number_of_solutions = 1,
                                               gene_gene_correlation = 0.5,
-                                              random_seed = 1274)
-    expect_equal(complex_case[[1]][1,1], 2.3165434, tolerance = 1e-6)
-    expect_equal(ncol(complex_case[[1]]), 5)
+                                              random_seed = 1274)[[1]]
+    expect_equal(complex_case[1,1], 2.3165434, tolerance = 1e-6)
+    expect_equal(ncol(complex_case), 5)
 
     registerDoSEQ()
 })
