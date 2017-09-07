@@ -5,8 +5,7 @@
 #' @return a ggplot2 object
 #' @export
 #'
-#' @examples null_model <- sponge_build_null_model(100, 100)
-#' sponge_plot_simulation_results(null_model)
+#' @examples sponge_plot_simulation_results(precomputed_null_model)
 sponge_plot_simulation_results <- function(null_model_data)
 {
     if(!(requireNamespace("ggplot2", quietly = TRUE)))

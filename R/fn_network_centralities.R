@@ -78,7 +78,9 @@ sponge_edge_centralities <- function(sponge_result){
 #' @return a plot
 #' @export
 #'
-#' @examples #sponge_plot_network_centralities
+#' @examples \dontrun{
+#' network_centralities <- sponge_node_centralities(ceRNA_interactions)
+#' sponge_plot_network_centralities(network_centralities)}
 sponge_plot_network_centralities <- function(network_centralities,
                                              measure="all",
                                              x = "degree",

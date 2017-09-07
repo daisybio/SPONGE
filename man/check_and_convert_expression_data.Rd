@@ -18,5 +18,5 @@ Checks if expression data is in matrix or ExpressionSet format and
 converts the latter to a standard matrix.
 }
 \examples{
-check_and_convert_expression_data(gene_expr)
+\dontrun{check_and_convert_expression_data(gene_expr)}
 }

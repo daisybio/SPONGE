@@ -33,5 +33,5 @@ Build null model for p-value computation
 }
 \examples{
 sponge_build_null_model(100, 100,
-cov_matrices = precomputed_cov_matrices[1:3])
+cov_matrices = precomputed_cov_matrices[1:3], m_max = 3)
 }

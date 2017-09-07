@@ -25,5 +25,7 @@ a plot
 plot node network centralities
 }
 \examples{
-#sponge_plot_network_centralities
+\dontrun{
+network_centralities <- sponge_node_centralities(ceRNA_interactions)
+sponge_plot_network_centralities(network_centralities)}
 }

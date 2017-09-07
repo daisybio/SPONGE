@@ -29,9 +29,8 @@ are adjusted indepdenently for each parameter
 combination using Benjamini-Hochberg FDR correction.
 }
 \examples{
-null_model <- sponge_build_null_model(100, 100)
 sponge_compute_p_values(ceRNA_interactions,
-null_model = null_model)
+null_model = precomputed_null_model)
 }
 \seealso{
 sponge_build_null_model

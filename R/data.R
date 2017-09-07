@@ -30,6 +30,13 @@
 #' covariance matrices
 "precomputed_cov_matrices"
 
+#' A null model for testing purposes
+#'
+#' @format A list (different gene-gene correlations k) of lists
+#' (different number of miRNAs m) of
+#' sampled mscor values (100 each, computed from 100 samples)
+"precomputed_null_model"
+
 #' mircode predicted miRNA gene interactions
 #' @source http://www.mircode.org/download.php
 #' @format A matrix gene symbols vs miRNA family names. >=1 if interaction is

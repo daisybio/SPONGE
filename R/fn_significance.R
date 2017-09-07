@@ -172,9 +172,8 @@ dtcomb <- function(...) {
 #' combination using Benjamini-Hochberg FDR correction.
 #' @export
 #'
-#' @examples null_model <- sponge_build_null_model(100, 100)
-#' sponge_compute_p_values(ceRNA_interactions,
-#' null_model = null_model)
+#' @examples sponge_compute_p_values(ceRNA_interactions,
+#' null_model = precomputed_null_model)
 sponge_compute_p_values <- function(sponge_result,
                                     null_model,
                                     log.level = "ERROR"){
@@ -236,7 +235,7 @@ sponge_compute_p_values <- function(sponge_result,
 #' @export
 #'
 #' @examples sponge_build_null_model(100, 100,
-#' cov_matrices = precomputed_cov_matrices[1:3])
+#' cov_matrices = precomputed_cov_matrices[1:3], m_max = 3)
 sponge_build_null_model <- function(number_of_datasets = 1e5,
                                     number_of_samples,
                                     cov_matrices = precomputed_cov_matrices,

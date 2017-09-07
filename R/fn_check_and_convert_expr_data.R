@@ -5,7 +5,7 @@
 #' @importFrom Biobase exprs
 #' @return expr_data as matrix
 #'
-#' @examples check_and_convert_expression_data(gene_expr)
+#' @examples \dontrun{check_and_convert_expression_data(gene_expr)}
 check_and_convert_expression_data <- function(expr_data){
     if(!class(expr_data) %in% c("matrix", "ExpressionSet"))
         stop("expression matrix has to be of class matrix or ExpressionSet")

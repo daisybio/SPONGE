@@ -1,3 +1,5 @@
+Sys.unsetenv("R_TESTS")
+
 library(SPONGE)
 library(doParallel)
 cl <- makeCluster(2)
