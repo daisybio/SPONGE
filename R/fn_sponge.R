@@ -51,8 +51,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom bigmemory as.big.matrix
 #' @importFrom bigmemory attach.big.matrix
 #' @importFrom gRbase combnPrim
-#' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm
-#' runif sd setNames xtabs var
+#' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm runif sd setNames xtabs var
 #'
 #' @param gene_expr A gene expression matrix
 #' @param mir_expr A miRNA expression matrix

@@ -16,6 +16,11 @@ precision of the p-value}
 
 \item{cov_matrices}{pre-computed covariance matrices}
 
+\item{ks}{a sequence of gene-gene correlation values for which null models
+are computed}
+
+\item{m_max}{null models are build for each elt in ks for 1 to m_max miRNAs}
+
 \item{log.level}{The log level of the logging package}
 }
 \value{
