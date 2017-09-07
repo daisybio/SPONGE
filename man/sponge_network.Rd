@@ -6,7 +6,7 @@
 \usage{
 sponge_network(sponge_result, mir_data, target.genes = NULL,
   show.sponge.interaction = TRUE, show.mirnas = "none",
-  replace.mirna.with.name = TRUE, min.interactions = 3)
+  min.interactions = 3)
 }
 \arguments{
 \item{sponge_result}{ceRNA interactions as produced by the sponge method.}
@@ -18,8 +18,6 @@ sponge_network(sponge_result, mir_data, target.genes = NULL,
 \item{show.sponge.interaction}{whether to connect ceRNAs}
 
 \item{show.mirnas}{one of none, shared, all}
-
-\item{replace.mirna.with.name}{uses mirbase to replace mimats with names}
 
 \item{min.interactions}{minimum degree of a gene to be shown}
 }

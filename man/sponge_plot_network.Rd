@@ -26,5 +26,5 @@ shows a plot
 Plot a sponge network
 }
 \examples{
-#sponge_plot_network(ceRNA_interactions, mir_interactions)
+sponge_plot_network(ceRNA_interactions, mir_interactions)
 }

@@ -51,24 +51,25 @@ sponge_subsampling <- function(
     }
 
     if(subsample.plot){
-        if(!require("ggplot2")){
+        if(!requireNamespace("ggplot2", quietly = TRUE)){
             warning("You need to install the package ggplot2 for plotting.")
         }
         else{
-            subsample_mscor_plot <- ggplot(subsample_results,
-                                          aes(x = paste(geneA, geneB, sep = " - "),
-                                              y = cor - pcor)) +
-                geom_boxplot(fill = "orange") +
-                scale_fill_continuous(name = "",
+            subsample_mscor_plot <- ggplot2::ggplot(subsample_results,
+                      ggplot2::aes(x = paste(geneA, geneB, sep = " - "),
+                                   y = cor - pcor)) +
+                ggplot2::geom_boxplot(fill = "orange") +
+                ggplot2::scale_fill_continuous(name = "",
                         labels = c("multiple miRNA sensitivity correlation")) +
-                theme_bw() +
-                theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)) +
-                ylab("mscor") +
-                xlab("ceRNA interaction")
+                ggplot2::theme_bw() +
+                ggplot2::theme(axis.text.x=
+                        ggplot2::element_text(angle=90, hjust=1, vjust = 0.5)) +
+                ggplot2::ylab("mscor") +
+                ggplot2::xlab("ceRNA interaction")
 
             if(length(subsample.n) > 1){
                 subsample_mscor_plot <- subsample_mscor_plot +
-                    facet_wrap(~sub.n, ncol = 1)
+                    ggplot2::facet_wrap(~sub.n, ncol = 1)
             }
 
             print(subsample_mscor_plot)

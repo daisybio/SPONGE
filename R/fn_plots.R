@@ -6,7 +6,6 @@
 #' @param target.genes a character vector  to select a subset of genes
 #' @param show.sponge.interaction whether to connect ceRNAs
 #' @param show.mirnas one of none, shared, all
-#' @param replace.mirna.with.name uses mirbase to replace mimats with names
 #' @param min.interactions minimum degree of a gene to be shown
 #'
 #' @return a list of nodes and edges
@@ -18,7 +17,6 @@ sponge_network <- function(sponge_result,
                            target.genes = NULL,
                            show.sponge.interaction = TRUE,
                            show.mirnas = "none",
-                           replace.mirna.with.name = TRUE,
                            min.interactions = 3){
 
     genes <- unique(c(as.character(sponge_result$geneA), as.character(sponge_result$geneB)))
@@ -71,13 +69,6 @@ sponge_network <- function(sponge_result,
         if(length(mirnas) > 0){
             nodes <- rbind(nodes, data.frame(id = mirnas, label = mirnas, shape = "triangle", color="darkblue", type=TRUE, value=1))
             edges <- rbind(edges, mirna.edges)
-
-            #replace mirna with name
-            if(replace.mirna.with.name){
-
-                nodes$label <- as.character(nodes$label)
-                nodes[which(nodes$type), "label"] <- as.character(fn_map_mimat_to_mir(as.character(nodes[which(nodes$type), "id"])))
-            }
         }
         else{
             stop("No miRNAs found that match all criteria")
@@ -102,12 +93,12 @@ sponge_network <- function(sponge_result,
 #' @return shows a plot
 #' @export
 #'
-#' @examples #sponge_plot_network(ceRNA_interactions, mir_interactions)
+#' @examples sponge_plot_network(ceRNA_interactions, mir_interactions)
 sponge_plot_network <- function(sponge_result, mir_data,
                                 layout="layout.fruchterman.reingold",
                                 force.directed = FALSE, ...){
 
-    if(!require("visNetwork")){
+    if(!requireNamespace("visNetwork", quietly = FALSE)){
         stop("You need to install package visNetwork to produce this plot.")
     }
     network <- sponge_network(sponge_result, mir_data, ...)
@@ -115,11 +106,11 @@ sponge_plot_network <- function(sponge_result, mir_data,
     edges <- network$edges
 
     if(nrow(edges) < 10000){
-        plot <- visNetwork(nodes, edges)
-        plot <- visIgraphLayout(plot, layout = layout, type="full", physics = force.directed)
-        plot <- visOptions(plot, highlightNearest = TRUE, nodesIdSelection = TRUE)
-        plot <- visNodes(plot, font = list(size = 32))
-        plot <- visEdges(plot, color = list(opacity = 1))
+        plot <- visNetwork::visNetwork(nodes, edges)
+        plot <- visNetwork::visIgraphLayout(plot, layout = layout, type="full", physics = force.directed)
+        plot <- visNetwork::visOptions(plot, highlightNearest = TRUE, nodesIdSelection = TRUE)
+        plot <- visNetwork::visNodes(plot, font = list(size = 32))
+        plot <- visNetwork::visEdges(plot, color = list(opacity = 1))
 
         return(plot)
     }

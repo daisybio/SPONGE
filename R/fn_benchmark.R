@@ -9,7 +9,8 @@
 #' e.g. c(250,500)
 #' @param number_of_samples number of samples in the null model
 #' @param number_of_datasets number of datasets to sample from the null model
-#' @param folder where the results should be saved
+#' @param folder where the results should be saved, if NULL no output to disk
+#' @param compute_significance whether to compute p-values
 #'
 #' @return a list (regression, no regression) of lists (single miRNA,
 #' pooled miRNAs) of benchmark results
@@ -18,18 +19,26 @@
 #' @import logging
 #' @import foreach
 #'
-#' @examples #sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
-#' #mir_predicted_targets = targetscan_symbol,
-#' #number_of_genes_to_test = c(10), folder = NULL)
+#' @examples sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
+#' mir_predicted_targets = targetscan_symbol,
+#' number_of_genes_to_test = c(10), folder = NULL)
 sponge_run_benchmark <- function(gene_expr,
                                  mir_expr,
                                  mir_predicted_targets,
                                  number_of_samples = 100,
                                  number_of_datasets = 1e2,
                                  number_of_genes_to_test = c(25),
-                                 folder = ""){
+                                 compute_significance = FALSE,
+                                 folder = NULL){
     basicConfig(level = "INFO")
 
+    if(compute_significance)
+    {
+        null_model_timing <- system.time(null_model <- sponge_build_null_model(
+            cov_matrices = precomputed_cov_matrices,
+            number_of_samples = number_of_samples,
+            number_of_datasets = number_of_datasets))
+    }
     for(num_of_genes in number_of_genes_to_test){
         loginfo(paste("benchmarking with", num_of_genes, "genes"))
 
@@ -73,7 +82,7 @@ sponge_run_benchmark <- function(gene_expr,
                     .inorder = TRUE) %do% {
 
                         loginfo(paste(
-                            "computing miRNA-gene interactions with elastic.net =",
+                        "computing miRNA-gene interactions with elastic.net =",
                                       elastic.net, "and considering",
                                       each.miRNA))
 
@@ -83,16 +92,21 @@ sponge_run_benchmark <- function(gene_expr,
                                     gene_expr = gene_expr_sample,
                                     mir_expr = mir_expr,
                                     mir_interactions =
-                                        gene_miRNA_interaction_results[[elastic.net]],
+                                gene_miRNA_interaction_results[[elastic.net]],
                                     each.miRNA = each.miRNA)
                         )
+                        if(compute_significance){
+                            significance_time <- null_model_timing+system.time({
 
-                        significance_time <- system.time(
-                            sponge_result_sign <- sponge_compute_p_values(
-                                sponge_result = sponge_result, simulated_data =
-                                    NULL, number_of_samples = number_of_samples,
-                                number_of_datasets = number_of_datasets) )
-
+                                sponge_result_sign <- sponge_compute_p_values(
+                                    sponge_result = sponge_result,
+                                    null_model = null_model)
+                            })
+                        }
+                        else{
+                            significance_time <- system.time(NULL)
+                            sponge_result_sign <- sponge_result
+                        }
                         attr(sponge_result_sign, "cputime_wo_pval") <-
                             sum(sponge_time[c(1,2,4,5)])
                         attr(sponge_result_sign, "elapsedtime_wo_pval") <-
@@ -116,7 +130,7 @@ sponge_run_benchmark <- function(gene_expr,
                               "/benchmark_result_",
                               num_of_genes,
                               "_genes_",
-                              str_replace_all(start_date, " ", "_"),
+                              start_date,
                               ".Rdata",
                               sep = ""))
 

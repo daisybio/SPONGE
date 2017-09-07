@@ -156,6 +156,7 @@ dtcomb <- function(...) {
 #' @import foreach
 #' @import logging
 #' @import iterators
+#' @importFrom data.table data.table setkey
 #' @seealso sponge_build_null_model
 #'
 #' @return A data frame with sponge results, now including p-values
@@ -231,9 +232,11 @@ sponge_compute_p_values <- function(sponge_result,
 #' @import foreach
 #' @import logging
 #' @importFrom data.table data.table
+#' @importFrom data.table setkey
 #' @export
 #'
-#' @examples sponge_build_null_model(100, 100)
+#' @examples sponge_build_null_model(100, 100,
+#' cov_matrices = precomputed_cov_matrices[1:3])
 sponge_build_null_model <- function(number_of_datasets = 1e5,
                                     number_of_samples,
                                     cov_matrices = precomputed_cov_matrices,

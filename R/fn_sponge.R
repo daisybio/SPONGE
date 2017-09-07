@@ -43,7 +43,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @import foreach
 #' @import logging
 #' @import doRNG
-#' @importFrom ppcor pcor
+#' @importFrom ppcor pcor pcor.test
 #' @importFrom iterators iter
 #' @importFrom iterators icount
 #' @importFrom data.table data.table

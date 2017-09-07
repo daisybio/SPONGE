@@ -7,7 +7,8 @@ regression, single or pooled miRNAs, are compared.}
 \usage{
 sponge_run_benchmark(gene_expr, mir_expr, mir_predicted_targets,
   number_of_samples = 100, number_of_datasets = 100,
-  number_of_genes_to_test = c(25), folder = "")
+  number_of_genes_to_test = c(25), compute_significance = FALSE,
+  folder = NULL)
 }
 \arguments{
 \item{gene_expr}{a gene expression matrix}
@@ -24,7 +25,9 @@ targetscan, etc.}
 \item{number_of_genes_to_test}{a vector of numbers of genes to be tested,
 e.g. c(250,500)}
 
-\item{folder}{where the results should be saved}
+\item{compute_significance}{whether to compute p-values}
+
+\item{folder}{where the results should be saved, if NULL no output to disk}
 }
 \value{
 a list (regression, no regression) of lists (single miRNA,
@@ -35,7 +38,7 @@ run sponge benchmark where various settings, i.e. with or without
 regression, single or pooled miRNAs, are compared.
 }
 \examples{
-#sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
-#mir_predicted_targets = targetscan_symbol,
-#number_of_genes_to_test = c(10), folder = NULL)
+sponge_run_benchmark(gene_expr = gene_expr, mir_expr = mir_expr,
+mir_predicted_targets = targetscan_symbol,
+number_of_genes_to_test = c(10), folder = NULL)
 }

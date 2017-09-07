@@ -84,12 +84,12 @@ sponge_plot_network_centralities <- function(network_centralities,
                                              x = "degree",
                                              top = 5,
                                              base_size = 18){
-    if(!require("ggplot2")){
+    if(!requireNamespace("ggplot2", quietly = TRUE)){
         stop("Install the package ggplot2 for producing this plot")
     }
     if(!requireNamespace("ggrepel", quietly = TRUE)){
         warning("Install the package ggrepel for non-overlapping labels")
-        geom_label_repel <- geom_label
+        geom_label_repel <- ggplot2::geom_label
     }else{
         geom_label_repel <- ggrepel::geom_label_repel
     }
@@ -102,30 +102,30 @@ sponge_plot_network_centralities <- function(network_centralities,
                 digest::digest(x, algo = "crc32")), 1, 6), sep="")
     }
 
-    p1 <- ggplot(network_centralities, aes(x=degree)) +
-        geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
-        theme_bw(base_size = base_size) +
-        theme(strip.background = element_rect(fill="grey"))
-    p2 <- ggplot(network_centralities, aes_string(x = x,
+    p1 <- ggplot2::ggplot(network_centralities, ggplot2::aes(x=degree)) +
+        ggplot2::geom_histogram(color=I("black"), fill=I("black"), alpha = 0.3)+
+        ggplot2::theme_bw(base_size = base_size) +
+        ggplot2::theme(strip.background = ggplot2::element_rect(fill="grey"))
+    p2 <- ggplot2::ggplot(network_centralities, ggplot2::aes_string(x = x,
                                                   y = "eigenvector",
                                                   color= "color",
                                                   label = "gene")) +
-        geom_point(alpha = 0.3) +
-        ylab("eigenvector") +
-        theme_bw(base_size = base_size) +
-        theme(legend.position = "none") +
+        ggplot2::geom_point(alpha = 0.3) +
+        ggplot2::ylab("eigenvector") +
+        ggplot2::theme_bw(base_size = base_size) +
+        ggplot2::theme(legend.position = "none") +
         geom_label_repel(data =
                              head(network_centralities[
                                  order(-network_centralities$eigenvector),
                                  ], top))
-    p3 <- ggplot(network_centralities, aes_string(x = x,
+    p3 <- ggplot2::ggplot(network_centralities, ggplot2::aes_string(x = x,
                                                   y = "betweenness",
                                                   color = "color",
                                                   label = "gene")) +
-        geom_point(alpha = 0.3) +
-        ylab("betweenness") +
-        theme_bw(base_size = base_size) +
-        theme(legend.position = "none") +
+        ggplot2::geom_point(alpha = 0.3) +
+        ggplot2::ylab("betweenness") +
+        ggplot2::theme_bw(base_size = base_size) +
+        ggplot2::theme(legend.position = "none") +
         geom_label_repel(data =
                              head(network_centralities[
                                  order(-network_centralities$betweenness),
@@ -141,12 +141,14 @@ sponge_plot_network_centralities <- function(network_centralities,
         }
         else{
         gridExtra::grid.arrange(p1,
-                      p2 + theme(strip.background = element_blank(),
-                                strip.text.x = element_blank(),
-                                legend.position = "none"),
-                      p3 + theme(strip.background = element_blank(),
-                                  strip.text.x = element_blank(),
-                                  legend.position = "none"),
+                      p2 + ggplot2::theme(
+                          strip.background = ggplot2::element_blank(),
+                          strip.text.x = ggplot2::element_blank(),
+                          legend.position = "none"),
+                      p3 + ggplot2::theme(
+                          strip.background = ggplot2::element_blank(),
+                          strip.text.x = ggplot2::element_blank(),
+                          legend.position = "none"),
                       ncol = 1)
         }
     }
