@@ -17,6 +17,23 @@ test_that("sponge with mir interactions works",{
                  tolerance = 1e-7)
 })
 
+test_that("sponge accepts ExpressionSet as input",{
+
+    gene_expr_set <- Biobase::ExpressionSet(assayData = t(gene_expr[,1:3]))
+    mir_expr_set <- Biobase::ExpressionSet(assayData = t(mir_expr))
+
+    result <- sponge(gene_expr = gene_expr_set,
+                     mir_expr = mir_expr_set,
+                     mir_interactions = mir_interactions,
+                     random_seed = 1234)
+
+    expect_equal(nrow(result), 3)
+    expect_equal(result$geneA, c("UST", "UST", "FBXO32"))
+    expect_equal(result$mscor, c(0.2275383, 0.0972899, 0.1855703),
+                 tolerance = 1e-7)
+})
+
+
 test_that("sponge correlation filter works",{
 
     result <- sponge(gene_expr = gene_expr[,1:3],

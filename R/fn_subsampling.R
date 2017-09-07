@@ -6,8 +6,10 @@
 #' @param subsample.with.replacement logical, should we allow samples to be used
 #' repeatedly
 #' @param subsample.plot logical, should the results be plotted as box plots
-#' @param gene_expr gene expression matrix as defined in sponge
-#' @param mir_expr miRNA expression matrix as defined in sponge
+#' @param gene_expr A gene expression matrix with samples in rows and featurs
+#' in columns. Alternatively an object of class ExpressionSet.
+#' @param mir_expr A miRNA expression matrix with samples in rows and features
+#' in columns. Alternatively an object of class ExpressionSet.
 #' @param ... parameters passed on to the sponge function
 #'
 #' @references sponge
@@ -26,6 +28,9 @@ sponge_subsampling <- function(
                     gene_expr,
                     mir_expr,
                     ...){
+
+    gene_expr <- check_and_convert_expression_data(gene_expr)
+    mir_expr <- check_and_convert_expression_data(mir_expr)
 
     subsample_results <-
     foreach(sub.n = subsample.n, .combine = rbind) %do%{

@@ -11,9 +11,11 @@ sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr, mir_predicted_targets,
   select.non.targets = FALSE, random_seed = NULL)
 }
 \arguments{
-\item{gene_expr}{A matrix of gene expression}
+\item{gene_expr}{A gene expression matrix with samples in rows and featurs
+in columns. Alternatively an object of class ExpressionSet.}
 
-\item{mir_expr}{A matrix of miRNA expression}
+\item{mir_expr}{A miRNA expression matrix with samples in rows and features
+in columns. Alternatively an object of class ExpressionSet.}
 
 \item{mir_predicted_targets}{A data frame with miRNA in cols and genes in rows.
 A 0 indicates the miRNA is not predicted to target the gene, >0 otherwise.

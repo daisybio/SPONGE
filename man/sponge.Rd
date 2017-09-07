@@ -11,9 +11,11 @@ sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "ERROR",
   random_seed = NULL, result_as_dt = FALSE)
 }
 \arguments{
-\item{gene_expr}{A gene expression matrix}
+\item{gene_expr}{A gene expression matrix with samples in rows and featurs
+in columns. Alternatively an object of class ExpressionSet.}
 
-\item{mir_expr}{A miRNA expression matrix}
+\item{mir_expr}{A miRNA expression matrix with samples in rows and features
+in columns. Alternatively an object of class ExpressionSet.}
 
 \item{mir_interactions}{A named list of genes, where for each gene we list
 all miRNA interaction partners that should be considered.}

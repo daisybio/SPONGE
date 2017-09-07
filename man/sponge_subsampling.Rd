@@ -18,9 +18,11 @@ repeatedly}
 
 \item{subsample.plot}{logical, should the results be plotted as box plots}
 
-\item{gene_expr}{gene expression matrix as defined in sponge}
+\item{gene_expr}{A gene expression matrix with samples in rows and featurs
+in columns. Alternatively an object of class ExpressionSet.}
 
-\item{mir_expr}{miRNA expression matrix as defined in sponge}
+\item{mir_expr}{A miRNA expression matrix with samples in rows and features
+in columns. Alternatively an object of class ExpressionSet.}
 
 \item{...}{parameters passed on to the sponge function}
 }

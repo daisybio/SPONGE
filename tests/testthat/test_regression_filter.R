@@ -23,6 +23,29 @@ test_that("Regression filter works with one interaction db",{
                         names(which(mircode_symbol["DNMT3A",] > 0))))
 })
 
+test_that("Regression filter accepts ExpressionSet as input",{
+    gene_expr_set <- Biobase::ExpressionSet(assayData =
+                                    t(gene_expr[,c("ASAP2", "DNMT3A")]))
+    mir_expr_set <- Biobase::ExpressionSet(assayData = t(mir_expr))
+
+    genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
+        gene_expr = gene_expr_set,
+        mir_expr = mir_expr_set,
+        mir_predicted_targets = targetscan_symbol,
+        random_seed = 1234)
+
+    expect_length(genes_miRNA_candidates, 2)
+    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2553748,
+                 tolerance = 1e-7)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 7)
+
+    #test if interactions are really in mircode
+    expect_true(all(as.character(genes_miRNA_candidates$ASAP2$mirna) %in%
+                        names(which(mircode_symbol["ASAP2",] > 0))))
+    expect_true(all(as.character(genes_miRNA_candidates$DNMT3A$mirna) %in%
+                        names(which(mircode_symbol["DNMT3A",] > 0))))
+})
+
 test_that("Regression filter works with stricter threshold",{
     genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
         gene_expr = gene_expr[,c("ASAP2", "DNMT3A")],

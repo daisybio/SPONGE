@@ -1,8 +1,10 @@
 #' run sponge benchmark where various settings, i.e. with or without
 #' regression, single or pooled miRNAs, are compared.
 #'
-#' @param gene_expr a gene expression matrix
-#' @param mir_expr a miRNA expression matrix
+#' @param gene_expr A gene expression matrix with samples in rows and featurs
+#' in columns. Alternatively an object of class ExpressionSet.
+#' @param mir_expr A miRNA expression matrix with samples in rows and features
+#' in columns. Alternatively an object of class ExpressionSet.
 #' @param mir_predicted_targets (a list of) mir interaction sources such as
 #' targetscan, etc.
 #' @param number_of_genes_to_test a vector of numbers of genes to be tested,
@@ -31,6 +33,9 @@ sponge_run_benchmark <- function(gene_expr,
                                  compute_significance = FALSE,
                                  folder = NULL){
     basicConfig(level = "INFO")
+
+    gene_expr <- check_and_convert_expression_data(gene_expr)
+    mir_expr <- check_and_convert_expression_data(mir_expr)
 
     if(compute_significance)
     {

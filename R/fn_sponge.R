@@ -53,8 +53,10 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom gRbase combnPrim
 #' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm runif sd setNames xtabs var
 #'
-#' @param gene_expr A gene expression matrix
-#' @param mir_expr A miRNA expression matrix
+#' @param gene_expr A gene expression matrix with samples in rows and featurs
+#' in columns. Alternatively an object of class ExpressionSet.
+#' @param mir_expr A miRNA expression matrix with samples in rows and features
+#' in columns. Alternatively an object of class ExpressionSet.
 #' @param mir_interactions A named list of genes, where for each gene we list
 #' all miRNA interaction partners that should be considered.
 #' @param log.level The log level, can be one of "info", "debug", "error"
@@ -106,6 +108,9 @@ sponge <- function(gene_expr,
                    random_seed = NULL,
                    result_as_dt = FALSE){
     basicConfig(level = log.level)
+
+    gene_expr <- check_and_convert_expression_data(gene_expr)
+    mir_expr <- check_and_convert_expression_data(mir_expr)
 
     #check for NA values that make elasticnet crash
     if(anyNA(gene_expr))

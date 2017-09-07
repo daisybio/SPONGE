@@ -11,9 +11,11 @@ sponge_run_benchmark(gene_expr, mir_expr, mir_predicted_targets,
   folder = NULL)
 }
 \arguments{
-\item{gene_expr}{a gene expression matrix}
+\item{gene_expr}{A gene expression matrix with samples in rows and featurs
+in columns. Alternatively an object of class ExpressionSet.}
 
-\item{mir_expr}{a miRNA expression matrix}
+\item{mir_expr}{A miRNA expression matrix with samples in rows and features
+in columns. Alternatively an object of class ExpressionSet.}
 
 \item{mir_predicted_targets}{(a list of) mir interaction sources such as
 targetscan, etc.}

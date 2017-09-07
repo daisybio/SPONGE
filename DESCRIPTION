@@ -21,6 +21,7 @@ Suggests:
     digest,
     doParallel
 Imports:
+    Biobase,
     stats,
     ppcor,
     logging,

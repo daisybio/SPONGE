@@ -21,8 +21,10 @@
 #' @import bigmemory
 #' @import doRNG
 #'
-#' @param gene_expr A matrix of gene expression
-#' @param mir_expr A matrix of miRNA expression
+#' @param gene_expr A gene expression matrix with samples in rows and featurs
+#' in columns. Alternatively an object of class ExpressionSet.
+#' @param mir_expr A miRNA expression matrix with samples in rows and features
+#' in columns. Alternatively an object of class ExpressionSet.
 #' @param mir_predicted_targets A data frame with miRNA in cols and genes in rows.
 #' A 0 indicates the miRNA is not predicted to target the gene, >0 otherwise.
 #' If this parameter is NULL all miRNA-gene interactions are tested
@@ -91,6 +93,9 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                                  random_seed = NULL){
     basicConfig(level = log.level)
     with_target_info <- !is.null(mir_predicted_targets)
+
+    gene_expr <- check_and_convert_expression_data(gene_expr)
+    mir_expr <- check_and_convert_expression_data(mir_expr)
 
     if(select.non.targets)
         logwarn("Selecting only miRNA targets not predicted as targets")
