@@ -51,36 +51,36 @@ test_that("Sampling cov. matrices works for m = 1", {
 
 })
 
-test_that("Sampling cov. matrices works for m = 3", {
-
-    complex_case <- sample_zero_mscor_cov(m = 3,number_of_solutions = 1,
-                                         gene_gene_correlation = 0.5,
-                                         random_seed = 12543)[[1]]
-    expect_equal(complex_case[1,1], 0.62572338, tolerance = 1e-6)
-    expect_equal(ncol(complex_case), 5)
-})
-
-test_that("Sampling cov. matrices works for m = 3 in parallel", {
-
-    registerDoParallel(cl)
-
-    complex_case <- sample_zero_mscor_cov(m = 3, number_of_solutions = 1,
-                                              gene_gene_correlation = 0.5,
-                                              random_seed = 12543)[[1]]
-    expect_equal(complex_case[1,1], 0.62572338, tolerance = 1e-6)
-    expect_equal(ncol(complex_case), 5)
-
-    registerDoSEQ()
-})
-
-test_that("Sampling data from covariance matrices works", {
-    set.seed(12345)
-    result <- unlist(
-        sample_zero_mscor_data(
-            cov_matrices = precomputed_cov_matrices[[1]][[1]][1:2],
-            number_of_samples = 50,
-            number_of_datasets = 2))
-    expect_equal(result, c(0.05027585, 0.06882558, -0.05860923, -0.00840041))
-})
+# test_that("Sampling cov. matrices works for m = 3", {
+#
+#     complex_case <- sample_zero_mscor_cov(m = 3,number_of_solutions = 1,
+#                                          gene_gene_correlation = 0.5,
+#                                          random_seed = 12543)[[1]]
+#     expect_equal(complex_case[1,1], 0.62572338, tolerance = 1e-6)
+#     expect_equal(ncol(complex_case), 5)
+# })
+#
+# test_that("Sampling cov. matrices works for m = 3 in parallel", {
+#
+#     registerDoParallel(cl)
+#
+#     complex_case <- sample_zero_mscor_cov(m = 3, number_of_solutions = 1,
+#                                               gene_gene_correlation = 0.5,
+#                                               random_seed = 12543)[[1]]
+#     expect_equal(complex_case[1,1], 0.62572338, tolerance = 1e-6)
+#     expect_equal(ncol(complex_case), 5)
+#
+#     registerDoSEQ()
+# })
+#
+# test_that("Sampling data from covariance matrices works", {
+#     set.seed(12345)
+#     result <- unlist(
+#         sample_zero_mscor_data(
+#             cov_matrices = precomputed_cov_matrices[[1]][[1]][1:2],
+#             number_of_samples = 50,
+#             number_of_datasets = 2))
+#     expect_equal(result, c(0.05027585, 0.06882558, -0.05860923, -0.00840041))
+# })
 
 stopCluster(cl)
