@@ -151,11 +151,11 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
         #fill big matrix
         for(mir_db in list_of_mir_predicted_targets){
-            mir_db_genes <- intersect(all_genes, rownames(mir_db))
-            mir_db_mirs <- intersect(all_mirs, colnames(mir_db))
+            mir_db_genes <- which(all_genes %in% rownames(mir_db))
+            mir_db_mirs <- which(all_mirs %in% colnames(mir_db))
             mir_predicted_targets[mir_db_genes, mir_db_mirs] <-
                 mir_predicted_targets[mir_db_genes, mir_db_mirs] +
-                mir_db[mir_db_genes, mir_db_mirs]
+                mir_db[all_genes[mir_db_genes], all_mirs[mir_db_mirs]]
         }
 
         mir_predicted_targets_description <- describe(mir_predicted_targets)
