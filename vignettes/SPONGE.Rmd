@@ -1,6 +1,6 @@
 ---
 title: "Sparse Partial correlation ON Gene Expression with SPONGE"
-author: "Markus List"
+author: "Markus List, Azim Dehghani Amirabad, Dennis Kostka, Marcel H. Schulz"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
