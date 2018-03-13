@@ -3,7 +3,9 @@
 \name{check_and_convert_expression_data}
 \alias{check_and_convert_expression_data}
 \title{Checks if expression data is in matrix or ExpressionSet format and
-converts the latter to a standard matrix.}
+converts the latter to a standard matrix. Alternatively, a big.matrix
+descriptor object can be supplied to make use of shared memory between
+parallelized workers through the bigmemory package.}
 \usage{
 check_and_convert_expression_data(expr_data)
 }
@@ -15,7 +17,9 @@ expr_data as matrix
 }
 \description{
 Checks if expression data is in matrix or ExpressionSet format and
-converts the latter to a standard matrix.
+converts the latter to a standard matrix. Alternatively, a big.matrix
+descriptor object can be supplied to make use of shared memory between
+parallelized workers through the bigmemory package.
 }
 \examples{
 \dontrun{check_and_convert_expression_data(gene_expr)}

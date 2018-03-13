@@ -5,10 +5,11 @@
 \title{Determine miRNA-gene interactions to be considered in SPONGE}
 \usage{
 sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr, mir_predicted_targets,
-  elastic.net = TRUE, log.every.n = 100, log.level = "ERROR",
-  var.threshold = NULL, F.test = FALSE, F.test.p.adj.threshold = 0.05,
+  elastic.net = TRUE, log.level = "ERROR", var.threshold = NULL,
+  F.test = FALSE, F.test.p.adj.threshold = 0.05,
   coefficient.threshold = -0.05, coefficient.direction = "<",
-  select.non.targets = FALSE, random_seed = NULL)
+  select.non.targets = FALSE, random_seed = NULL, parallel.chunks = 100,
+  use_big_memory = FALSE)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix with samples in rows and featurs
@@ -22,8 +23,6 @@ A 0 indicates the miRNA is not predicted to target the gene, >0 otherwise.
 If this parameter is NULL all miRNA-gene interactions are tested}
 
 \item{elastic.net}{Whether to apply elastic net regression filtering or not.}
-
-\item{log.every.n}{Log only ever n iterations to limit output}
 
 \item{log.level}{One of 'warn', 'error', 'info'}
 
@@ -56,6 +55,8 @@ non-targeting miRNAs (without seeds) of the same size. Useful for testing
 if observed effects are caused by miRNA regulation.}
 
 \item{random_seed}{A random seed to be used for reproducible results}
+
+\item{log.every.n}{Log only ever n iterations to limit output}
 }
 \value{
 A list of genes, where for each gene, the regulating miRNA are

@@ -6,9 +6,9 @@
 Sparse Partial correlations ON Gene Expression (SPONGE)}
 \usage{
 sponge(gene_expr, mir_expr, mir_interactions = NULL, log.level = "ERROR",
-  log.every.n = 1e+05, selected.genes = NULL, gene.combinations = NULL,
-  each.miRNA = FALSE, min.cor = 0.1, parallel.chunks = 1000,
-  random_seed = NULL, result_as_dt = FALSE)
+  log.every.n = 1e+05, log.file = NULL, selected.genes = NULL,
+  gene.combinations = NULL, each.miRNA = FALSE, min.cor = 0.1,
+  parallel.chunks = 1000, random_seed = NULL, result_as_dt = FALSE)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix with samples in rows and featurs
