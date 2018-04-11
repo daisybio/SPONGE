@@ -5,10 +5,10 @@
 \title{Determine miRNA-gene interactions to be considered in SPONGE}
 \usage{
 sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr, mir_predicted_targets,
-  elastic.net = TRUE, log.every.n = 100, log.level = "ERROR",
+  elastic.net = TRUE, log.level = "ERROR", log.file = NULL,
   var.threshold = NULL, F.test = FALSE, F.test.p.adj.threshold = 0.05,
   coefficient.threshold = -0.05, coefficient.direction = "<",
-  select.non.targets = FALSE, random_seed = NULL)
+  select.non.targets = FALSE, random_seed = NULL, parallel.chunks = 100)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix with samples in rows and featurs
@@ -23,9 +23,9 @@ If this parameter is NULL all miRNA-gene interactions are tested}
 
 \item{elastic.net}{Whether to apply elastic net regression filtering or not.}
 
-\item{log.every.n}{Log only ever n iterations to limit output}
-
 \item{log.level}{One of 'warn', 'error', 'info'}
+
+\item{log.file}{Log file to write to}
 
 \item{var.threshold}{Only consider genes and miRNA with
 variance > var.threshold. If this parameter is NULL no variance filtering
@@ -56,6 +56,14 @@ non-targeting miRNAs (without seeds) of the same size. Useful for testing
 if observed effects are caused by miRNA regulation.}
 
 \item{random_seed}{A random seed to be used for reproducible results}
+
+\item{parallel.chunks}{Split into this number of tasks if parallel processing
+is set up. The number should be high enough to guarantee equal distribution
+of the work load in parallel execution. However, if the number is too large,
+e.g. in the worst case one chunk per computation, the overhead causes more
+computing time than can be saved by parallel execution. Register a parallel
+backend that is compatible with foreach to use this feature. More information
+can be found in the documentation of the foreach / doParallel packages.}
 }
 \value{
 A list of genes, where for each gene, the regulating miRNA are

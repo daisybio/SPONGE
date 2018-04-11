@@ -1,3 +1,20 @@
+#iterate over chunks of rows for efficient parallel computation
+split_cols <- function(x, ...)
+{
+  it <- idiv(ncol(x), ...)
+  i <- 1L
+  nextEl <- function() {
+    n <- as.integer(nextElem(it))
+    j <- i
+    i <<- i + n
+    x[, seq(j, length = n) , drop = FALSE]
+  }
+  object <- list(nextElem = nextEl)
+  class(object) <- c("abstractiter", "iter")
+  object
+}
+
+
 #' Determine miRNA-gene interactions to be considered in SPONGE
 #' @description The purpose of this method is to limit the number of miRNA-gene
 #' interactions we need to consider in SPONGE. There are 3 filtering steps:
@@ -18,8 +35,8 @@
 #' foreach and doParallel packages.
 #' @import foreach
 #' @import glmnet
-#' @import bigmemory
 #' @import doRNG
+#' @importFrom iterators iter
 #'
 #' @param gene_expr A gene expression matrix with samples in rows and featurs
 #' in columns. Alternatively an object of class ExpressionSet.
@@ -28,7 +45,7 @@
 #' @param mir_predicted_targets A data frame with miRNA in cols and genes in rows.
 #' A 0 indicates the miRNA is not predicted to target the gene, >0 otherwise.
 #' If this parameter is NULL all miRNA-gene interactions are tested
-#' @param log.every.n Log only ever n iterations to limit output
+#' @param log.file Log file to write to
 #' @param log.level One of 'warn', 'error', 'info'
 #' @param var.threshold Only consider genes and miRNA with
 #' variance > var.threshold. If this parameter is NULL no variance filtering
@@ -54,6 +71,13 @@
 #' non-targeting miRNAs (without seeds) of the same size. Useful for testing
 #' if observed effects are caused by miRNA regulation.
 #' @param elastic.net Whether to apply elastic net regression filtering or not.
+#' @param parallel.chunks Split into this number of tasks if parallel processing
+#' is set up. The number should be high enough to guarantee equal distribution
+#' of the work load in parallel execution. However, if the number is too large,
+#' e.g. in the worst case one chunk per computation, the overhead causes more
+#' computing time than can be saved by parallel execution. Register a parallel
+#' backend that is compatible with foreach to use this feature. More information
+#' can be found in the documentation of the foreach / doParallel packages.
 #' @return A list of genes, where for each gene, the regulating miRNA are
 #' included as a data frame. For F.test = TRUE this is a data frame with fstat
 #' and p-value for each miRNA. Else it is a data frame with the model
@@ -82,20 +106,43 @@
 sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                                                  mir_predicted_targets,
                                                  elastic.net = TRUE,
-                                                 log.every.n = 100,
                                                  log.level = "ERROR",
+                                                 log.file = NULL,
                                                  var.threshold = NULL,
                                                  F.test = FALSE,
                                                  F.test.p.adj.threshold = 0.05,
                                                  coefficient.threshold = -0.05,
                                                  coefficient.direction = "<",
                                                  select.non.targets = FALSE,
-                                                 random_seed = NULL){
-    basicConfig(level = log.level)
+                                                 random_seed = NULL,
+                                                 parallel.chunks = 100){
+    if(!is.null(log.file))
+        addHandler(writeToFile, file=log.file, level=log.level)
+    else{
+        basicConfig(level = log.level)
+    }
     with_target_info <- !is.null(mir_predicted_targets)
+    foreach_packages <- c("logging", "glmnet")
 
-    gene_expr <- check_and_convert_expression_data(gene_expr)
-    mir_expr <- check_and_convert_expression_data(mir_expr)
+    if(class(gene_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    {
+        loginfo("Detected gene expression big matrix descriptor")
+        gene_expr <- check_and_convert_expression_data(gene_expr)
+        gene_expr <- bigmemory::as.matrix(gene_expr)
+    }
+    else{
+        gene_expr <- check_and_convert_expression_data(gene_expr)
+    }
+
+    if(class(mir_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    {
+        loginfo("Detected miRNA expression big matrix descriptor")
+        mir_expr <- check_and_convert_expression_data(mir_expr)
+        mir_expr <- bigmemory::as.matrix(mir_expr)
+    }
+    else{
+        mir_expr <- check_and_convert_expression_data(mir_expr)
+    }
 
     if(select.non.targets)
         logwarn("Selecting only miRNA targets not predicted as targets")
@@ -142,14 +189,15 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                              }
         all_genes <- intersect(all_genes, colnames(gene_expr))
 
-        mir_predicted_targets <- big.matrix(
-            nrow = length(all_genes),
-            ncol = length(all_mirs),
-            dimnames = list(all_genes, all_mirs))
+
+        mir_predicted_targets <- matrix(
+          nrow = length(all_genes),
+          ncol = length(all_mirs),
+          dimnames = list(all_genes, all_mirs))
 
         mir_predicted_targets[,] <- 0
 
-        #fill big matrix
+        #fill matrix
         for(mir_db in list_of_mir_predicted_targets){
             mir_db_genes <- which(all_genes %in% rownames(mir_db))
             mir_db_mirs <- which(all_mirs %in% colnames(mir_db))
@@ -157,17 +205,12 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 mir_predicted_targets[mir_db_genes, mir_db_mirs] +
                 mir_db[all_genes[mir_db_genes], all_mirs[mir_db_mirs]]
         }
-
-        mir_predicted_targets_description <- describe(mir_predicted_targets)
     }
     else{
         all_mirs <- intersect(colnames(mir_predicted_targets), colnames(mir_expr))
         all_genes <- intersect(rownames(mir_predicted_targets), colnames(gene_expr))
 
         mir_predicted_targets <- mir_predicted_targets[all_genes, all_mirs]
-        mir_predicted_targets <- as.big.matrix(mir_predicted_targets)
-
-        mir_predicted_targets_description <- describe(mir_predicted_targets)
     }
 
     omitted_mirnas <- setdiff(colnames(mir_expr), all_mirs)
@@ -186,61 +229,51 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     mir_expr <- mir_expr[,all_mirs]
     num_of_genes <- length(all_genes)
 
-    #convert to big.matrix for shared memory operations
-    gene_expr_bm <- as.big.matrix(gene_expr)
-    gene_expr_description <- describe(gene_expr_bm)
+    num_of_tasks <- min(max(1, ceiling(ncol(gene_expr) / 10)), parallel.chunks)
 
-    mir_expr_bm <- as.big.matrix(mir_expr)
-    mir_expr_description <- describe(mir_expr_bm)
+    loginfo("Computing gene / miRNA regression models...")
 
     #loop over all genes and compute regression models to identify important miRNAs
-    foreach(gene_idx = seq_len(num_of_genes),
-            .final = function(x) setNames(x, all_genes),
-            .packages = c("logging", "glmnet", "bigmemory"),
+    final_result <- foreach(g_expr_batch = split_cols(gene_expr, chunks = num_of_tasks),
+            chunk = seq_len(num_of_tasks),
+            .packages = foreach_packages,
             .export = c("fn_get_model_coef", "fn_elasticnet", "fn_gene_miRNA_F_test", "fn_get_rss"),
             .inorder = TRUE,
-            .options.RNG = random_seed) %dorng% {
+            .options.RNG = random_seed
+            ) %dorng% {
 
-                #attach shared data
-                attached_gene_expr <- attach.big.matrix(gene_expr_description)
-                attached_mir_expr <- attach.big.matrix(mir_expr_description)
-
-                #get gene name
-                gene <- all_genes[gene_idx]
-
-                #setup logging
-                basicConfig(level = log.level)
-
-                if(gene_idx %% log.every.n == 0){
-                    curr_percentage <- round((gene_idx / num_of_genes) * 100, 2)
-                    loginfo(paste("Computing gene / miRNA regression models: ", curr_percentage, "% completed.", sep=""))
+              #setup logging
+                if(!is.null(log.file))
+                    addHandler(writeToFile, file=log.file, level=log.level)
+                else{
+                    basicConfig(level = log.level)
                 }
+              loginfo(paste("Computing gene / miRNA regression models: chunk ", chunk, " of ", num_of_tasks, ".", sep=""))
 
-                logdebug(paste("Processing gene", gene))
+              batch_result <- foreach(g_expr = iter(g_expr_batch, by = "col"),
+                                      gene = colnames(g_expr_batch),
+                                      .final = function(x) setNames(x, colnames(g_expr_batch))) %do%{
 
-                #expression values of this gene
-                g_expr <- attached_gene_expr[,gene_idx]
+                gene_idx <- which(all_genes == gene)
 
                 #check if we have a target database
                 if(with_target_info){
-                    attached_mir_predicted_targets <- attach.big.matrix(mir_predicted_targets_description)
-                    mimats_matched <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] > 0)]
+                    mimats_matched <- all_mirs[which(mir_predicted_targets[gene_idx,] > 0)]
 
                     if(length(mimats_matched) == 0){
-                        logdebug("None of the target mirnas are found in expression data. Returning null for this gene.")
                         return(NULL)
                     }
 
                     if(select.non.targets){
-                        non_targets <- all_mirs[which(attached_mir_predicted_targets[gene_idx,] == 0)]
+                        non_targets <- all_mirs[which(mir_predicted_targets[gene_idx,] == 0)]
                         mimats_matched <- sample(non_targets,
                                                  min(length(mimats_matched), length(non_targets)))
                     }
-                    m_expr <- attached_mir_expr[,which(all_mirs %in% mimats_matched)]
+                    m_expr <- mir_expr[,which(all_mirs %in% mimats_matched)]
                 }
                 else{
                     mimats_matched <- all_mirs
-                    m_expr <- as.matrix(attached_mir_expr)
+                    m_expr <- as.matrix(mir_expr)
                 }
 
                 if(!elastic.net){
@@ -249,7 +282,6 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
                 #learn a regression model to figure out which miRNAs regulate this gene in
                 #the given dataset
-                logdebug(paste("Learning regression model for gene", gene))
 
                 #if we have only one miRNA we can't use glmnet.
                 #We use lm instead and check if this miRNA is sigificant
@@ -328,5 +360,9 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
                     return(result)
                 }
+              }
+              return(batch_result)
             }
+    loginfo("FINISHED")
+    return(unlist(final_result, recursive = FALSE))
 }

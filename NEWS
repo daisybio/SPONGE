@@ -1,3 +1,6 @@
+CHANGES IN VERSION 1.0.2
+- Big memory regularly breaks the build. Thus it is no longer used by default. big memory objects can still be created manually and will be used in sponge
+
 CHANGES IN VERSION 1.0.1
 ------------------------
 - Release with Bioconductor 3.6
