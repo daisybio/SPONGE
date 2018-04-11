@@ -265,6 +265,8 @@ sponge <- function(gene_expr,
         else
             attached_mir_expr <- mir_expr_description
 
+        #if(require(pryr)) logdebug(paste("current memory used by worker:", pryr::mem_used()))
+
         result <-
             processChunk(
                 gene_combis,
