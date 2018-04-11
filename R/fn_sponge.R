@@ -128,7 +128,6 @@ sponge <- function(gene_expr,
     else{
         gene_expr_big_memory <- FALSE
         gene_expr <- check_and_convert_expression_data(gene_expr)
-        gene_expr_description <- gene_expr
     }
 
     if(class(mir_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
@@ -142,14 +141,11 @@ sponge <- function(gene_expr,
     else{
         mir_expr_big_memory <- FALSE
         mir_expr <- check_and_convert_expression_data(mir_expr)
-        mir_expr_description <- mir_expr
     }
 
     if(is.null(mir_interactions)){
         logwarn("No information on miRNA gene interactions was provided,
                 all miRNAs will be considered and runtime will likely explode.")
-        mir_intersect <- colnames(mir_expr)
-
         genes <- colnames(gene_expr)
     }
     else{
@@ -226,6 +222,9 @@ sponge <- function(gene_expr,
 
     loginfo("Beginning SPONGE run...")
 
+    if(!gene_expr_big_memory) gene_expr_description <- gene_expr
+    if(!mir_expr_big_memory) mir_expr_description <- mir_expr
+
     rm(gene_expr)
     rm(mir_expr)
 
@@ -279,8 +278,8 @@ sponge <- function(gene_expr,
             )
 
         loginfo(paste("SPONGE finished chunk:", i, "of", num_of_tasks))
-
-        return(result)
+        if(is.null(result)) return(list())
+        else return(result)
     }
     loginfo("SPONGE completed successfully. Returning results.")
 
@@ -291,6 +290,8 @@ sponge <- function(gene_expr,
 #internal function
 processChunk <- function(gene_combis, attached_gene_expr, attached_mir_expr, mir_interactions,
                          all_mirs, each.miRNA, min.cor){
+    if(is.null(mir_interactions))
+        mir_intersect <- all_mirs
 
     foreach(geneA_idx = gene_combis$geneA_idx,
             geneB_idx = gene_combis$geneB_idx,
