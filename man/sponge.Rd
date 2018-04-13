@@ -24,6 +24,8 @@ all miRNA interaction partners that should be considered.}
 
 \item{log.every.n}{write to the log after every n steps}
 
+\item{log.file}{write log to a file, particularly useful for paralleliyzation}
+
 \item{selected.genes}{Operate only on a subset of genes, particularly
 useful for bootstrapping}
 

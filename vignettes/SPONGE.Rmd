@@ -217,7 +217,7 @@ sponge_plot_network_centralities(weighted_network_centralities, measure = "btw",
 
 ## Parallelization and Shared Memory
 
-Even though SPONGE is quite fast in inferring ceRNA interactions it will still take a few days to process a dataset with hundred of samples on a single CPU. We thus built SPONGE on top of the foreach and bigmemory R packages:
+Even though SPONGE is quite fast in inferring ceRNA interactions it will still take a few days to process a dataset with hundred of samples on a single CPU. We thus built SPONGE on top of the foreach R package:
 
 The foreach R package will allow you to parallelize SPONGE over multiple CPUs. The beauty of this approach is that it is up to the user to decide which backend to use for this. We refer to the foreach package for details. One of the most used backends for foreach is the doParallel R package. Once a parallel compute environment is set up, SPONGE can use it automatically (no extra parameters needed):
 
@@ -257,7 +257,7 @@ register(DoparParam(), default = TRUE)
 ```
 
 
-A frequently encountered caveat of foreach is that each of the parallel workers will require a copy of the data its operating on. With large datasets this becomes an issue even on compute servers with large memory. We thus utilize the bigmemory R package to allow each parallel worker process / thread to access data in shared memory. If you have access to a compute server with 40-60 cores, you can typically compute a genome-wide ceRNA network within a few hours.
+A frequently encountered caveat of foreach is that each of the parallel workers will require a copy of the data its operating on. With large datasets this becomes an issue even on compute servers with large memory. We thus support the bigmemory R package to allow each parallel worker process / thread to access data in shared memory. To make use of the big memory package simply replace the gene_expr and mir_expr parameters with bigmemory description objects. We refer to the documentation of the bigmemory package for details. If you have access to a compute server with 40-60 cores, you can typically compute a genome-wide ceRNA network within a few hours.
 
 ## Computing covariance matrices for the null model
 

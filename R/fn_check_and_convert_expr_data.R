@@ -23,12 +23,11 @@ check_and_convert_expression_data <- function(expr_data){
     }
 
     if(class(expr_data) == "ExpressionSet"){
-        exprs_data <- t(exprs(expr_data))
+        expr_data <- t(exprs(expr_data))
     }
 
     #check for NA values that make elasticnet crash
-    if(anyNA(expr_data)){
-        stop("NA values found in expression data. Can not proceed")
-    } else return(expr_data)
+    if(anyNA(expr_data)) stop("NA values found in expression data. Can not proceed")
 
+    return(expr_data)
 }
