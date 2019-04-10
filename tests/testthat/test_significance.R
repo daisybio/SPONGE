@@ -10,8 +10,8 @@ test_that("drawing sample data from a set of covariance matrices works",{
         compute_null_model(cov_matrices = selected_cov_matrices[[1]],
                                number_of_datasets = 5,
                                number_of_samples = 100)$mscor,
-        c(-0.1629024561, -0.1410354380, -0.0589320903, 0.0008393662, 0.0812918164),
-        tolerance = 1e-7
+        c(-0.1629024561, -0.1410354380, 0.0008393662, 0.049706, 0.0812918164),
+        tolerance = 1e-5
     )
 })
 
