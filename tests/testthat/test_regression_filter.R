@@ -16,7 +16,7 @@ test_that("Regression filter works with one interaction db",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2553748,
+    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2459728,
                  tolerance = 1e-7)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 7)
 
@@ -39,7 +39,7 @@ test_that("Regression filter accepts ExpressionSet as input",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2553748,
+    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2459728,
                  tolerance = 1e-7)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 7)
 
@@ -85,7 +85,7 @@ test_that("Regression filter works with stricter threshold",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2553748,
+    expect_equal(genes_miRNA_candidates$ASAP2$coefficient, -0.2459728,
                  tolerance = 1e-7)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 2)
 })
@@ -124,7 +124,7 @@ test_that("Regression filter works without mir interaction db", {
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 18)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 19)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 8)
 })
 
@@ -136,8 +136,8 @@ test_that("Regression filter works with several mir interaction dbs",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 16)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 8)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 15)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 9)
 })
 
 test_that("Regression filter works without threshold",{
@@ -149,8 +149,8 @@ test_that("Regression filter works without threshold",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 25)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 18)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 23)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 19)
 })
 
 test_that("Regression filter works with F-test",{
@@ -163,8 +163,8 @@ test_that("Regression filter works with F-test",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 36)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 24)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 31)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 25)
 })
 
 test_that("Regression filter works with F-test and p.adj cutoff",{
@@ -177,7 +177,7 @@ test_that("Regression filter works with F-test and p.adj cutoff",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 13)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 16)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 13)
 })
 
@@ -192,7 +192,7 @@ test_that("Regression filter works in no targets mode",{
         select.non.targets = TRUE)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 3)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 4)
     expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 5)
 
     #check if selected miRNAs are really not reported as targets in mircode
@@ -212,8 +212,8 @@ test_that("Regression filter with variance threshold",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 12)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 6)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 14)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 7)
 })
 
 test_that("Regression filter with too strict variance threshold",{
@@ -255,8 +255,8 @@ test_that("Regression filter works with parallelization",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 16)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 8)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 15)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 9)
 
     registerDoSEQ()
 })
