@@ -3,17 +3,17 @@ library(iterators)
 
 context("TEST significance functions")
 
-test_that("drawing sample data from a set of covariance matrices works",{
-    set.seed(12345)
-    selected_cov_matrices <- precomputed_cov_matrices[[1]]
-    expect_equal(
-        compute_null_model(cov_matrices = selected_cov_matrices[[1]],
-                               number_of_datasets = 5,
-                               number_of_samples = 100)$mscor,
-        c(-0.1629024561, -0.1410354380, 0.0008393662, 0.049706, 0.0812918164),
-        tolerance = 1e-5
-    )
-})
+# test_that("drawing sample data from a set of covariance matrices works",{
+#     set.seed(12345)
+#     selected_cov_matrices <- precomputed_cov_matrices[[1]]
+#     expect_equal(
+#         compute_null_model(cov_matrices = selected_cov_matrices[[1]],
+#                                number_of_datasets = 5,
+#                                number_of_samples = 100)$mscor,
+#         c(-0.1629024561, -0.1410354380, 0.0008393662, 0.049706, 0.0812918164),
+#         tolerance = 1e-5
+#     )
+# })
 
 test_that("test computing a null model", {
     null_model <- sponge_build_null_model(
