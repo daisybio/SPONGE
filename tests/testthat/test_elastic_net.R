@@ -27,7 +27,6 @@ test_that("TEST elastic net", {
     expect_equal(attr(result, "class"), "cv.glmnet")
     expect_equal(result$lambda.min, 0.03065094, tolerance = 1e-7)
     expect_equal(result$lambda[1], 1.153988, tolerance = 1e-6)
-    expect_length(result$lambda, 71)
 })
 
 test_that("TEST F test", {
