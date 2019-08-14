@@ -1,0 +1,12 @@
+SPONGERef <- bibentry(bibtype = "Article",
+         author = c(as.person("Markus List"),
+                    as.person("Azim Dehghani Amirabad"),
+                    as.person("Dennis Kostka"),
+		    as.person("Marcle H. Schulz")),
+         title = "Large-scale inference of competing endogenous RNA networks with sparse partial correlation",
+         year = 2019,
+         doi = " 10.1093/bioinformatics/btz314",
+         abstract ="MicroRNAs (miRNAs) are important non-coding post-transcriptional regulators that are involved in many biological processes and human diseases. Individual miRNAs may regulate hundreds of genes, giving rise to a complex gene regulatory network in which transcripts carrying miRNA binding sites act as competing endogenous RNAs (ceRNAs). Several methods for the analysis of ceRNA interactions exist, but these do often not adjust for statistical confounders or address the problem that more than one miRNA interacts with a target transcript. We present SPONGE, a method for the fast construction of ceRNA networks. SPONGE uses ?multiple sensitivity correlation?, a newly defined measure for which we can estimate a distribution under a null hypothesis. SPONGE can accurately quantify the contribution of multiple miRNAs to a ceRNA interaction with a probabilistic model that addresses previously neglected confounding factors and allows fast P-value calculation, thus outperforming existing approaches. We applied SPONGE to paired miRNA and gene expression data from The Cancer Genome Atlas for studying global effects of miRNA-mediated cross-talk. Our results highlight already established and novel protein-coding and non-coding ceRNAs which could serve as biomarkers in cancer.",
+         URL = "https://doi.org/10.1093/bioinformatics/btz314",
+         eprint = "https://academic.oup.com/bioinformatics/article-pdf/35/14/i596/28913523/btz314.pdf",
+         journal = "Bioinformatics")
