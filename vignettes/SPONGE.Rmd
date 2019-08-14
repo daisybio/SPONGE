@@ -286,4 +286,6 @@ SPONGE was primarily designed to infer ceRNA interactions efficiently. We point 
 
 ## Citation
 
-List et al., Genome-wide quantification of competitive endogenous RNA regulation (manuscript in preparation)
+List, M., Dehghani Amirabad, A., Kostka, D., & Schulz, M. H. (2019). Large-scale inference of competing endogenous RNA networks with sparse partial correlation. Bioinformatics, 35(14), i596-i604.
+[doi:10.1093/bioinformatics/btz314](https://doi.org/10.1093/bioinformatics/btz314)
+
