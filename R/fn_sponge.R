@@ -117,7 +117,7 @@ sponge <- function(gene_expr,
     foreach_packages <- c("logging", "ppcor", "foreach",
                           "iterators", "data.table")
 
-    if(class(gene_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    if(is(gene_expr, "big.matrix.descriptor") && requireNamespace("bigmemory"))
     {
         loginfo("Detected gene expression big matrix descriptor")
         gene_expr_big_memory <- TRUE
@@ -130,7 +130,7 @@ sponge <- function(gene_expr,
         gene_expr <- check_and_convert_expression_data(gene_expr)
     }
 
-    if(class(mir_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    if(is(mir_expr, "big.matrix.descriptor") && requireNamespace("bigmemory"))
     {
         loginfo("Detected miRNA expression big matrix descriptor")
         mir_expr_big_memory <- TRUE

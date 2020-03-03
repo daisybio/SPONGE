@@ -10,7 +10,7 @@
 #' @examples \dontrun{check_and_convert_expression_data(gene_expr)}
 check_and_convert_expression_data <- function(expr_data){
 
-    if(class(expr_data) == "big.matrix.descriptor"){
+    if(is(expr_data, "big.matrix.descriptor")){
         expr_data <- attach.big.matrix(expr_data)
         if(length(mwhich(expr_data, 1:ncol(expr_data), NA, 'eq', 'OR')) > 0){
             stop("NA values found in expression data. Can not proceed")
@@ -18,11 +18,11 @@ check_and_convert_expression_data <- function(expr_data){
         else return(expr_data)
     }
 
-    if(!class(expr_data) %in% c("matrix", "ExpressionSet")){
+    if(!is(expr_data, "matrix") && !is(expr_data, "ExpressionSet")){
         stop("expression matrix has to be of class matrix, ExpressionSet or big.matrix.descriptor")
     }
 
-    if(class(expr_data) == "ExpressionSet"){
+    if(is(expr_data, "ExpressionSet")){
         expr_data <- t(exprs(expr_data))
     }
 

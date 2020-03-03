@@ -124,7 +124,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     with_target_info <- !is.null(mir_predicted_targets)
     foreach_packages <- c("logging", "glmnet")
 
-    if(class(gene_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    if(is(gene_expr, "big.matrix.descriptor") && requireNamespace("bigmemory"))
     {
         loginfo("Detected gene expression big matrix descriptor")
         gene_expr <- check_and_convert_expression_data(gene_expr)
@@ -134,7 +134,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
         gene_expr <- check_and_convert_expression_data(gene_expr)
     }
 
-    if(class(mir_expr) == "big.matrix.descriptor" && requireNamespace("bigmemory"))
+    if(is(mir_expr, "big.matrix.descriptor") && requireNamespace("bigmemory"))
     {
         loginfo("Detected miRNA expression big matrix descriptor")
         mir_expr <- check_and_convert_expression_data(mir_expr)

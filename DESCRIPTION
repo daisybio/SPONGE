@@ -7,7 +7,7 @@ Maintainer: Markus List <markus.list@wzw.tum.de>
 Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input.
 License: GPL (>=3) 
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Depends: 
     R (>= 3.4)
 Suggests:

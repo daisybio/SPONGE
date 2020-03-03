@@ -4,11 +4,12 @@
 \alias{sponge_gene_miRNA_interaction_filter}
 \title{Determine miRNA-gene interactions to be considered in SPONGE}
 \usage{
-sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr, mir_predicted_targets,
-  elastic.net = TRUE, log.level = "ERROR", log.file = NULL,
-  var.threshold = NULL, F.test = FALSE, F.test.p.adj.threshold = 0.05,
-  coefficient.threshold = -0.05, coefficient.direction = "<",
-  select.non.targets = FALSE, random_seed = NULL, parallel.chunks = 100)
+sponge_gene_miRNA_interaction_filter(gene_expr, mir_expr,
+  mir_predicted_targets, elastic.net = TRUE, log.level = "ERROR",
+  log.file = NULL, var.threshold = NULL, F.test = FALSE,
+  F.test.p.adj.threshold = 0.05, coefficient.threshold = -0.05,
+  coefficient.direction = "<", select.non.targets = FALSE,
+  random_seed = NULL, parallel.chunks = 100)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix with samples in rows and featurs

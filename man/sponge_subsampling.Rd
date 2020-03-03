@@ -5,8 +5,8 @@
 \title{Sponge subsampling}
 \usage{
 sponge_subsampling(subsample.n = 100, subsample.repeats = 10,
-  subsample.with.replacement = FALSE, subsample.plot = FALSE, gene_expr,
-  mir_expr, ...)
+  subsample.with.replacement = FALSE, subsample.plot = FALSE,
+  gene_expr, mir_expr, ...)
 }
 \arguments{
 \item{subsample.n}{the number of samples to be drawn in each round}
