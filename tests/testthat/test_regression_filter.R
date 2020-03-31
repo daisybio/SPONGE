@@ -163,8 +163,8 @@ test_that("Regression filter works with F-test",{
         random_seed = 1234)
 
     expect_length(genes_miRNA_candidates, 2)
-    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 31)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 25)
+    expect_equal(nrow(genes_miRNA_candidates$ASAP2), 33)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 29)
 })
 
 test_that("Regression filter works with F-test and p.adj cutoff",{
@@ -178,7 +178,7 @@ test_that("Regression filter works with F-test and p.adj cutoff",{
 
     expect_length(genes_miRNA_candidates, 2)
     expect_equal(nrow(genes_miRNA_candidates$ASAP2), 16)
-    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 13)
+    expect_equal(nrow(genes_miRNA_candidates$DNMT3A), 14)
 })
 
 
