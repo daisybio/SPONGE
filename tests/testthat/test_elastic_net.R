@@ -7,7 +7,7 @@ test_that("TEST computing residual sum of squares", {
     model <- cv.glmnet(mir_expr, gene_expr[,2], alpha = 0.5)
 
     expect_equal(fn_get_rss(model, mir_expr, gene_expr[,2]), 7.493247,
-                 tolerance = 1e-6)
+                 tolerance = 1e-5)
 })
 
 
@@ -25,8 +25,8 @@ test_that("TEST elastic net", {
     result <- fn_elasticnet(mir_expr, gene_expr[,2], alpha.step = 0.5)
 
     expect_equal(attr(result, "class"), "cv.glmnet")
-    expect_equal(result$lambda.min, 0.03065094, tolerance = 1e-6)
-    expect_equal(result$lambda[1], 1.153988, tolerance = 1e-6)
+    expect_equal(result$lambda.min, 0.03065094, tolerance = 1e-5)
+    expect_equal(result$lambda[1], 1.153988, tolerance = 1e-5)
 })
 
 test_that("TEST F test", {
@@ -36,5 +36,5 @@ test_that("TEST F test", {
                                    m_expr = mir_expr)
     expect_equal(nrow(result), 44)
     expect_equal(ncol(result), 4)
-    expect_equal(mean(result$p.adj), 0.0207, tolerance = 1e-6)
+    expect_equal(mean(result$p.adj), 0.0207, tolerance = 1e-5)
 })
