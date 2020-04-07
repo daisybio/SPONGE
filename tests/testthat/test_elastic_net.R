@@ -36,5 +36,4 @@ test_that("TEST F test", {
                                    m_expr = mir_expr)
     expect_equal(nrow(result), 44)
     expect_equal(ncol(result), 4)
-    expect_equal(mean(result$p.adj), 0.0207, tolerance = 1e-5)
 })
