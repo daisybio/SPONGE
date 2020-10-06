@@ -113,7 +113,7 @@ determine_cutoffs_for_null_model_partitioning <- function(sponge_result,
 
 #function for iterating through partitions
 isplitDT2 <- function(x, ks, ms, null_model) {
-    ival <- iter(apply(expand.grid(ks, ms), 1, list))
+    ival <- iterators::iter(apply(expand.grid(ks, ms), 1, list))
     nextEl <- function() {
         val <- nextElem(ival)
 
@@ -255,10 +255,12 @@ sponge_build_null_model <- function(number_of_datasets = 1e5,
 
     null_model <- foreach(cov.matrices.m = cov_matrices[as.character(ms)],
             m = ms,
+            .export = c("compute_null_model", "sample_zero_mscor_data"),
             .final = function(x) setNames(x, as.character(ms)),
             .inorder = TRUE) %:%
         foreach(cov.matrices.k = cov.matrices.m[as.character(ks)],
                 k = ks,
+                .export = c("compute_null_model", "sample_zero_mscor_data"),
                 .final = function(x) setNames(x, as.character(ks)),
                 .inorder = TRUE,
                 .packages = c("data.table", "gRbase", "MASS",

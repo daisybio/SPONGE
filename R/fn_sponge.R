@@ -241,7 +241,7 @@ sponge <- function(gene_expr,
             rbindlist(list(...)),
         .multicombine = TRUE,
         .packages = foreach_packages,
-        .export = c("fn_get_shared_miRNAs"),
+        .export = c("fn_get_shared_miRNAs", "processChunk", "compute_pcor"),
         .options.RNG = random_seed
     ) %dorng% {
         if (!is.null(log.file))
@@ -297,6 +297,7 @@ processChunk <- function(gene_combis, attached_gene_expr, attached_mir_expr, mir
             geneB_idx = gene_combis$geneB_idx,
             geneA = gene_combis$geneA,
             geneB = gene_combis$geneB,
+            .export = c("compute_pcor", "fn_get_shared_miRNAs"),
             .combine=function(...) rbindlist(list(...))) %do% {
 
               source_expr <- attached_gene_expr[,geneA_idx]
@@ -331,6 +332,7 @@ processChunk <- function(gene_combis, attached_gene_expr, attached_mir_expr, mir
 
               if(each.miRNA){
                 result <- foreach(mirna = mir_intersect,
+                                  .export = c("compute_pcor"),
                                   .combine = function(...) rbindlist(list(...)),
                                   .inorder = TRUE) %do%{
                             m_expr <- attached_mir_expr[,which(all_mirs == mirna)]
