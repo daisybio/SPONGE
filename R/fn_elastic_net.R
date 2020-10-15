@@ -54,7 +54,7 @@ fn_get_model_coef <- function(model){
 fn_elasticnet <- function(x, y, alpha.step = 0.1){
     models <- foreach(alpha = seq(0, 1, alpha.step)) %do%{
         tryCatch({
-            cv.glmnet(x, y, alpha = alpha)
+            glmnet::cv.glmnet(x, y, alpha = alpha)
         }, warning = function(w){
             logwarn(w)
             return(NA)

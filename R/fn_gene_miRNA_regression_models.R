@@ -250,7 +250,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 }
               loginfo(paste("Computing gene / miRNA regression models: chunk ", chunk, " of ", num_of_tasks, ".", sep=""))
 
-              batch_result <- foreach(g_expr = iter(g_expr_batch, by = "col"),
+              batch_result <- foreach(g_expr = iterators::iter(g_expr_batch, by = "col"),
                                       gene = colnames(g_expr_batch),
                                       .final = function(x) setNames(x, colnames(g_expr_batch))) %do%{
 

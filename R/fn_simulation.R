@@ -321,7 +321,7 @@ sample_zero_mscor_data <- function(cov_matrices,
 
         #sample data under this covariance matrix
         foreach(i = seq_len(number_of_datasets), .combine = c) %do%{
-            sample.data <- mvrnorm(n = number_of_samples,
+            sample.data <- MASS::mvrnorm(n = number_of_samples,
                                    rep(0, ncol(cov.matrix)),
                                    cov.matrix,
                                    empirical = FALSE)

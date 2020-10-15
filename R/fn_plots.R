@@ -48,7 +48,7 @@ sponge_network <- function(sponge_result,
         mirna.edges <- foreach(gene = nodes$id, .combine=rbind) %do% {
             gene_mirnas <- mir_data[[as.character(gene)]]
             gene_mirnas <- gene_mirnas[which(gene_mirnas$coefficient < 0),]
-            foreach(mir = iter(gene_mirnas, by="row"), .combine = rbind) %do% {
+            foreach(mir = iterators::iter(gene_mirnas, by="row"), .combine = rbind) %do% {
                 with(mir, { data.frame(from = gene, to = mirna, width = abs(log2(coefficient)), color="blue")})
             }
         }

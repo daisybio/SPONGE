@@ -248,12 +248,18 @@ stopCluster(cl)
 
 ```
 
-Note that if you would like to use the BiocParallel package you can simply 
-register any parallel foreach backend such as the one used above as follows:
+Note that if you would like to use the BiocParallel package you can simply register any parallel foreach backend such as the one used above as follows:
 
 ```{r, eval = FALSE}
 library("BiocParallel")
 register(DoparParam(), default = TRUE)
+```
+
+If you have access to a computing cluster, you can register it as parallel backend using the clustermq package. For details refer to the clustermq package.
+
+```{r, eval = FALSE}
+library(clustermq)
+register_dopar_cmq(n_jobs=2)
 ```
 
 

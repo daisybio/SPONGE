@@ -52,6 +52,7 @@ sponge_run_benchmark <- function(gene_expr,
 
         gene_miRNA_interaction_results <- foreach(
             elastic.net = c(TRUE, FALSE),
+            .export = c("sponge_gene_miRNA_interaction_filter"),
             .final = function(x) setNames(x, c("regression", "no regression")),
             .inorder = TRUE) %do% {
                 loginfo(
@@ -77,10 +78,12 @@ sponge_run_benchmark <- function(gene_expr,
 
         sponge_results <- foreach(
             elastic.net = c("regression", "no regression"),
+            .export = c("sponge"),
             .final = function(x) setNames(x, c("regression", "no regression")),
             .inorder = TRUE) %do% {
                 foreach(
                     each.miRNA = c(TRUE, FALSE),
+                    .export = c("sponge"),
                     .final = function(x){
                             setNames(x, c("single miRNA", "pooled miRNAs"))
                         },
