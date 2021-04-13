@@ -9,6 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) `!!!ATTENTION!!! NEVER COPY FROM THIS BRANCH! IT IS FOR TEST PURPOSES ONLY`
+
 ## Purpose
 
 <div style="float:right;"><img src="https://raw.githubusercontent.com/mlist/SPONGE/master/vignettes/sponge_logo.png" alt="SPONGE logo" style="width: 200px; display: block; margin-left: auto; margin-right: auto;"/></div>
