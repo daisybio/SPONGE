@@ -15,8 +15,8 @@ knitr::kable(mir_expr[1:5,1:5])
 
 ###TEST BATCH CORRECTION###
 #USUALLY WE NEED A LIST OF BATCHES HERE, FOR NOW ITS JUST RANDOM
-gene_expr <- sponge_batch_correction(expression=gene_expr)
-mir_expr <- sponge_batch_correction(expression=mir_expr)
+#gene_expr <- sponge_batch_correction(expression=gene_expr)
+#mir_expr <- sponge_batch_correction(expression=mir_expr)
 
 knitr::kable(gene_expr[1:5,1:8])
 knitr::kable(mir_expr[1:5,1:5])
@@ -34,6 +34,12 @@ genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
 gene_expr = gene_expr,
 mir_expr = mir_expr,
 mir_predicted_targets = targetscan_symbol)
+batches= sample(1:3, nrow(gene_expr), replace=T)
+genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
+  gene_expr = gene_expr,
+  mir_expr = mir_expr,
+  mir_predicted_targets = targetscan_symbol,
+  batches = batches)
 
 ## -----------------------------------------------------------------------------
 genes_miRNA_candidates[1:2]
