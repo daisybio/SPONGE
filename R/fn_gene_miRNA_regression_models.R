@@ -321,34 +321,10 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
                 #if we have more than one miRNA we can use elasticnet to
                 #find out which are the essential features
-                model <- tryCatch({
-
-                  #build matrix (m_expr_g_expr foreach batch/subtype)
-                  if(batches==-1)
-                  {
-                    print(model)
+                if(batches==-1)
+                {
+                  model <- tryCatch({
                     fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
-                    print(model)
-                  }
-                  else
-                  {
-                    ##test subtypes
-                    unique_batches <- unique(batches)
-
-                    m_expr_all_batches <- cbind(m_expr,data.frame(batches))
-                    g_expr_all_batches <- cbind(g_expr,data.frame(batches))
-
-                    for(i in unique_batches)
-                    {
-                      m_expr_current <- subset(m_expr_all_batches[m_expr_all_batches$batches==i,],select = -batches)
-                      g_expr_current <- subset(g_expr_all_batches[g_expr_all_batches$batches==i,],select = -batches)
-
-                      m_expr_current <- as.matrix(m_expr_current)
-                      g_expr_current <- as.matrix(g_expr_current)
-
-                      fn_elasticnet(m_expr_current,g_expr_current) #elasticnet trying different alphas
-                    }
-                  }
                 }, warning = function(w) {
                     logdebug(w)
                     return(NULL)
@@ -356,6 +332,32 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     logerror(e)
                     return(NULL)
                 })
+                }
+                else{
+                    ##test subtypes
+                    unique_batches <- unique(batches)
+
+                    m_expr_all_batches <- cbind(m_expr,data.frame(batches))
+                    g_expr_all_batches <- cbind(g_expr,data.frame(batches))
+
+                  for(i in unique_batches)
+                    {
+                      m_expr_current <- subset(m_expr_all_batches[m_expr_all_batches$batches==i,],select = -batches)
+                      g_expr_current <- subset(g_expr_all_batches[g_expr_all_batches$batches==i,],select = -batches)
+
+                      m_expr_current <- as.matrix(m_expr_current)
+                      g_expr_current <- as.matrix(g_expr_current)
+                      model <- tryCatch({
+                        fn_elasticnet(m_expr_current, g_expr_current) #elasticnet trying different alphas
+                      }, warning = function(w) {
+                          logdebug(w)
+                          return(NULL)
+                      }, error = function(e) {
+                          logerror(e)
+                          return(NULL)
+                      })
+                    }
+                }
                 if(is.null(model)) return(NULL)
 
                 #extract model coefficients
