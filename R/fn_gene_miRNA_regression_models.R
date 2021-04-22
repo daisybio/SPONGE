@@ -452,5 +452,13 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
               return(batch_result)
             }
     loginfo("FINISHED")
-    return(unlist(final_result, recursive = FALSE))
+    if(batches==-1)
+    {
+      return(unlist(final_result, recursive = FALSE))
+    }
+    else
+    {
+      return(final_result)
+    }
+
 }

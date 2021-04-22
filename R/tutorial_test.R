@@ -35,6 +35,9 @@ knitr::kable(targetscan_symbol[1:5,1:5])
 #mir_expr = mir_expr,
 #mir_predicted_targets = targetscan_symbol)
 batches= sample(1:3, nrow(gene_expr), replace=T)
+batches <- as.factor(batches)
+levels(batches) <- 1:length(levels(batches))
+batches <- as.character(batches)
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
   gene_expr = gene_expr,
   mir_expr = mir_expr,
