@@ -340,28 +340,43 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     m_expr_all_batches <- cbind(m_expr,data.frame(batches))
                     g_expr_all_batches <- cbind(g_expr,data.frame(batches))
 
+                  list_models <- list()
+                  list_m_expr <- list()
+                  list_g_expr <- list()
                   for(i in unique_batches)
-                    {
-                      m_expr_current <- subset(m_expr_all_batches[m_expr_all_batches$batches==i,],select = -batches)
-                      g_expr_current <- subset(g_expr_all_batches[g_expr_all_batches$batches==i,],select = -batches)
+                  {
+                    m_expr_current <- subset(m_expr_all_batches[m_expr_all_batches$batches==i,],select = -batches)
+                    g_expr_current <- subset(g_expr_all_batches[g_expr_all_batches$batches==i,],select = -batches)
 
-                      m_expr_current <- as.matrix(m_expr_current)
-                      g_expr_current <- as.matrix(g_expr_current)
-                      model <- tryCatch({
-                        fn_elasticnet(m_expr_current, g_expr_current) #elasticnet trying different alphas
-                      }, warning = function(w) {
-                          logdebug(w)
-                          return(NULL)
-                      }, error = function(e) {
-                          logerror(e)
-                          return(NULL)
-                      })
-                    }
+                    m_expr_current <- as.matrix(m_expr_current)
+                    list_m_expr[[i]]<- m_expr_current
+                    g_expr_current <- as.matrix(g_expr_current)
+                    list_g_expr[[i]] <- g_expr_current
+                    model <- tryCatch({
+                      fn_elasticnet(m_expr_current, g_expr_current) #elasticnet trying different alphas
+                    }, warning = function(w) {
+                        logdebug(w)
+                        return(NULL)
+                    }, error = function(e) {
+                        logerror(e)
+                        return(NULL)
+                    })
+                    list_models[[i]] <- model
+                  }
                 }
-                if(is.null(model)) return(NULL)
+                if(batches==-1)
+                {
+                  if(is.null(model)) return(NULL)
+                }
+                else{
+                  if(is.null(list_models)) return(NULL)
+                }
 
                 #extract model coefficients
                 if(!F.test){
+
+                  if(batches==-1)
+                  {
                     result <- fn_get_model_coef(model)
 
                     if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
@@ -373,9 +388,32 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
 
                     if(length(outside.threshold) == 0) return(NULL)
                     else return(result[outside.threshold,])
+                  }
+                  else{
+                    results <- list()
+                    for(i in names(list_models))
+                    {
+                      result <- fn_get_model_coef(list_models[[i]])
+
+                      if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
+                          outside.threshold <- which(abs(result$coefficient) > coefficient.threshold)
+                      else if(coefficient.direction == "<")
+                          outside.threshold <- which(result$coefficient < coefficient.threshold)
+                      else if(coefficient.direction == ">")
+                          outside.threshold <- which(result$coefficient > coefficient.threshold)
+
+                      if(length(outside.threshold) == 0) return(NULL)
+                      #else return(result[outside.threshold,])
+                      else results[[i]]<-result[outside.threshold,]
+                    }
+                    return(results)
+                  }
+
                 }
                 #we use the F test to assess the significance of each feature
                 else if(F.test){
+                  if(batches==-1)
+                  {
                     result <- tryCatch({
                         fn_gene_miRNA_F_test(g_expr, m_expr, model,
                                              F.test.p.adj.threshold)
@@ -388,6 +426,27 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     })
 
                     return(result)
+                  }
+                  else
+                  {
+                    results <- list()
+                    for (i in names(list_models))
+                    {
+                      result <- tryCatch({
+                        fn_gene_miRNA_F_test(list_g_expr[[i]], list_m_expr[[i]], list_models[[i]],
+                                             F.test.p.adj.threshold)
+                      }, warning = function(w) {
+                          logdebug(w)
+                          return(NULL)
+                      }, error = function(e) {
+                          logerror(e)
+                          return(NULL)
+                      })
+                      results[[i]] <- result
+                    }
+                    return(results)
+                  }
+
                 }
               }
               return(batch_result)

@@ -30,10 +30,10 @@ knitr::kable(mir_expr[1:5,1:5])
 knitr::kable(targetscan_symbol[1:5,1:5])
 
 ## ---- warning=FALSE,message=FALSE---------------------------------------------
-genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
-gene_expr = gene_expr,
-mir_expr = mir_expr,
-mir_predicted_targets = targetscan_symbol)
+#genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
+#gene_expr = gene_expr,
+#mir_expr = mir_expr,
+#mir_predicted_targets = targetscan_symbol)
 batches= sample(1:3, nrow(gene_expr), replace=T)
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
   gene_expr = gene_expr,
