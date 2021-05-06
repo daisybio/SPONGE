@@ -335,10 +335,10 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 }
                 else{
                     ##test subtypes
-                    unique_batches <- unique(batches)
+                  unique_batches <- unique(batches)
 
-                    m_expr_all_batches <- cbind(m_expr,data.frame(batches))
-                    g_expr_all_batches <- cbind(g_expr,data.frame(batches))
+                  m_expr_all_batches <- cbind(m_expr,data.frame(batches))
+                  g_expr_all_batches <- cbind(g_expr,data.frame(batches))
 
                   list_models <- list()
                   list_m_expr <- list()
@@ -393,6 +393,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                     results <- list()
                     for(i in names(list_models))
                     {
+
                       result <- fn_get_model_coef(list_models[[i]])
 
                       if(is.null(coefficient.direction) && !is.null(coefficient.threshold))
@@ -402,7 +403,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                       else if(coefficient.direction == ">")
                           outside.threshold <- which(result$coefficient > coefficient.threshold)
 
-                      if(length(outside.threshold) == 0) return(NULL)
+                      if(length(outside.threshold) == 0 | length(list_models)==1) return(NULL)
                       #else return(result[outside.threshold,])
                       else results[[i]]<-result[outside.threshold,]
                     }
@@ -458,7 +459,19 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
     }
     else
     {
-      return(final_result)
+      final_result_ret <- list()
+      for(i in names(final_result))
+      {
+        if(is.list(final_result[[i]]))
+        {
+          final_result_ret[[i]]=final_result[[i]]
+        }
+        else
+        {
+          final_result_ret[[i]]=NULL
+        }
+      }
+      return(final_result_ret)
     }
 
 }
