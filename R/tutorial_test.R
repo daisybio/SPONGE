@@ -41,8 +41,9 @@ batches <- as.character(batches)
 genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
   gene_expr = gene_expr,
   mir_expr = mir_expr,
-  mir_predicted_targets = targetscan_symbol,
-  batches = batches)
+  mir_predicted_targets = targetscan_symbol)
+
+#genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(gene_expr = gene_expr,mir_expr = mir_expr,mir_predicted_targets = targetscan_symbol,batches = batches)
 
 ## -----------------------------------------------------------------------------
 genes_miRNA_candidates[1:2]

@@ -41,6 +41,8 @@ genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(
   mir_predicted_targets = targetscan_ensg,
   batches = subtypes_batches)
 
+genes_miRNA_candidates[1:2]
+
 
 
 

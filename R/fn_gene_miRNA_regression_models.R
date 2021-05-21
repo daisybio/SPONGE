@@ -453,25 +453,25 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
               return(batch_result)
             }
     loginfo("FINISHED")
-    if(batches==-1)
-    {
+    #if(batches==-1)
+    #{
       return(unlist(final_result, recursive = FALSE))
-    }
-    else
-    {
-      final_result_ret <- list()
-      for(i in names(final_result))
-      {
-        if(is.list(final_result[[i]]))
-        {
-          final_result_ret[[i]]=final_result[[i]]
-        }
-        else
-        {
-          final_result_ret[[i]]=NULL
-        }
-      }
-      return(final_result_ret)
-    }
+    #}
+    #else
+    #{
+    #  final_result_ret <- list()
+    #  for(i in names(final_result))
+    #  {
+    #    if(is.list(final_result[[i]]))
+    #    {
+    #      final_result_ret[[i]]=final_result[[i]]
+    #    }
+    #    else
+    #    {
+    #      final_result_ret[[i]]=NULL
+    #    }
+    #  }
+    #  return(final_result_ret)
+    #}
 
 }
