@@ -18,8 +18,8 @@ knitr::kable(mir_expr[1:5,1:5])
 #gene_expr <- sponge_batch_correction(expression=gene_expr)
 #mir_expr <- sponge_batch_correction(expression=mir_expr)
 
-knitr::kable(gene_expr[1:5,1:8])
-knitr::kable(mir_expr[1:5,1:5])
+#knitr::kable(gene_expr[1:5,1:8])
+#knitr::kable(mir_expr[1:5,1:5])
 
 ###TEST BATCH CORRECTION###
 
@@ -27,7 +27,8 @@ knitr::kable(mir_expr[1:5,1:5])
 #  head(targetscan_symbol)
 
 ## ---- echo=FALSE, results='asis'----------------------------------------------
-knitr::kable(targetscan_symbol[1:5,1:5])
+hallo=knitr::kable(targetscan_symbol[1:5,1:20])
+targetscan_symbol=targetscan_symbol
 
 ## ---- warning=FALSE,message=FALSE---------------------------------------------
 #genes_miRNA_candidates <- sponge_gene_miRNA_interaction_filter(

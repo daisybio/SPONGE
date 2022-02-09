@@ -1,6 +1,8 @@
 #####################################
 ########## PLOTS ####################
 #####################################
+#install.packages("ggpubr")
+library(ggpubr)
 library(dplyr)
 library(ggplot2)
 
@@ -42,10 +44,31 @@ sapply(data_plot_scores, class)
 sapply(data_plot_pcor_cmi, class)
 
 ##filter significant ones
+
+data_plot_pvalue_JAMI=data_plot_pvalue[data_plot_pvalue$JAMI_p.adj<0.05,]
+unique_genes_significant_JAMI=unique(unique(data_plot_pvalue_JAMI[["geneA"]]),unique(data_plot_pvalue_JAMI[["geneB"]]))
+data_plot_pvalue_SPONGE=data_plot_pvalue[data_plot_pvalue$SPONGE_p.adj<0.05,]
+unique_genes_significant_SPONGE=unique(unique(data_plot_pvalue_SPONGE[["geneA"]]),unique(data_plot_pvalue_SPONGE[["geneB"]]))
+
 data_plot_pvalue=data_plot_pvalue[data_plot_pvalue$JAMI_p.adj<0.05,]
 data_plot_pvalue=data_plot_pvalue[data_plot_pvalue$SPONGE_p.adj<0.05,]
 unique_genes_significant=unique(unique(data_plot_pvalue[["geneA"]]),unique(data_plot_pvalue[["geneB"]]))
 
+##data for JAMI significant
+data_plot_pcor_cmi_JAMI=data_plot_pcor_cmi[data_plot_pcor_cmi$geneA %in% unique_genes_significant_JAMI,]
+data_plot_pcor_cmi_JAMI=data_plot_pcor_cmi[data_plot_pcor_cmi$geneB %in% unique_genes_significant_JAMI,]
+
+data_plot_scores_JAMI=data_plot_scores[data_plot_scores$geneA %in% unique_genes_significant_JAMI,]
+data_plot_scores_JAMI=data_plot_scores[data_plot_scores$geneB %in% unique_genes_significant_JAMI,]
+
+##data for SPONGE significant
+data_plot_pcor_cmi_SPONGE=data_plot_pcor_cmi[data_plot_pcor_cmi$geneA %in% unique_genes_significant_SPONGE,]
+data_plot_pcor_cmi_SPONGE=data_plot_pcor_cmi[data_plot_pcor_cmi$geneB %in% unique_genes_significant_SPONGE,]
+
+data_plot_scores_SPONGE=data_plot_scores[data_plot_scores$geneA %in% unique_genes_significant_SPONGE,]
+data_plot_scores_SPONGE=data_plot_scores[data_plot_scores$geneB %in% unique_genes_significant_SPONGE,]
+
+##data for both significant
 data_plot_pcor_cmi=data_plot_pcor_cmi[data_plot_pcor_cmi$geneA %in% unique_genes_significant,]
 data_plot_pcor_cmi=data_plot_pcor_cmi[data_plot_pcor_cmi$geneB %in% unique_genes_significant,]
 
@@ -54,7 +77,6 @@ data_plot_scores=data_plot_scores[data_plot_scores$geneB %in% unique_genes_signi
 
 data_plot_scores_pvalue=merge(data_plot_pvalue,data_plot_scores)
 data_plot_pcor_cmi_pvalue=merge(data_plot_pvalue,data_plot_pcor_cmi)
-
 
 ##plot data - not for publication just to have a first look on it
 plot(data_plot_pvalue$JAMI_p.adj, data_plot_pvalue$SPONGE_p.adj, main="JAMI vs SPONGE p-values",
@@ -70,14 +92,47 @@ plot(data_plot_pcor_cmi$CMI, data_plot_pcor_cmi$SPONGE_pcor, main="CMI vs pcor",
 
 ##no pvalues
 p_mscor<-ggplot(data_plot_scores_pvalue, aes(x=CMI, y=mscor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE mscor")
+p_mscor<-p_mscor+ggtitle("JAMI adj.p_value < 0.05 && SPONGE adj.p_value < 0.05")
 p_mscor
 
 p_pcor<-ggplot(data_plot_pcor_cmi_pvalue, aes(x=CMI, y=SPONGE_pcor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE pcor")
+p_pcor<-p_pcor+ggtitle("JAMI adj.p_value < 0.05 && SPONGE adj.p_value < 0.05")
 p_pcor
+
+p_mscor_JAMI<-ggplot(data_plot_scores_JAMI, aes(x=CMI, y=mscor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE mscor")
+p_mscor_JAMI<-p_mscor_JAMI+ggtitle("JAMI adj.p_value < 0.05")
+p_mscor_JAMI
+p_pcor_JAMI<-ggplot(data_plot_pcor_cmi_JAMI, aes(x=CMI, y=SPONGE_pcor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE pcor")
+p_pcor_JAMI<-p_pcor_JAMI+ggtitle("JAMI adj.p_value < 0.05")
+p_pcor_JAMI
+
+p_mscor_SPONGE<-ggplot(data_plot_scores_SPONGE, aes(x=CMI, y=mscor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE mscor")
+p_mscor_SPONGE<-p_mscor_SPONGE+ggtitle("SPONGE adj.p_value < 0.05")
+p_mscor_SPONGE
+p_pcor_SPONGE<-ggplot(data_plot_pcor_cmi_SPONGE, aes(x=CMI, y=SPONGE_pcor)) + geom_point()+xlab("JAMI CMI") + ylab("SPONGE pcor")
+p_pcor_SPONGE<-p_pcor_SPONGE+ggtitle("SPONGE adj.p_value < 0.05")
+p_pcor_SPONGE
 
 ##inc pvalues
 p_mscor<-ggplot(data_plot_scores_pvalue, aes(x=CMI, y=mscor)) + geom_point(aes(size=JAMI_p.adj, color=SPONGE_p.adj))+xlab("JAMI CMI") + ylab("SPONGE mscor") +scale_size(trans = "reverse")
 p_mscor
+
+##check correlation
+##JAMI pvalue < 0.05
+#mscor
+cor.test(data_plot_scores_JAMI$mscor, data_plot_scores_JAMI$CMI, method=c("pearson", "kendall", "spearman"))
+#pcor
+cor.test(data_plot_pcor_cmi_JAMI$SPONGE_pcor, data_plot_pcor_cmi_JAMI$CMI, method=c("pearson", "kendall", "spearman"))
+##SPONGE pvalue < 0.05
+#mscor
+cor.test(data_plot_scores_SPONGE$mscor, data_plot_scores_SPONGE$CMI, method=c("pearson", "kendall", "spearman"))
+#pcor
+cor.test(data_plot_pcor_cmi_SPONGE$SPONGE_pcor, data_plot_pcor_cmi_SPONGE$CMI, method=c("pearson", "kendall", "spearman"))
+##JAMI pvalue < 0.05 && SPONGE pvalue < 0.05
+#mscor
+cor.test(data_plot_scores$mscor, data_plot_scores$CMI, method=c("pearson", "kendall", "spearman"))
+#pcor
+cor.test(data_plot_pcor_cmi$SPONGE_pcor, data_plot_pcor_cmi$CMI, method=c("pearson", "kendall", "spearman"))
 
 #####################################
 #####RUN JAMI // RUN SPONGE##########
