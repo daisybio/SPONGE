@@ -311,8 +311,7 @@ http://sponge-files.biomedical-big-data.de
 
 We introduce spongEffects, a novel method that infers functional subnetworks, or modules, and calculates scores related to their activity. We show how spongEffects can be used for downstream machine learning tasks like tumor classification and can identify subtype-specific regulatory interactions that might be further exploited as biomarkers. We show that spongEffects reliably distinguishes between breast cancer subtypes Luminal A, Luminal B, Basal, He+, and Normal-like. Further, we show that spongEffects, once trained on a ceRNA network, can also distinguish between cancer subtypes on datasets and cohorts that do not include miRNA information. 
 
-
-### spongEffects is available in this package
+spongEffects is available in this package
 ### Usage:
 
 ## Citation
