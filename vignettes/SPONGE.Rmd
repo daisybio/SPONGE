@@ -296,16 +296,16 @@ We inferred ceRNA regulatory networks for 22 cancer types and a pan-cancer ceRNA
 Atlas. To make these networks accessible to the biomedical community, we present SPONGEdb, a database offering a user-friendly web interface to browse and visualize ceRNA interactions and an application programming interface accessible by accompanying R and Python packages. SPONGEdb allows researchers to identify potent ceRNA regulators via network centrality measures and to assess their potential as cancer biomarkers through survival, cancer hallmark and gene set enrichment analysis. In summary, SPONGEdb is a feature-rich web resource supporting the community in studying ceRNA regulation within and across cancer types.
 
 ### SPONGEdb is available at: 
-SPONGEdb website:
-http://sponge.biomedical-big-data.de
-API:
-http://sponge-api.biomedical-big-data.de
-R-package:
-https://github.com/biomedbigdata/SPONGE-web-R
-Python-package:
-https://github.com/biomedbigdata/spongeWebPy
-Static-file-server:
-http://sponge-files.biomedical-big-data.de
+SPONGEdb website:  
+http://sponge.biomedical-big-data.de  
+API:  
+http://sponge-api.biomedical-big-data.de  
+R-package:  
+https://github.com/biomedbigdata/SPONGE-web-R  
+Python-package:  
+https://github.com/biomedbigdata/spongeWebPy  
+Static-file-server:  
+http://sponge-files.biomedical-big-data.de  
 
 ## spongEffects
 
