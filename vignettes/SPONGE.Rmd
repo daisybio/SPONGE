@@ -290,8 +290,41 @@ hist(unlist(mscor_coefficients), main = "Random distribution of mscor coefficien
 
 SPONGE was primarily designed to infer ceRNA interactions efficiently. We point out, however, that the principle behind SPONGE for infering partial associations is applicable to other types of regulation in molecular biology. SPONGE is not limited to negative regulation as it is the case with miRNA regulation and can thus also be useful to study, for instance, RNA binding protein regulation or transcription factor regulation. Moreover, we could envision that this approach is also applicable outside of bioinformatics where partial association is of interest. To our knowledge, SPONGE presents the first method to sample random covariance matrices under the null hypothesis that partial correlation and correlation are equal, which may be useful as a starting point to gain a deeper understanding of the theoretical properties of partial correlations in the future. 
 
+## SPONGEdb
+
+We inferred ceRNA regulatory networks for 22 cancer types and a pan-cancer ceRNA network based on data from The Cancer Genome
+Atlas. To make these networks accessible to the biomedical community, we present SPONGEdb, a database offering a user-friendly web interface to browse and visualize ceRNA interactions and an application programming interface accessible by accompanying R and Python packages. SPONGEdb allows researchers to identify potent ceRNA regulators via network centrality measures and to assess their potential as cancer biomarkers through survival, cancer hallmark and gene set enrichment analysis. In summary, SPONGEdb is a feature-rich web resource supporting the community in studying ceRNA regulation within and across cancer types.
+
+### SPONGEdb is available at: 
+SPONGEdb website:
+http://sponge.biomedical-big-data.de
+API:
+http://sponge-api.biomedical-big-data.de
+R-package:
+https://github.com/biomedbigdata/SPONGE-web-R
+Python-package:
+https://github.com/biomedbigdata/spongeWebPy
+Static-file-server:
+http://sponge-files.biomedical-big-data.de
+
+## spongEffects
+
+We introduce spongEffects, a novel method that infers functional subnetworks, or modules, and calculates scores related to their activity. We show how spongEffects can be used for downstream machine learning tasks like tumor classification and can identify subtype-specific regulatory interactions that might be further exploited as biomarkers. We show that spongEffects reliably distinguishes between breast cancer subtypes Luminal A, Luminal B, Basal, He+, and Normal-like. Further, we show that spongEffects, once trained on a ceRNA network, can also distinguish between cancer subtypes on datasets and cohorts that do not include miRNA information. 
+
+
+### spongEffects is available in this package
+### Usage:
+
 ## Citation
 
+To cite your use of SPONGE, SPONGEdb, and/or spongEffects in your publication, please reference one or more of:
+
+### SPONGE
 List, M., Dehghani Amirabad, A., Kostka, D., & Schulz, M. H. (2019). Large-scale inference of competing endogenous RNA networks with sparse partial correlation. Bioinformatics, 35(14), i596-i604.
 [doi:10.1093/bioinformatics/btz314](https://doi.org/10.1093/bioinformatics/btz314)
 
+### SPONGEdb
+Hoffmann, M., Pachl, E., Hartung, M., Stiegler, V., Baumbach, J., Schulz, M. H., & List, M. (2021). SPONGEdb: a pan-cancer resource for competing endogenous RNA interactions. In NAR Cancer (Vol. 3, Issue 1). https://doi.org/10.1093/narcan/zcaa042
+
+### spongEffects
+Boniolo F., Hoffmann, M., Castro M., Shmulevich I., Tercan B., Roggendorf N., Baumbach J., Robertson G., Saur D., Hennighausen L., & List, M. (2022). spongEffects: patient-specific ceRNA sponging effects in cancer biology to identify subtypes and biomarkers  In NAR Cancer (Vol. 4, Issue 2). INSERT DOI ONCE PUBLISHED
