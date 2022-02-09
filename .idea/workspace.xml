@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e8d5b4e7-8854-4948-872e-91cda2793221" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/R/tutorial_circRNA.R" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R/DFG_SPONGE_JAMI.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/DFG_SPONGE_JAMI.R" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="R Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1r6z09UwoADmUxFQBZIRSj8LZDE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/R" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="run.code.analysis.last.selected.profile" value="aDefault" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.r.configuration.RSettingsProjectConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/R" />
+    </key>
+  </component>
+  <component name="RunManager" selected="R.sponge">
+    <configuration name="DFG_SPONGE_JAMI" type="R">
+      <r-file-path value="$PROJECT_DIR$/R/DFG_SPONGE_JAMI.R" />
+      <working-directory value="$PROJECT_DIR$/R" />
+      <interpreter-arguments value="" />
+      <script-arguments value="" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="breast_cancer_subtype" type="R">
+      <r-file-path value="$PROJECT_DIR$/R/breast_cancer_subtype.R" />
+      <working-directory value="$PROJECT_DIR$/R" />
+      <interpreter-arguments value="" />
+      <script-arguments value="" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="sponge" type="R">
+      <r-file-path value="$PROJECT_DIR$/R/tutorial_test.R" />
+      <working-directory value="$PROJECT_DIR$/R" />
+      <interpreter-arguments value="" />
+      <script-arguments value="" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e8d5b4e7-8854-4948-872e-91cda2793221" name="Default Changelist" comment="" />
+      <created>1618311104141</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1618311104141</updated>
+      <workItem from="1618311107263" duration="312000" />
+      <workItem from="1618311429839" duration="1303000" />
+      <workItem from="1618553753186" duration="1210000" />
+      <workItem from="1618809851055" duration="15215000" />
+      <workItem from="1618898836052" duration="7414000" />
+      <workItem from="1618925252773" duration="4086000" />
+      <workItem from="1618984084973" duration="14380000" />
+      <workItem from="1619531645571" duration="228000" />
+      <workItem from="1619679533307" duration="170000" />
+      <workItem from="1619773359696" duration="5817000" />
+      <workItem from="1620109034154" duration="8239000" />
+      <workItem from="1620972027520" duration="3055000" />
+      <workItem from="1621243188038" duration="2362000" />
+      <workItem from="1621262897681" duration="98000" />
+      <workItem from="1621263008422" duration="187000" />
+      <workItem from="1621263206694" duration="114000" />
+      <workItem from="1621263494949" duration="617000" />
+      <workItem from="1621324579001" duration="2840000" />
+      <workItem from="1621327817130" duration="1735000" />
+      <workItem from="1621329574508" duration="776000" />
+      <workItem from="1621330373667" duration="2000000" />
+      <workItem from="1621337710037" duration="867000" />
+      <workItem from="1621338596618" duration="413000" />
+      <workItem from="1621339022483" duration="2380000" />
+      <workItem from="1621405308376" duration="1083000" />
+      <workItem from="1621407095050" duration="517000" />
+      <workItem from="1621407674967" duration="108000" />
+      <workItem from="1621407997527" duration="1053000" />
+      <workItem from="1621410752958" duration="617000" />
+      <workItem from="1621411441629" duration="16000" />
+      <workItem from="1621411623047" duration="585000" />
+      <workItem from="1621412537314" duration="1949000" />
+      <workItem from="1621424645186" duration="601000" />
+      <workItem from="1622097964533" duration="606000" />
+      <workItem from="1622105975479" duration="12000" />
+      <workItem from="1622106115921" duration="9000" />
+      <workItem from="1622213025253" duration="643000" />
+      <workItem from="1622452264932" duration="699000" />
+      <workItem from="1622612489080" duration="774000" />
+      <workItem from="1623313149029" duration="599000" />
+      <workItem from="1623651461477" duration="28000" />
+      <workItem from="1623651558209" duration="252000" />
+      <workItem from="1623651932121" duration="64000" />
+      <workItem from="1623652360419" duration="83000" />
+      <workItem from="1623828869418" duration="8274000" />
+      <workItem from="1623914744488" duration="1191000" />
+      <workItem from="1624264355687" duration="675000" />
+      <workItem from="1624875556317" duration="642000" />
+      <workItem from="1624947967363" duration="599000" />
+      <workItem from="1625208181139" duration="57000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="the-r-line">
+          <url>file://$PROJECT_DIR$/R/tutorial_test.R</url>
+          <line>7</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="the-r-line">
+          <url>file://$PROJECT_DIR$/R/tutorial_circRNA.R</url>
+          <line>13</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
