@@ -1,0 +1,107 @@
+---
+title: "spongeEffects.Rmd"
+author: "Hoffmann M"
+date: "2/10/2022"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## (A) Loading dependencies for spongEffects
+
+We start with loading the package and its dependencies
+
+```{r, warning=FALSE, message=FALSE}
+#library(SPONGE)
+
+library(tidyverse)
+library(biomaRt)
+library(doParallel)
+source("/home/markus/git_projects/SPONGE/R/fn_spongeffects_utility.R")
+```
+
+## (B) prepare TCGA data
+```{r, warning=FALSE, message=FALSE}
+
+load("/home/markus/git_projects/spongeEffects/Data/TCGA_Expression_Data/breast invasive carcinoma.RData")
+tcga_clinical<-read.delim("/home/markus/git_projects/spongeEffects/Data/Metadata/BRCA_data_clinical_patient.txt", comment.char="#")
+
+tcga_tumor_stages=c('STAGE I', 'STAGE IA', 'STAGE IB', 'STAGE II', 'STAGE IIA', 'STAGE IIB', 'STAGE III', 'STAGE IIIA', 'STAGE IIIB', 'STAGE IIIC', 'STAGE IV')
+tcga_subtypes=c("LumA",  "LumB",  "Her2",  "Basal", "Normal")
+prep_list_tcga_spongEffects<-prepare_tcga_for_spongEffects(tcga_cancer_symbol = "BRCA",normal_ceRNA_expression_data = normal_gene_expr, tumor_ceRNA_expression_data = cancer_gene_expr, normal_metadata = normal_meta_data, tumor_metadata = cancer_meta_data,clinical_data = tcga_clinical, tumor_stages_of_interest = tcga_tumor_stages, subtypes_of_interest = tcga_subtypes)
+```
+
+## (C) prepare METABRIC data
+
+```{r, warning=FALSE, message=FALSE}
+tcga_subtypes=c("LumA",  "LumB",  "Her2",  "Basal", "Normal")
+prep_list_METABRIC_spongEffects<-prepare_metabric_for_spongEffects(metabric_expression = "/home/markus/git_projects/spongeEffects/Data/Validation/brca_metabric/data_expression_median.txt",metabric_metadata = "/home/markus/git_projects/spongeEffects/Data/Validation/brca_metabric/data_clinical_patient.txt",subtypes_of_interest = tcga_subtypes, bioMart_gene_ensembl = "hsapiens_gene_ensembl", bioMart_gene_symbol_columns = "hgnc_symbol")
+
+```
+
+## (D) filter ceRNA network
+
+```{r, warning=FALSE, message=FALSE}
+#load data from SPONGEdb
+load("/home/markus/git_projects/spongeEffects/Data/Sponge_Networks/breast invasive carcinoma_sponge_results.RData")
+Node.Centrality <- read.csv("/home/markus/git_projects/spongeEffects/Data/NetworkAnalysis/breast_invasive_carcinoma_networkAnalysis.csv", sep = " ")
+
+#filter ceRNA network and calculate weighted node centralities
+
+filtered_network_centralities=filter_ceRNA_network(sponge_effects = sponge_effects, network_analysis = Node.Centrality, mscor.threshold = 0.1, padj.threshold = 0.01)
+
+```
+
+## (E) discover lncRNA modules
+```{r, warning=FALSE, message=FALSE}
+
+lncRNA_modules<-get_lncRNA_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl", weighted_node_centrality = filtered_network_centralities$Node.Centrality, cutoff = 750)
+
+```
+
+## (F) Define Modules
+```{r, warning=FALSE, message=FALSE}
+
+Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = F)
+# Module size distribution
+Size.modules <- sapply(Sponge.modules, length)
+
+```
+
+## (G) calculate Enrichment Scores
+```{r, warning=FALSE, message=FALSE}
+
+#Either method="OE" (OverallEnrichment) or method="GSVA" (Gene Set Variation Analysis)
+#We used OE in our Boniolo et al., 2022
+
+#We also accept multi threading here. Default is 1 core.
+
+sponge_effects<-NULL
+
+BRCA.Modules.OE <- Enrichment_Modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, cores = 1,
+                                      bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+
+```
+
+
+
