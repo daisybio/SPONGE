@@ -338,7 +338,13 @@ Enrichment_Modules <- function(Expr.matrix,
                                method = "OE",
                                cores = 1) {
 
+
+
   print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
+
+  no_cores <- cores
+  cl <- makePSOCKcluster(25)
+  registerDoParallel(cl)
 
   if (method == "OE") {
     Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
