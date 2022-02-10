@@ -43,7 +43,7 @@ prep_list_METABRIC_spongEffects<-prepare_metabric_for_spongEffects(metabric_expr
 
 ## (D) filter ceRNA network
 
-```{r, warning=FALSE, message=FALSE}
+```{r message=FALSE, warning=FALSE}
 #load data from SPONGEdb
 load("/home/markus/git_projects/spongeEffects/Data/Sponge_Networks/breast invasive carcinoma_sponge_results.RData")
 Node.Centrality <- read.csv("/home/markus/git_projects/spongeEffects/Data/NetworkAnalysis/breast_invasive_carcinoma_networkAnalysis.csv", sep = " ")
@@ -64,7 +64,7 @@ lncRNA_modules<-get_lncRNA_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl
 ## (F) Define Modules
 ```{r, warning=FALSE, message=FALSE}
 
-Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = F)
+Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = T)
 # Module size distribution
 Size.modules <- sapply(Sponge.modules, length)
 
