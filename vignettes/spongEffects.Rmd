@@ -19,14 +19,16 @@ We start with loading the package and its dependencies
 library(tidyverse)
 library(biomaRt)
 library(doParallel)
-source("/home/markus/git_projects/SPONGE/R/fn_spongeffects_utility.R")
+library(caret)
+library(randomForest)
+source("/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/R/fn_spongeffects_utility.R")
 ```
 
 ## (B) prepare TCGA data
 ```{r, warning=FALSE, message=FALSE}
 
-load("/home/markus/git_projects/spongeEffects/Data/TCGA_Expression_Data/breast invasive carcinoma.RData")
-tcga_clinical<-read.delim("/home/markus/git_projects/spongeEffects/Data/Metadata/BRCA_data_clinical_patient.txt", comment.char="#")
+load("/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/TCGA_Expression_Data/breast invasive carcinoma.RData")
+tcga_clinical<-read.delim("/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/Metadata/BRCA_data_clinical_patient.txt", comment.char="#")
 
 tcga_tumor_stages=c('STAGE I', 'STAGE IA', 'STAGE IB', 'STAGE II', 'STAGE IIA', 'STAGE IIB', 'STAGE III', 'STAGE IIIA', 'STAGE IIIB', 'STAGE IIIC', 'STAGE IV')
 tcga_subtypes=c("LumA",  "LumB",  "Her2",  "Basal", "Normal")
@@ -37,7 +39,7 @@ prep_list_tcga_spongEffects<-prepare_tcga_for_spongEffects(tcga_cancer_symbol = 
 
 ```{r, warning=FALSE, message=FALSE}
 tcga_subtypes=c("LumA",  "LumB",  "Her2",  "Basal", "Normal")
-prep_list_METABRIC_spongEffects<-prepare_metabric_for_spongEffects(metabric_expression = "/home/markus/git_projects/spongeEffects/Data/Validation/brca_metabric/data_expression_median.txt",metabric_metadata = "/home/markus/git_projects/spongeEffects/Data/Validation/brca_metabric/data_clinical_patient.txt",subtypes_of_interest = tcga_subtypes, bioMart_gene_ensembl = "hsapiens_gene_ensembl", bioMart_gene_symbol_columns = "hgnc_symbol")
+prep_list_METABRIC_spongEffects<-prepare_metabric_for_spongEffects(metabric_expression = "/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/Validation/brca_metabric/data_expression_median.txt",metabric_metadata = "/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/Validation/brca_metabric/data_clinical_patient.txt",subtypes_of_interest = tcga_subtypes, bioMart_gene_ensembl = "hsapiens_gene_ensembl", bioMart_gene_symbol_columns = "hgnc_symbol")
 
 ```
 
@@ -45,8 +47,8 @@ prep_list_METABRIC_spongEffects<-prepare_metabric_for_spongEffects(metabric_expr
 
 ```{r message=FALSE, warning=FALSE}
 #load data from SPONGEdb
-load("/home/markus/git_projects/spongeEffects/Data/Sponge_Networks/breast invasive carcinoma_sponge_results.RData")
-Node.Centrality <- read.csv("/home/markus/git_projects/spongeEffects/Data/NetworkAnalysis/breast_invasive_carcinoma_networkAnalysis.csv", sep = " ")
+load("/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/Sponge_Networks/breast invasive carcinoma_sponge_results.RData")
+Node.Centrality <- read.csv("/nfs/data/TCGA_TGCT/spongEffects_package/spongeEffects/Data/NetworkAnalysis/breast_invasive_carcinoma_networkAnalysis.csv", sep = " ")
 
 #filter ceRNA network and calculate weighted node centralities
 
@@ -64,13 +66,13 @@ lncRNA_modules<-get_lncRNA_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl
 ## (F) Define Modules
 ```{r, warning=FALSE, message=FALSE}
 
-Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = T)
+Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = F)
 # Module size distribution
 Size.modules <- sapply(Sponge.modules, length)
 
 ```
 
-## (G) calculate Enrichment Scores
+## (G) [TCGA] calculate Enrichment Scores (OE)
 ```{r, warning=FALSE, message=FALSE}
 
 #Either method="OE" (OverallEnrichment) or method="GSVA" (Gene Set Variation Analysis)
@@ -80,11 +82,30 @@ Size.modules <- sapply(Sponge.modules, length)
 
 #sponge_effects<-NULL
 
-BRCA.Modules.OE <- Enrichment_Modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, cores = 1,
-                                      bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+BRCA.Modules.OE <- Enrichment_Modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, cores = 1, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
 
 ```
 
+## (H)[METABRIC] calculate Enrichment Scores (OE)
+```{r, warning=FALSE, message=FALSE}
+METABRIC.Modules.OE <- Enrichment_Modules(Expr.matrix= prep_list_METABRIC_spongEffects$METABRIC.expr, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+
+```
+
+## (I) Calculate Enrichment Scores (GSVA) if you want to compare enrichment scores
+```{r, warning=FALSE, message=FALSE}
+BRCA.Modules.GSVA <- Enrichment_Modules(Expr.matrix= prep_list_tcga_spongEffects$TCGA.expr.tumor,modules = Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA", cores = 16)
+
+METABRIC.Modules.GSVA <- Enrichment_Modules(prep_list_METABRIC_spongEffects$METABRIC.expr,modules =Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA", cores = 16)
+
+```
+## (J) Train and test random forests
+```{r, warning=FALSE, message=FALSE}
+#I DO NOT LIKE THIS METHOD! IT NEEDS TCGA AND METABRIC FOR NOW... WE NEED TO THINK ABOUT SOMETHING BETTER
+
+trained.model = train_and_test_model(Modules_training = BRCA.Modules.OE, Modules_training.metadata = prep_list_tcga_spongEffects$TCGA.meta.tumor, Modules_testing = METABRIC.Modules.OE, Modules_testing.metadata = prep_list_METABRIC_spongEffects$METABRIC.meta ,core = 1)
+
+```
 
 
 

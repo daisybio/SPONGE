@@ -155,13 +155,14 @@ Weighted_degree <- function(network,
 #' (default: False)
 #' @param remove.central Possibility of keeping or removing (default) central
 #' genes in the modules (default: T)
-#' @param set.parallel paralleling calculation of Define_Modules (default: T)
+#' @param set.parallel paralleling calculation of Define_Modules (default: F)
 #'
 #' @return List of modules. Module names are the corresponding central genes.
 Define_Modules <- function(network,
                            central.modules = F,
                            remove.central = T,
                            set.parallel = T) {
+  set.parallel = F
   if (set.parallel) {
     Sponge.Modules <- foreach(i = 1:nrow(central.modules),  .packages = "dplyr") %dopar% {
       Sponge.temp <- network %>%
@@ -347,7 +348,7 @@ Enrichment_Modules <- function(Expr.matrix,
   registerDoParallel(cl)
 
   if (method == "OE") {
-    Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
+      sEnrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
                                         .export = c("OE_module", "get.semi.random.OE", "discretize"),
                                         .combine = "cbind") %dopar% {
       results <- list()
@@ -662,8 +663,73 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
   return(Node.Centrality.weighted)
 }
 
+#' tests and trains a model for a disease using a training and test data set
+#' (e.g., TCGA-BRCA and METABRIC)
+#' @param Modules_training return from Enrichment_Modules() function
+#' @param Modules_training.metadata TCGA-BRCA data
+#' @param Modules_testing return from Enrichment_Modules() function
+#' @param Modules_testing.metadata METABRIC data
+#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param tunegrid_c defines the grid for the hyperparameter optimization during
+#' cross validation (caret package) (default: 1:100)
+#' @param n_folds number of folds
+#' @param repetitions  number of k-fold cv iterations
+#' @param cores cores for parallelisation (default: 1)
+#'
+#' @return returns a list with the trained model and the prediction results
+train_and_test_model <- function(Modules_training,
+                                 Modules_training.metadata,
+                                 Modules_testing,
+                                 Modules_testing.metadata,
+                                 Metric = "Exact_match",
+                                 tunegrid_c = c(1:100),
+                                 n_folds = 10,
+                                 repetitions = 3,
+                                 cores = 1){
 
 
+    TCGA.meta.tumor = Modules_training.metadata
+    METABRIC.meta = Modules_testing.metadata
+
+    #Find common modules
+
+    CommonModules <- intersect(rownames(BRCA.Modules.OE), rownames(METABRIC.Modules.OE))
+    BRCA.Modules.OE <- BRCA.Modules.OE[CommonModules, ]
+    METABRIC.Modules.OE <- METABRIC.Modules.OE[CommonModules, ]
+
+    # Train subtype classifier -------------------------------------------------------------
+    no_cores <- 1
+    cl <- makePSOCKcluster(25)
+    registerDoParallel(cl)
+
+    # Define input
+    Inputdata.model <- t(BRCA.Modules.OE) %>% scale(center = T, scale = T) %>%
+        as.data.frame()
+    Inputdata.model <- Inputdata.model %>%
+        mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model), TCGA.meta.tumor$sampleID)]))
+    Inputdata.model <- Inputdata.model[! is.na(Inputdata.model$Class), ]
+
+    # Define hyperparameters
+    Metric <- Metric
+    tunegrid <- expand.grid(.mtry=tunegrid_c)
+    n.folds <- n_folds # number of folds
+    repetitions <- repetitions # number of k-fold cv iterations
+
+    # Calibrate model
+    SpongingActivity.model <- RF_Classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
+
+    #Test classification performance on second cohort
+    METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
+    Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
+    Input.Metabric <- t(METABRIC.Modules.OE) %>% scale(center = T, scale = T)
+    Prediction.model <- predict(SpongingActivity.model$Model, Input.Metabric)
+    SpongingActivity.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.model), Meta.metabric)
+
+    prediction_model<-list(SpongingActivity.model,Prediction.model)
+    names(prediction_model) <- c("SpongingActivity.model","Prediction.model")
+
+    return(prediction_model)
+}
 
 
 
