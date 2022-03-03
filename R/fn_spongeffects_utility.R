@@ -348,7 +348,7 @@ Enrichment_Modules <- function(Expr.matrix,
   registerDoParallel(cl)
 
   if (method == "OE") {
-      sEnrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
+      Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
                                         .export = c("OE_module", "get.semi.random.OE", "discretize"),
                                         .combine = "cbind") %dopar% {
       results <- list()
@@ -668,12 +668,13 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
 #' @param Modules_training return from Enrichment_Modules() function
 #' @param Modules_training.metadata TCGA-BRCA data
 #' @param Modules_testing return from Enrichment_Modules() function
-#' @param Modules_testing.metadata METABRIC data
+#' @param Modules_testing.metadata e.g., METABRIC data or other TCGA data
+#' @param Modules_testing.metadata.type e.g. METABRIC or TCGA
 #' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
 #' @param tunegrid_c defines the grid for the hyperparameter optimization during
 #' cross validation (caret package) (default: 1:100)
-#' @param n_folds number of folds
-#' @param repetitions  number of k-fold cv iterations
+#' @param n_folds number of folds (default: 10)
+#' @param repetitions  number of k-fold cv iterations (default: 3)
 #' @param cores cores for parallelisation (default: 1)
 #'
 #' @return returns a list with the trained model and the prediction results
@@ -681,6 +682,7 @@ train_and_test_model <- function(Modules_training,
                                  Modules_training.metadata,
                                  Modules_testing,
                                  Modules_testing.metadata,
+                                 Modules_testing.metadata.type,
                                  Metric = "Exact_match",
                                  tunegrid_c = c(1:100),
                                  n_folds = 10,
@@ -720,7 +722,13 @@ train_and_test_model <- function(Modules_training,
 
     #Test classification performance on second cohort
     METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
-    Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
+    if(Modules_testing.metadata.type == "METABRIC"){
+        Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
+    }
+    if(Modules_testing.metadata.type == "TCGA"){
+        Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$sampleID)]
+    }
+
     Input.Metabric <- t(METABRIC.Modules.OE) %>% scale(center = T, scale = T)
     Prediction.model <- predict(SpongingActivity.model$Model, Input.Metabric)
     SpongingActivity.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.model), Meta.metabric)
@@ -729,6 +737,509 @@ train_and_test_model <- function(Modules_training,
     names(prediction_model) <- c("SpongingActivity.model","Prediction.model")
 
     return(prediction_model)
+}
+
+#' build classifiers for central genes
+#' @param expression_data_set1 expression data of dataset 1,
+#' genenames must be in rownames
+#' @param expression_data_set2 expression data of dataset 2,
+#' genenames must be in rownames
+#' @param enrichment.modules.data.set1 return of Enrichment_Modules
+#' @param enrichment.modules.data.set2 return of Enrichment_Modules
+#' @param meta.data.set1 meta data of data set 1
+#' @param meta.data.set2 meta data of data set 2
+#' @param type.data.set1 TCGA or METABRIC
+#' @param type.data.set2 TCGA or METABRIC
+#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param tunegrid_c defines the grid for the hyperparameter optimization during
+#' cross validation (caret package) (default: 1:100)
+#' @param n.folds number of folds to be calculated
+#' @param repetitions  number of k-fold cv iterations (default: 3)
+#' @param cores cores for parallelisation (default: 1)
+#'
+#' @return model for central genes
+build_classifier_central_genes<-function(expression.data.set1,
+                                         expression.data.set2,
+                                         enrichment.modules.data.set1,
+                                         enrichment.modules.data.set2,
+                                         meta.data.set1,
+                                         meta.data.set2,
+                                         type.data.set1,
+                                         type.data.set2,
+                                         Metric="Exact_match",
+                                         tunegrid_c=c(1:100),
+                                         n.folds = 10,
+                                         repetitions=3,
+                                         cores = 1){
+    no_cores <- cores
+    cl <- makePSOCKcluster(15)
+    registerDoParallel(cl)
+
+    TCGA.expr.tumor<-expression.data.set1
+    METABRIC.expr<-expression.data.set2
+    BRCA.Modules.OE<-enrichment.modules.data.set1
+    TCGA.meta.tumor<-meta.data.set1
+    METABRIC.meta<-meta.data.set2
+
+    tunegrid<-expand.grid(.mtry=tunegrid_c)
+
+
+    # Define central genes that are also present in test set (METABRIC)
+    Common.CentralGenes <- intersect(rownames(METABRIC.expr), intersect(rownames(TCGA.expr.tumor), rownames(BRCA.Modules.OE)))
+
+    # Define model input
+    #TCGA.expr.tumor <- TCGA.expr.tumor[, match(TCGA.meta.tumor$sampleID, colnames(TCGA.expr.tumor))]
+
+    Inputdata.centralGene <- t(TCGA.expr.tumor[rownames(TCGA.expr.tumor) %in% Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE) %>%
+        as.data.frame()
+
+    if(type.data.set1=="TCGA"){
+        Inputdata.centralGene <- Inputdata.centralGene %>%
+            mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.centralGene), TCGA.meta.tumor$sampleID)]))
+    }
+    if(type.data.set1=="METABRIC"){
+        Inputdata.centralGene <- Inputdata.centralGene %>%
+            mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.centralGene), TCGA.meta.tumor$PATIENT_ID)]))
+    }
+
+
+    Inputdata.centralGene <- Inputdata.centralGene[! is.na(Inputdata.centralGene$Class), ]
+
+    CentralGenes.model <- RF_Classifier(Inputdata.centralGene, n.folds, repetitions, metric = Metric, tunegrid)
+
+    #Test classification performance on second cohort
+    Inputdata.centralGene.Metabric <- t(METABRIC.expr[Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE)
+    Prediction.centralGenes.model <- predict(CentralGenes.model$Model, Inputdata.centralGene.Metabric)
+
+    if(type.data.set2 == "TCGA"){
+        CentralGenes.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.centralGenes.model), as.factor(METABRIC.meta$SUBTYPE))
+    }
+    if(type.data.set2 == "METABRIC"){
+        CentralGenes.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.centralGenes.model), as.factor(METABRIC.meta$CLAUDIN_SUBTYPE))
+    }
+    stopCluster(cl)
+
+    return(CentralGenes.model)
+
+}
+#' build random classifiers
+#' @param Sponge.modules result of Define_Modules
+#' @param expression_data_set1 expression data of dataset 1,
+#' genenames must be in rownames
+#' @param expression_data_set2 expression data of dataset 2,
+#' genenames must be in rownames
+#' @param meta.data.set1 meta data of data set 1
+#' @param meta.data.set2 meta data of data set 2
+#' @param type.data.set1 TCGA or METABRIC
+#' @param type.data.set2 TCGA or METABRIC
+#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param tunegrid_c defines the grid for the hyperparameter optimization during
+#' cross validation (caret package) (default: 1:100)
+#' @param n.folds number of folds to be calculated
+#' @param repetitions  number of k-fold cv iterations (default: 3)
+#' @param cores cores for parallelisation (default: 1)
+#' @return randomized prediction model
+build_classifier_random<-function(Sponge.modules,
+                                  expression.data.set1,
+                                  expression.data.set2,
+                                  meta.data.set1,
+                                  meta.data.set2,
+                                  type.data.set1,
+                                  type.data.set2,
+                                  Metric="Exact_match",
+                                  tunegrid_c=c(1:100),
+                                  n.folds = 10,
+                                  repetitions=3,
+                                  cores = 1){
+    no_cores <- cores
+    cl <- makePSOCKcluster(15)
+    registerDoParallel(cl)
+
+    Sizes.modules <- lengths(Sponge.modules)
+
+    TCGA.expr.tumor<-expression.data.set1
+    METABRIC.expr<-expression.data.set2
+    TCGA.meta.tumor<-meta.data.set1
+    METABRIC.meta<-meta.data.set2
+
+    tunegrid<-expand.grid(.mtry=tunegrid_c)
+
+    # Define random modules
+    Random.Modules <- list()
+
+    for(j in 1:length(Size.modules)) {
+        Module.Elements <-  sample.int(n = nrow(TCGA.expr.tumor), size = Size.modules[j],
+                                       replace = F)
+        # print(Module.Elements)
+        Random.Modules[[j]] <- rownames(TCGA.expr.tumor)[Module.Elements]
+    }
+    names(Random.Modules) <- names(Sponge.modules)
+
+    # Calculate enrichment scores for BRCA and METABRIC
+    BRCA.RandomModules.OE <- Enrichment_Modules(TCGA.expr.tumor, Random.Modules,
+                                                bin.size = 100, min.size = 10, max.size = 200, method = "OE", cores = cores)
+    METABRIC.RandomModules.OE <- Enrichment_Modules(METABRIC.expr, Random.Modules,
+                                                    bin.size = 100, min.size = 10, max.size = 200, method = "OE", cores = cores)
+
+    #Find common modules
+
+    CommonModules <- intersect(rownames(BRCA.RandomModules.OE), rownames(METABRIC.RandomModules.OE))
+    BRCA.RandomModules.OE <- BRCA.RandomModules.OE[CommonModules, ]
+    METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[CommonModules, ]
+
+    # Train model
+    Inputdata.model.RANDOM <- t(BRCA.RandomModules.OE) %>% scale(center = T, scale = T) %>%
+        as.data.frame()
+
+    if(type.data.set1=="TCGA"){
+        Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
+            mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$sampleID)]))
+    }
+    if(type.data.set1=="METABRIC"){
+        Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
+            mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$PATIENT_ID)]))
+    }
+
+    Inputdata.model.RANDOM <- Inputdata.model.RANDOM[! is.na(Inputdata.model.RANDOM$Class), ]
+
+    Random.model <- RF_Classifier(Inputdata.model.RANDOM, n.folds, repetitions, metric = Metric, tunegrid)
+
+    #Test classification performance on second cohort
+    METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[ ,complete.cases(t(METABRIC.RandomModules.OE))]
+
+    if(type.data.set2=="TCGA"){
+        Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$sampleID)]
+    }
+    if(type.data.set2=="METABRIC"){
+        Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$PATIENT_ID)]
+    }
+
+    Input.Metabric.random <- t(METABRIC.RandomModules.OE) %>% scale(center = T, scale = T)
+    Prediction.random.model <- predict(Random.model$Model, Input.Metabric.random)
+    Random.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.random.model), Meta.metabric)
+
+    stopCluster(cl)
+
+    return(Random.model)
+}
+
+
+#' plots the top x gini index modules (see Boniolo 2022 et al. Figure 5)
+#' @param trained.model returned from train_and_test_model
+#' @param k_modules top k modules to be shown (default: 25)
+#' @param k_modules_red top k modules shown in red - NOTE: must be smaller
+#' than k_modules (default: 10)
+#' @param text_size text size (default 16)
+#' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
+#' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
+#' (default: hgnc_symbol)
+#' @param bioMart_gene_ensembl bioMart gene ensemble name
+#' (e.g., hsapiens_gene_ensembl).
+#'
+#' @return plot object for lollipop plot
+plot_top_modules <- function(trained.model,
+                             k_modules = 25,
+                             k_modules_red = 10,
+                             text_size = 16,
+                             bioMart_gene_symbol_columns = "hgnc_symbol",
+                             bioMart_gene_ensembl = "hsapiens_gene_ensembl") {
+
+    SpongingActiivty.model <-trained.model$SpongingActivity.model
+
+    final.model <- SpongingActiivty.model$Model$finalModel
+    Variable.importance <- importance(final.model) %>% as.data.frame() %>%
+        arrange(desc(MeanDecreaseGini)) %>%
+        tibble::rownames_to_column('Module')
+
+    mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
+    genes <- Variable.importance$Module
+    G_list <- getBM(filters = "ensembl_gene_id",
+                    attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
+                    values = genes, mart = mart, useCache = FALSE)
+
+    Variable.importance <- Variable.importance %>%
+        mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
+               Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
+
+    grey_modules=k_modules-k_modules_red
+
+    p<-Variable.importance[1:k_modules, ] %>%
+        mutate(Analysed = c(rep("1", k_modules_red), rep("0",grey_modules))) %>%
+        arrange(desc(MeanDecreaseGini)) %>%
+        ggplot(aes(x=reorder(Name_lncRNA_Results, MeanDecreaseGini), y=MeanDecreaseGini)) +
+        geom_point() +
+        geom_segment( aes(x=Name_lncRNA_Results, xend=Name_lncRNA_Results, y=0, yend=MeanDecreaseGini, color = Analysed)) +
+        scale_colour_manual(values=c("red", "black"), breaks = c("1", "0")) +
+        coord_flip()+
+        xlab("Module") +
+        ylab("Mean decrease in Gini index") +
+        theme_light()+
+        theme(
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.title = element_blank(),
+            legend.position="none",
+            legend.background = element_blank(),
+            legend.direction="horizontal",
+            panel.border = element_rect(colour = "black", fill=NA, size=1),
+            # axis.text=element_text(size=12),
+            # axis.title=element_text(size=12), #,face="bold"
+            # legend.text=element_text(size=12),
+            text=element_text(size=16)
+        )
+
+    return(p)
+
+}
+
+#' plots the density of the model scores for subtypes (see Boniolo 2022 et al. Fig. 2)
+#' @param trained.model returned from train_and_test_model
+#' @param modules output of Enrichment_Modules()
+#' @param meta_data metadata of samples
+#' (retrieved from prepare_tcga_for_spongEffects() or
+#' from prepare_metabric_for_spongEffects())
+#' @param data_type TCGA or METABRIC
+#' @subtypes array of subtypes
+#' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
+#' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
+#' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
+#' (default: hgnc_symbol)
+#' @param bioMart_gene_ensembl bioMart gene ensemble name
+#' (e.g., hsapiens_gene_ensembl).
+#'
+#'
+#' @return plots density scores for subtypes
+plot_density_scores <- function(trained.model,
+                                modules,
+                                meta_data,
+                                data_type,
+                                subtypes,
+                                bioMart_gene_symbol_columns = "hgnc_symbol",
+                                bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
+    ##FIGURE 2
+
+    title<-paste0("spongEffects - ",data_type," (Training)")
+
+    SpongingActiivty.model <-trained.model$SpongingActivity.model
+
+    final.model <- SpongingActiivty.model$Model$finalModel
+    Variable.importance <- importance(final.model) %>% as.data.frame() %>%
+        arrange(desc(MeanDecreaseGini)) %>%
+        tibble::rownames_to_column('Module')
+
+    mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
+    genes <- Variable.importance$Module
+    G_list <- getBM(filters = "ensembl_gene_id",
+                    attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
+                    values = genes, mart = mart, useCache = FALSE)
+
+    Variable.importance <- Variable.importance %>%
+        mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
+               Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
+
+    if (data_type=="TCGA") {
+
+        BRCA.Modules.OE<-modules
+        TCGA.meta.tumor=meta_data
+
+        TCGA.meta.tumor$SUBTYPE <- factor(TCGA.meta.tumor$SUBTYPE, levels = subtypes)
+        DrivingModules.BRCA <- BRCA.Modules.OE[rownames(BRCA.Modules.OE) %in% Variable.importance$Module, ] %>%
+            gather(Patient, Score) %>%
+            mutate(Class = TCGA.meta.tumor$SUBTYPE[match(Patient, TCGA.meta.tumor$sampleID)]) %>%
+            ggplot(aes(x = Score, y = Class, fill = Class)) +
+            geom_density_ridges() +
+            xlab(title) +
+            scale_fill_manual(values=met.brewer("Hokusai2", 5)) +
+            theme_bw() +
+            theme(panel.grid.major.x = element_blank(),
+                  panel.grid.minor.x = element_blank(),
+                  axis.ticks.y = element_blank(),
+                  legend.position = "none",
+                  panel.border = element_rect(colour = "black", fill=NA, size=1),
+                  axis.text=element_text(size=25), axis.text.x = element_text(color = "black"),
+                  axis.text.y = element_text(color = "black"),
+                  axis.title.y =element_text(size=30),
+                  axis.title.x =element_text(size=30))
+        return(DrivingModules.BRCA)
+    }
+
+    if(data_type=="METABRIC"){
+
+        METABRIC.Modules.OE<-modules
+        METABRIC.meta=meta_data
+
+        METABRIC.meta$CLAUDIN_SUBTYPE <- factor(METABRIC.meta$CLAUDIN_SUBTYPE, levels = subtypes)
+        DrivingModules.METABRIC <- METABRIC.Modules.OE[rownames(METABRIC.Modules.OE) %in% Variable.importance$Module, ] %>%
+            gather(Patient, Score) %>%
+            mutate(Class = METABRIC.meta$CLAUDIN_SUBTYPE[match(Patient, METABRIC.meta$PATIENT_ID)]) %>%
+            ggplot(aes(x = Score, y = Class, fill = Class)) +
+            geom_density_ridges() +
+            xlab(title) +
+            scale_fill_manual(values=met.brewer("OKeeffe2", 5)) +
+            theme_bw() +
+            theme(panel.grid.major.x = element_blank(),
+                  panel.grid.minor.x = element_blank(),
+                  axis.ticks.y = element_blank(),
+                  legend.position = "none",
+                  panel.border = element_rect(colour = "black", fill=NA, size=1),
+                  axis.text=element_text(size=25), axis.text.x = element_text(color = "black"),
+                  axis.text.y = element_text(color = "black"),
+                  axis.title.y =element_text(size=30),
+                  axis.title.x =element_text(size=30))
+
+        return(DrivingModules.METABRIC)
+    }
+
+
+
+
+}
+#' list of plots for (1) accuracy and (2) sensitivity + specificity
+#' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+#'
+#' @param trained.model returned from train_and_test_model
+#' @param CentralGenes.model
+#' @param random.model returned from train_and_test_model using the randomization
+#' @param training_dataset_name name of training (e.g., TCGA)
+#' @param testing_dataset_name name of testing set (e.g., METABRIC)
+#' @subtypes array of subtypes
+#' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
+#' @return list of plots for (1) accuracy and (2) sensitivity + specificity
+plot_accuracy_sensitivity_specificity <- function(trained.model,
+                                                  CentralGenes.model,
+                                                  Random.model,
+                                                  training_dataset_name,
+                                                  testing_dataset_name,
+                                                  subtypes){
+    training_string<-paste0(training_dataset_name," (Training)")
+    testing_string<-paste0(testing_dataset_name," (Testing)")
+    set_names<-c(training_string,testing_string)
+
+    SpongingActiivty.model <-trained.model$SpongingActivity.model
+    #CentralGenes.model
+    #Random.model
+
+    ##FIGURE 3A
+    Accuracy.df <- data.frame(Run = rep(set_names, 3),
+                              Model = c(rep("Modules", 2), rep("Central Genes", 2), rep("Random", 2)),
+                              Accuracy = c(SpongingActiivty.model$ConfusionMatrix_training[["overall"]][['Accuracy']], SpongingActiivty.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
+                                           CentralGenes.model$ConfusionMatrix_training[["overall"]][['Accuracy']],CentralGenes.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
+                                           Random.model$ConfusionMatrix_training[["overall"]][['Accuracy']], Random.model$ConfusionMatrix_testing[["overall"]][['Accuracy']]))
+
+    Accuracy.df$Model <- factor(Accuracy.df$Model, levels = c("Modules", "Random", "Central Genes"))
+    Accuracy.df$Run <- factor(Accuracy.df$Run, levels = set_names)
+
+    Accuracy.plot <- Accuracy.df %>%
+        ggplot(aes(x=Accuracy, y=Model)) +
+        geom_line(aes(group = Model), color = c( "#17154f",  "#355828", "#bf3729",  "#17154f", "#355828", "#bf3729"), size = 1.5) + # Renoir, 3
+        geom_point(aes(shape = Run), size = 6, color = c("#17154f", "#17154f",  "#355828","#355828", "#bf3729", "#bf3729")) +
+        # scale_color_manual(values = c("#0a3351", "#b9563f", "#0a3351", "#b9563f","#0a3351", "#b9563f")) +
+        scale_shape_manual(values=c(16, 17))+
+        theme_light() +
+        xlab("Subset Accuracy") +
+        ylab("") +
+        theme(
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.title = element_blank(),
+            legend.position="top",
+            legend.background = element_blank(),
+            legend.direction="horizontal",
+            panel.border = element_rect(colour = "black", fill=NA, size=1),
+            axis.text=element_text(size=15),
+            axis.title=element_text(size=20),
+            legend.text=element_text(size=12), axis.text.x = element_text(color = "black"),
+            axis.text.y = element_text(color = c( "#17154f",  "#bf3729", "#355828"))
+        )
+
+    # Sensitivity and Specificity
+    # Figure 3b
+    Metrics.SpongeModules.training <- SpongingActiivty.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.Random.training <- Random.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+
+    Metrics.training <- rbind(Metrics.SpongeModules.training, rbind(Metrics.Random.training, Metrics.CentralGenes.training)) %>%
+        mutate(Run = training_string)
+
+    Metrics.SpongeModules.testing <- SpongingActiivty.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.Random.testing <- Random.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+
+    Metrics.testing <- rbind(Metrics.SpongeModules.testing, rbind(Metrics.Random.testing, Metrics.CentralGenes.testing)) %>%
+        mutate(Run = testing_string)
+
+    Metrics <- rbind(Metrics.training, Metrics.testing)
+    Metrics$Model <- factor(Metrics$Model, levels = c("Modules", "Random", "Central Genes"))
+    Metrics$Run <- factor( Metrics$Run, levels = set_names)
+
+    Metrics$Class <- gsub("Class: ", "", Metrics$Class)
+    Metrics$Class <- factor(Metrics$Class, levels =subtypes)
+
+    Metrics.plot <- Metrics %>%
+        ggplot(aes(x = Metric, y = Value, fill = Model)) +
+        geom_bar(position = "dodge", stat = "identity", width = 0.5) +
+        facet_grid(Run ~ Class) +
+        scale_fill_manual(values=c( "#17154f",  "#bf3729", "#355828"),
+                          breaks = c("Modules", "Random", "Central Genes")) +
+        xlab("Metric") +
+        ylab("") +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black"),
+              strip.background = element_rect(fill="white", size=1, color="black"),
+              panel.border = element_rect(colour = "black", fill=NA, size=1),
+              strip.text.x = element_text(size=15,  color="black"),
+              strip.text.y = element_text(size=15, color="black"),
+              axis.text=element_text(size=15),
+              axis.title=element_text(size=20),
+              legend.text=element_text(size=15), axis.text.x = element_text(angle = 45, vjust = 0.9, hjust = 1, color = "black"),
+              axis.text.y = element_text(color = "black"),
+              legend.title=element_text(size=15))
+
+    metric_plots<-list(Accuracy.plot,Metrics.plot)
+    names(metric_plots) <- c("Accuracy.plot","Metrics.plot")
+
+    return(metric_plots)
+}
+
+#' plots the confusion matrix from spongEffects train_and_test()
+#' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+#' @param trained.model returned from train_and_test_model
+#' @param subtypes_testing_factors subtypes of testing samples as factors
+#' @return plot of the confusion matrix
+plot_confusion_matrices <- function(trained.model,
+                                    subtypes.testing.factors){
+    # Visualize confusion matrices  -------------------------------------------
+    # SpongEffect model (Supplementary Confusion Matrices)
+
+    Meta.metabric<-subtypes.testing.factors
+
+    Prediction.SpongeModules<-trained.model$Prediction.model
+
+    Prediction.SpongeModules <- data.frame(Predicted = as.factor(Prediction.SpongeModules),
+                                           Observed = as.factor(Meta.metabric))
+    Prediction.SpongeModules.cm <- confusion_matrix(targets = Prediction.SpongeModules$Observed,
+                                                    predictions = Prediction.SpongeModules$Predicted)
+
+    Confusion.matrix.SpongeModules <- cvms::plot_confusion_matrix(Prediction.SpongeModules.cm$`Confusion Matrix`[[1]],
+                                                            add_sums = T,
+                                                            add_normalized = FALSE,
+                                                            add_col_percentages = FALSE,
+                                                            add_row_percentages = FALSE,
+                                                            sums_settings = sum_tile_settings(
+                                                                palette = "Oranges",
+                                                                label = "Total",
+                                                                tc_tile_border_color = "black"),
+                                                            darkness = 0)
+
+    return(Confusion.matrix.SpongeModules)
 }
 
 
