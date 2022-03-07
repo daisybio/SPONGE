@@ -24,7 +24,9 @@ library(randomForest)
 library(ggridges)
 library(MetBrewer)
 library(cvms)
-source("/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/R/fn_spongeffects_utility.R")
+library(ComplexHeatmap)
+library(miRBaseConverter)
+    source("/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/R/fn_spongeffects_utility.R")
 ```
 
 ## (B) prepare TCGA data
@@ -139,16 +141,26 @@ metric_plot_list<-plot_accuracy_sensitivity_specificity(trained.model = trained.
 
 ## (N) plot confusion matrices
 ```{r, warning=FALSE, message=FALSE}
-subtypes.testing.factors <- as.factor(prep_list_METABRIC_spongEffects$METABRIC.meta$CLAUDIN_SUBTYPE)
+
+subtypes.testing.factors <-prep_list_METABRIC_spongEffects$METABRIC.meta$CLAUDIN_SUBTYPE[complete.cases(t(METABRIC.Modules.OE))]
+
 conf_matrix_trained<-plot_confusion_matrices(trained.model = trained.model, subtypes.testing.factors = subtypes.testing.factors)
-#conf_matrix_random<-plot_confusion_matrices(trained.model = Random.model)
+conf_matrix_random<-plot_confusion_matrices(trained.model = random.model,subtypes.testing.factors = subtypes.testing.factors)
 ```
 
+## (O) plot module heatmaps
+## TODO: METABRIC NOT WORKING! HAVE TO FIND BUG
+```{r, warning=FALSE, message=FALSE}
 
+tcga.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = BRCA.Modules.OE, meta.data = prep_list_tcga_spongEffects$TCGA.meta.tumor,type.data.set = "TCGA",subtypes = tcga_subtypes)
+#metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = METABRIC.Modules.OE, meta.data = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set = "METABRIC",subtypes = tcga_subtypes)
 
+```
 
-
-
+## (P) plot miRNA to modules heatmap
+```{r, warning=FALSE, message=FALSE}
+plot_involved_miRNAs_to_modules(Sponge.modules = Sponge.modules, trained.model = trained.model,dir_miRNAs_significance = "/nfs/data/SPONGE/results/breast invasive carcinoma_mirna_targets_all_mirs.RData")
+```
 
 
 

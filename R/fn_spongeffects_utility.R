@@ -916,6 +916,7 @@ build_classifier_random<-function(Sponge.modules,
 
     Input.Metabric.random <- t(METABRIC.RandomModules.OE) %>% scale(center = T, scale = T)
     Prediction.random.model <- predict(Random.model$Model, Input.Metabric.random)
+    Random.model$Prediction.model <- Prediction.random.model
     Random.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.random.model), Meta.metabric)
 
     stopCluster(cl)
@@ -1214,17 +1215,18 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 #' @param trained.model returned from train_and_test_model
 #' @param subtypes_testing_factors subtypes of testing samples as factors
 #' @return plot of the confusion matrix
+#' NOT FUNCTIONAL
 plot_confusion_matrices <- function(trained.model,
                                     subtypes.testing.factors){
     # Visualize confusion matrices  -------------------------------------------
     # SpongEffect model (Supplementary Confusion Matrices)
 
-    Meta.metabric<-subtypes.testing.factors
+    Meta.metabric<- na.omit(subtypes.testing.factors)
 
-    Prediction.SpongeModules<-trained.model$Prediction.model
+    # Prediction.SpongeModules<- as.character(trained.model$Prediction.model)
 
-    Prediction.SpongeModules <- data.frame(Predicted = as.factor(Prediction.SpongeModules),
-                                           Observed = as.factor(Meta.metabric))
+    Prediction.SpongeModules <- data.frame(Predicted = as.factor(trained.model$Prediction.model),
+                                           Observed = as.factor(subtypes.testing.factors))
     Prediction.SpongeModules.cm <- confusion_matrix(targets = Prediction.SpongeModules$Observed,
                                                     predictions = Prediction.SpongeModules$Predicted)
 
@@ -1240,6 +1242,332 @@ plot_confusion_matrices <- function(trained.model,
                                                             darkness = 0)
 
     return(Confusion.matrix.SpongeModules)
+}
+
+#' plots the heatmaps from training_and_test_model
+#' (see Boniolo 2022 et al. Fig. 6)
+#' @param trained.model returned from train_and_test_model
+#' @param Sponge.modules result of Define_Modules
+#' @param enrichment.modules.data.set1 return of Enrichment_Modules
+#' @param meta.data meta data
+#' @param type.data.set TCGA or METABRIC
+#' @subtypes array of subtypes
+#' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
+#' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
+#' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
+#' (default: hgnc_symbol)
+#' @param bioMart_gene_ensembl bioMart gene ensemble name
+#' (e.g., hsapiens_gene_ensembl).
+#' @param met_brewer.palette_subtypes which met brewer colour palette should be
+#' used for the subtypes (default: "Austria")
+#' @param met_brewer.palette_heatmap which  met brewer colour palette should be
+#' used for the heatmap (default "Troy")
+#'
+#' @return
+#' NOT FUNCTIONAL
+plot_heatmaps_training_test<-function(trained.model,
+                                      Sponge.modules,
+                                      enrichment.modules,
+                                      meta.data,
+                                      type.data.set,
+                                      subtypes,
+                                      bioMart_gene_symbol_columns = "hgnc_symbol",
+                                      bioMart_gene_ensembl = "hsapiens_gene_ensembl",
+                                      met_brewer.palette_subtypes = "Austria",
+                                      met_brewer.palette_heatmap = "Troy"){
+
+    colors_palette <- met.brewer("Austria",n=length(subtypes))
+    colors_palette <- as.character(colors_palette)
+    names(colors_palette)<-subtypes
+    Colours.subtypes <- colors_palette
+
+    METABRIC.meta<-meta.data
+    METABRIC.Modules.OE<-enrichment.modules
+
+    # Variable importance -----------------------------------------------------
+    SpongingActiivty.model <-trained.model$SpongingActivity.model
+
+    final.model <- SpongingActiivty.model$Model$finalModel
+    Variable.importance <- importance(final.model) %>% as.data.frame() %>%
+        arrange(desc(MeanDecreaseGini)) %>%
+        tibble::rownames_to_column('Module')
+
+    mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
+    genes <- Variable.importance$Module
+    G_list <- getBM(filters = "ensembl_gene_id",
+                    attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
+                    values = genes, mart = mart, useCache = FALSE)
+
+    Variable.importance <- Variable.importance %>%
+        mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
+               Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
+
+    # rownames(BRCA.Modules.OE) <- Variable.importance$Name_lncRNA_Results[match(rownames(BRCA.Modules.OE), Variable.importance$Module)]
+    # Visualize Heatmaps  ---------------------------------------------------------
+    # Define colours heatmaps
+
+    ##FIGURE 6
+
+    col <- rev(met.brewer(met_brewer.palette_heatmap,n=100,type="continuous"))
+
+    # METABRIC
+    # Define annotation layer
+
+    if(type.data.set=="METABRIC"){
+        METABRIC.meta.p <- METABRIC.meta[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID), ]
+        METABRIC.meta.p$CLAUDIN_SUBTYPE <- factor(METABRIC.meta.p$CLAUDIN_SUBTYPE, levels = subtypes)
+        HDHAnnotation <- HeatmapAnnotation(Subtype = METABRIC.meta.p$CLAUDIN_SUBTYPE,
+                                           annotation_name_gp = 15,
+                                           # Er_IHC = METABRIC.meta.p$ER_IHC,
+                                           # Her_SNP = METABRIC.meta.p$HER2_SNP6,
+                                           col = list(Subtype = Colours.subtypes))
+
+        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:25], rownames(METABRIC.Modules.OE)), ]
+        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:25]
+
+        # Plot
+        Heatmap.METABRIC.p <- Heatmap.METABRIC %>%
+            t() %>% scale() %>% t() %>%
+            Heatmap(show_row_names = T, show_column_names = F,  top_annotation = HDHAnnotation, column_split = METABRIC.meta.p$CLAUDIN_SUBTYPE,
+                    cluster_column_slices = F,
+                    column_title_gp = gpar(fontsize = 20),
+                    row_names_gp = gpar(fontsize = 15),
+                    row_title_gp = gpar(fontsize = 20),
+                    row_km = 3,
+                    col = col,
+                    heatmap_legend_param = list(
+                        title = "Z score", at = c(-3, 0, 3),
+                        labels = c("-3", "0", "3"), direction = "horizontal", legend_width = unit(3, "cm"),
+                        labels_gp = gpar(fontsize = 15),
+                        title_gp = gpar(fontsize = 15),
+                        title_position = "topcenter"
+                    ),  show_parent_dend_line = FALSE,
+                    # row_title = "Modules",
+                    column_title = type.data.set,width = unit(16, "cm"), height = unit(16, "cm"), show_heatmap_legend = FALSE)
+        return(Heatmap.METABRIC.p)
+    }
+
+    if(type.data.set=="TCGA"){
+
+        METABRIC.meta.p <- METABRIC.meta[match(colnames(METABRIC.Modules.OE), METABRIC.meta$sampleID), ]
+        METABRIC.meta.p$SUBTYPE <- factor(METABRIC.meta.p$SUBTYPE, levels = subtypes)
+        HDHAnnotation <- HeatmapAnnotation(Subtype = METABRIC.meta.p$SUBTYPE,
+                                           annotation_name_gp = 15,
+                                           # Er_IHC = METABRIC.meta.p$ER_IHC,
+                                           # Her_SNP = METABRIC.meta.p$HER2_SNP6,
+                                           col = list(Subtype = Colours.subtypes))
+
+        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:25], rownames(METABRIC.Modules.OE)), ]
+        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:25]
+
+        # Plot
+        Heatmap.METABRIC.p <- Heatmap.METABRIC %>%
+            t() %>% scale() %>% t() %>%
+            Heatmap(show_row_names = T, show_column_names = F,  top_annotation = HDHAnnotation, column_split = METABRIC.meta.p$SUBTYPE,
+                    cluster_column_slices = F,
+                    column_title_gp = gpar(fontsize = 20),
+                    row_names_gp = gpar(fontsize = 15),
+                    row_title_gp = gpar(fontsize = 20),
+                    row_km = 3,
+                    col = col,
+                    heatmap_legend_param = list(
+                        title = "Z score", at = c(-3, 0, 3),
+                        labels = c("-3", "0", "3"), direction = "horizontal", legend_width = unit(3, "cm"),
+                        labels_gp = gpar(fontsize = 15),
+                        title_gp = gpar(fontsize = 15),
+                        title_position = "topcenter"
+                    ),  show_parent_dend_line = FALSE,
+                    # row_title = "Modules",
+                    column_title = type.data.set,width = unit(16, "cm"), height = unit(16, "cm"), show_heatmap_legend = FALSE)
+        return(Heatmap.METABRIC.p)
+    }
+}
+
+#' plots the heatmap of miRNAs invovled in the interactions of the modules
+#' (see Boniolo 2022 et al. Fig. 7a)
+#' @param Sponge.modules result of Define_Modules
+#' @param trained.model returned from train_and_test_model
+#' @param dir_miRNAs_significance output of SPONGE or SPONGEdb (RDATA object)
+#' @param k_modules top k modules to be shown (default: 25)
+#' @param filter_miRNAs min rowsum to be reach of miRNAs (default: 3.0)
+#' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
+#' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
+#' (default: hgnc_symbol)
+#' @param bioMart_gene_ensembl bioMart gene ensemble name
+#' (e.g., hsapiens_gene_ensembl).
+#' @return plot object
+plot_involved_miRNAs_to_modules<-function(Sponge.modules,
+                                          trained.model,
+                                          dir_miRNAs_significance,
+                                          k_modules = 25,
+                                          filter_miRNAs = 3.0,
+                                          bioMart_gene_symbol_columns = "hgnc_symbol",
+                                          bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
+
+    load(dir_miRNAs_significance)
+    miRNAs_significance.downstream<-miRNAs_significance
+    miRNAs_significance.downstream.Target<-miRNAs_significance
+
+    SpongingActiivty.model <-trained.model$SpongingActivity.model
+
+    final.model <- SpongingActiivty.model$Model$finalModel
+    Variable.importance <- importance(final.model) %>% as.data.frame() %>%
+        arrange(desc(MeanDecreaseGini)) %>%
+        tibble::rownames_to_column('Module')
+
+    Variable.importance.top_k=Variable.importance[1:k_modules, ]$Module
+    Sponge.interesting.modules<-Sponge.modules[Variable.importance.top_k]
+    Sponge.modules.downstrean<-Sponge.interesting.modules
+
+    httr::set_config(httr::config(ssl_verifypeer = FALSE))
+    mart <- useDataset(bioMart_gene_ensembl, useMart("ensembl"))
+
+    vec_colnames = vector(length = k_modules)
+    vec_colnames_ensg = names(Sponge.modules.downstrean)
+    df_centralnodes_map = data.frame()
+    df_mirnas_map = data.frame()
+
+    count=0
+    for (ensg in names(Sponge.modules.downstrean)) {
+        count=count+1
+
+        df_intern = data.frame(matrix(ncol=1,nrow=1))
+        colnames(df_intern)<-c("Geneid")
+        df_intern <- rbind(df_intern,ensg)
+        df_intern <- df_intern[-c(1),]
+        df_intern <- data.frame(df_intern)
+        colnames(df_intern)<-c("Geneid")
+        df_intern <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id",bioMart_gene_symbol_columns,"description"),values=df_intern$Geneid,mart= mart)
+
+        name <- df_intern$hgnc_symbol
+        if(is.na(name))
+        {
+            name <- df_intern$ensembl_gene_id
+        }
+        vec_colnames[count] = name
+
+        df_centralnodes_map<-rbind(df_centralnodes_map,df_intern)
+    }
+
+    df_heatmap = data.frame(matrix(ncol=k_modules,nrow=0))
+    df_heatmap = as.data.frame(df_heatmap)
+    colnames(df_heatmap)<-vec_colnames
+    #length(names(df_heatmap))
+
+    for (ensg in vec_colnames_ensg)
+    {
+        #ensg = "ENSG00000237233"
+        print(ensg)
+        module_symbole = ensg
+
+        df_symbolname = df_centralnodes_map[which(df_centralnodes_map$ensembl_gene_id == ensg), ]
+
+        module_symbole = df_symbolname$hgnc_symbol
+
+        if(is.na(module_symbole))
+        {
+            module_symbole=ensg
+        }
+
+        vec_all_targets = Sponge.modules.downstrean[[ensg]]
+
+        df_intern = data.frame(matrix(ncol=1,nrow=length(vec_all_targets)))
+        colnames(df_intern)<-c("Geneid")
+        df_intern$Geneid = vec_all_targets
+        df_intern <- df_intern[-c(1),]
+        df_intern <- data.frame(df_intern)
+        colnames(df_intern)<-c("Geneid")
+        df_intern <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id",bioMart_gene_symbol_columns,"description"),values=df_intern$Geneid,mart= mart)
+
+
+        df_mirnas_intern=data.frame(miRNAs_significance.downstream[[ensg]])
+        df_mirnas_intern=miRNA_AccessionToName(df_mirnas_intern$mirna)
+
+        df_mirna_counts = data.frame(matrix(ncol = length(df_mirnas_intern$Accession)))
+        colnames(df_mirna_counts) <- df_mirnas_intern$TargetName
+        df_mirna_counts[is.na(df_mirna_counts)] <- 0
+
+        count_targets = 0
+
+        df_mirnas_map<-rbind(df_mirnas_map,df_mirnas_intern)
+
+        for (ensg_target in df_intern$ensembl_gene_id)
+        {
+            #ensg_target="ENSG00000237970"
+
+            df_symbolname = df_intern[which(df_intern$ensembl_gene_id == ensg_target), ]
+
+            #symbolname = df_symbolname$hgnc_symbol
+            symbolname=ensg_target
+
+            if(!is.na(symbolname))
+            {
+
+                miRNAs_thistarget <- miRNAs_significance.downstream.Target[[symbolname]]$mirna
+                miRNAs_thistarget=miRNA_AccessionToName(miRNAs_thistarget)
+
+                intersect_mirnas = intersect(miRNAs_thistarget$TargetName,df_mirnas_intern$TargetName)
+
+                for (i_mirnas in intersect_mirnas)
+                {
+                    if(!is.na(i_mirnas)){
+                        already_counted = df_mirna_counts[,i_mirnas]
+                        already_counted = already_counted + 1
+                        df_mirna_counts[,i_mirnas] = already_counted
+                    }
+
+                }
+            }
+
+            count_targets=count_targets+1
+        }
+
+        for (mirna_name in colnames(df_mirna_counts)) {
+            #mirna_name="hsa-miR-4999-5p"
+            if(!is.na(mirna_name)){
+                if(!any(row.names(df_heatmap) == mirna_name))
+                {
+                    df_heatmap[nrow(df_heatmap)+1,] <- 0
+                    rownames(df_heatmap)[length(rownames(df_heatmap))]=mirna_name
+                }
+
+                freq = df_mirna_counts[,mirna_name]/count_targets
+
+                df_heatmap[mirna_name, module_symbole] = freq
+            }
+
+        }
+    }
+
+    df_heatmap<-df_heatmap[rowSums(df_heatmap[])>filter_miRNAs,]
+    df_heatmap<-as.matrix(df_heatmap)
+
+    col.heatmap <- met.brewer("VanGogh3",n=5,type="continuous")
+
+    # Heatmap
+    heatmap.miRNA <- df_heatmap %>%
+        Heatmap(na_col = "white", col =  col.heatmap, # right_annotation = row.Annotation,
+                show_row_names = T, show_column_names = T,
+                heatmap_legend_param = list(
+                    title = "Frequency",
+                    at = c(0, 0.5, 1),
+                    legend_height = unit(1.5, "cm"),
+                    labels_gp = gpar(fontsize = 14),
+                    title_gp = gpar(fontsize = 14),
+                    direction = "horizontal", legend_width = unit(3, "cm"),
+                    title_position = "topleft"),
+                #top_annotation = column.Annotation,
+                column_title = "Module", row_title = "miRNA",
+                row_title_gp = gpar(fontsize = 20),
+                column_title_gp = gpar(fontsize = 20),
+                row_names_gp = gpar(fontsize = 15), column_names_gp = gpar(fontsize = 15), column_names_rot = 45,
+                rect_gp = gpar(col = "white", lwd = 0.5),
+                width = unit(20, "cm"), height = unit(28, "cm"))
+
+    return(heatmap.miRNA)
+
+    #draw(heatmap.miRNA, heatmap_legend_side = "bottom",
+    #     annotation_legend_side = "bottom")
 }
 
 
