@@ -153,7 +153,7 @@ conf_matrix_random<-plot_confusion_matrices(trained.model = random.model,subtype
 ```{r, warning=FALSE, message=FALSE}
 
 tcga.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = BRCA.Modules.OE, meta.data = prep_list_tcga_spongEffects$TCGA.meta.tumor,type.data.set = "TCGA",subtypes = tcga_subtypes)
-#metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = METABRIC.Modules.OE, meta.data = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set = "METABRIC",subtypes = tcga_subtypes)
+metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = METABRIC.Modules.OE, meta.data = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set = "METABRIC",subtypes = tcga_subtypes)
 
 ```
 
