@@ -310,7 +310,7 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                         }
                     }, warning = function(w) {
                         logdebug(w)
-                        return(NULL)
+                        return(lm_result)
                     }, error = function(e) {
                         logerror(e)
                         return(NULL)
@@ -321,10 +321,11 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 #if we have more than one miRNA we can use elasticnet to
                 #find out which are the essential features
                 model <- tryCatch({
-                    fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
+                    model <- fn_elasticnet(m_expr, g_expr) #elasticnet trying different alphas
+                    model
                 }, warning = function(w) {
                     logdebug(w)
-                    return(NULL)
+                    return(model)
                 }, error = function(e) {
                     logerror(e)
                     return(NULL)
@@ -348,11 +349,12 @@ sponge_gene_miRNA_interaction_filter <- function(gene_expr, mir_expr,
                 #we use the F test to assess the significance of each feature
                 else if(F.test){
                     result <- tryCatch({
-                        fn_gene_miRNA_F_test(g_expr, m_expr, model,
+                        result <- fn_gene_miRNA_F_test(g_expr, m_expr, model,
                                              F.test.p.adj.threshold)
+                        result
                     }, warning = function(w) {
                         logdebug(w)
-                        return(NULL)
+                        return(result)
                     }, error = function(e) {
                         logerror(e)
                         return(NULL)
