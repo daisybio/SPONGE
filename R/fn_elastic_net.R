@@ -57,7 +57,6 @@ fn_elasticnet <- function(x, y, alpha.step = 0.1){
             glmnet::cv.glmnet(x, y, alpha = alpha)
         }, warning = function(w){
             logwarn(w)
-            return(NA)
         }, error = function(e){
             logerror(e)
             return(NA)
