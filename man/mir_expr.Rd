@@ -4,8 +4,10 @@
 \name{mir_expr}
 \alias{mir_expr}
 \title{miRNA expression test data set}
-\format{A data frame of expression values
-with samples in columns and miRNA in rows}
+\format{
+A data frame of expression values
+with samples in columns and miRNA in rows
+}
 \usage{
 mir_expr
 }

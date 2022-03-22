@@ -4,8 +4,10 @@
 \name{mir_interactions}
 \alias{mir_interactions}
 \title{miRNA / gene interactions}
-\format{A data frame of regression coefficients
-typically provided by sponge_gene_miRNA_interaction_filter}
+\format{
+A data frame of regression coefficients
+typically provided by sponge_gene_miRNA_interaction_filter
+}
 \usage{
 mir_interactions
 }

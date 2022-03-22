@@ -4,8 +4,13 @@
 \alias{sponge_plot_network}
 \title{Plot a sponge network}
 \usage{
-sponge_plot_network(sponge_result, mir_data,
-  layout = "layout.fruchterman.reingold", force.directed = FALSE, ...)
+sponge_plot_network(
+  sponge_result,
+  mir_data,
+  layout = "layout.fruchterman.reingold",
+  force.directed = FALSE,
+  ...
+)
 }
 \arguments{
 \item{sponge_result}{ceRNA interactions as produced by the sponge method.}

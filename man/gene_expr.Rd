@@ -4,8 +4,10 @@
 \name{gene_expr}
 \alias{gene_expr}
 \title{Gene expression test data set}
-\format{A data frame of expression values
-with samples in columns and genes in rows}
+\format{
+A data frame of expression values
+with samples in columns and genes in rows
+}
 \usage{
 gene_expr
 }

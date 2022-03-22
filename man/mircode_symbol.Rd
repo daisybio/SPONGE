@@ -4,8 +4,10 @@
 \name{mircode_symbol}
 \alias{mircode_symbol}
 \title{mircode predicted miRNA gene interactions}
-\format{A matrix gene symbols vs miRNA family names. >=1 if interaction is
-predicted, 0 otherwise}
+\format{
+A matrix gene symbols vs miRNA family names. >=1 if interaction is
+predicted, 0 otherwise
+}
 \source{
 http://www.mircode.org/download.php
 }

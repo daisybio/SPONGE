@@ -1,7 +1,16 @@
 #' Convert hugo symbols to ensemble gene names.
 #'
-#' @importFrom Biobase
-#' @importFrom biomaRt
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param ceRNA_expression_data ceRNA expression data (same structure as input
 #' for SPONGE)
@@ -14,7 +23,7 @@
 #'
 #' @return Expression matrix (genes x samples). Row names are ensembl
 #' gene symbols
-Convert_Gene_Names <- function(ceRNA_expression_data,
+fn_convert_gene_names <- function(ceRNA_expression_data,
                                bioMart_gene_ensembl,
                                bioMart_gene_symbol_columns) {
 
@@ -56,10 +65,22 @@ Convert_Gene_Names <- function(ceRNA_expression_data,
 
 #' Calculate z-scores
 #'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param x input to calculate z score on
 #'
 #' @return z score
-cal_z_score <- function(x){
+fn_cal_z_score <- function(x){
   (x - mean(x)) / sd(x)
 }
 
@@ -70,7 +91,7 @@ cal_z_score <- function(x){
 #' @param padj.threshold adjusted p-value threshold (default 0.01)
 #'
 #' @return filtered ceRNA network
-filter_network <- function(network,
+fn_filter_network <- function(network,
                            mscor.threshold = .1,
                            padj.threshold = .01) {
   network %>%
@@ -80,11 +101,23 @@ filter_network <- function(network,
 #' Function to calculate centrality scores
 #' Calculation of combined centrality scores as proposed by Del Rio et al. (2009)
 #'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param CentralityMeasures dataframe with centrality score measures as columns
 #' and samples as rows
 #'
 #' @return Vector containing combined centrality scores
-Combined_Centrality <- function(CentralityMeasures) {
+fn_combined_centrality <- function(CentralityMeasures) {
 
   CombinedCentrality.Score <- c()
 
@@ -109,6 +142,19 @@ Combined_Centrality <- function(CentralityMeasures) {
 #' Calculation of weighted degree scores based on Opsahl et al. (2010)
 #' Hyperparameter to tune: Alpha = 0 --> degree centrality as defined in
 #' Freeman, 1978 (number of edges).
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param network Network formatted as a dataframe with three columns containing
 #' respectively node1, node2 and weights
 #' @param undirected directionality of the network (default: T)
@@ -117,7 +163,7 @@ Combined_Centrality <- function(CentralityMeasures) {
 #'
 #' @return Dataframe containing information about nodes and their weighted
 #' centrality measure
-Weighted_degree <- function(network,
+fn_weighted_degree <- function(network,
                             undirected = T,
                             Alpha = 1){
 
@@ -148,6 +194,18 @@ Weighted_degree <- function(network,
 #' Functions to define Sponge modules, created as all the first neighbors of
 #' the most central genes
 #'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param network Network as dataframe and list of central nodes. First two
 #' columns of the dataframe should contain the information of the nodes
 #' connected by edges.
@@ -155,10 +213,12 @@ Weighted_degree <- function(network,
 #' (default: False)
 #' @param remove.central Possibility of keeping or removing (default) central
 #' genes in the modules (default: T)
-#' @param set.parallel paralleling calculation of Define_Modules (default: F)
+#' @param set.parallel paralleling calculation of define_modules() (default: F)
+#'
+#' @export
 #'
 #' @return List of modules. Module names are the corresponding central genes.
-Define_Modules <- function(network,
+define_modules <- function(network,
                            central.modules = F,
                            remove.central = T,
                            set.parallel = T) {
@@ -212,6 +272,19 @@ Define_Modules <- function(network,
 
 #' Function to calculate enrichment scores of modules OE
 #' (functions taken from: Jerby-Arnon et al. 2018)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param NormCount normalized counts
 #' @param gene.sign significant genes
 #' @param bin.size bin size (default: 100)
@@ -219,7 +292,7 @@ Define_Modules <- function(network,
 #' @param set_seed seed size (default: 42)
 #'
 #' @return Signature scores
-OE_module <- function(NormCount,
+fn_OE_module <- function(NormCount,
                       gene.sign,
                       bin.size = 100,
                       num.rounds = 1000,
@@ -234,7 +307,7 @@ OE_module <- function(NormCount,
   Genes.dist <- rowMeans(NormCount,na.rm = T)
 
   # Divide genes in  expression bins
-  Discretized.Genes.dist <- discretize(Genes.dist,n.cat = bin.size)
+  Discretized.Genes.dist <- fn_discretize_spongeffects(Genes.dist,n.cat = bin.size)
 
   # Calculate OE scores
   Signature.scores <- matrix(data = 0,nrow = ncol(NormCount),ncol =1)
@@ -247,7 +320,7 @@ OE_module <- function(NormCount,
   b.sign <- is.element(SequencedGenes, gene.sign)
   if(sum(b.sign)<2) {next()}
 
-  rand.scores<-get.semi.random.OE(Centered.expr, Discretized.Genes.dist,b.sign,num.rounds = num.rounds)
+  rand.scores<-fn_get_semi_random_OE(Centered.expr, Discretized.Genes.dist,b.sign,num.rounds = num.rounds)
 
   raw.scores <- colMeans(Centered.expr[b.sign,])
   final.scores <- raw.scores-rand.scores
@@ -260,6 +333,19 @@ OE_module <- function(NormCount,
 
 #' Function to calculate semi random enrichment scores of modules OE
 #' (functions taken from: Jerby-Arnon et al. 2018)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param r expression matrix
 #' @param genes.dist.q values of the genes after binning (result of binning)
 #' @param b.sign does the signature contain less than 2 genes?
@@ -267,7 +353,7 @@ OE_module <- function(NormCount,
 #' @param num.rounds number of rounds (default: 1000)
 #'
 #' @return random signature scores
-get.semi.random.OE <- function(r,
+fn_get_semi_random_OE <- function(r,
                                genes.dist.q,
                                b.sign,
                                num.rounds = 1000){
@@ -295,11 +381,24 @@ get.semi.random.OE <- function(r,
 }
 
 #' discretize
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param v gene distance (defined by mother function OE module function)
 #' @param n.cat size of the bins (defined by mother function  OE module function)
 #'
 #' @return discreted
-discretize<-function(v,
+fn_discretize_spongeffects<-function(v,
                      n.cat){
   q1<-quantile(v,seq(from = (1/n.cat),to = 1,by = (1/n.cat)))
   u<-matrix(nrow = length(v))
@@ -315,60 +414,62 @@ discretize<-function(v,
 
 #' Calculate enrichment scores
 #'
-#' @importFrom tidyverse
-#' @importFrom caret
-#' @importFrom foreach
-#' @importFrom doParallel
-#' @importFrom dplyr
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param Expr.matrix ceRNA expression matrix
-#' @param modules Result of Define_Modules
+#' @param modules Result of define_modules()
 #' @param bin.size bin size (default: 100)
 #' @param min.size minimum module size (default: 10)
 #' @param max.size maximum module size (default: 200)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
-#' @param cores cores for parallelisation (default: 1)
+#'
+#' @export
 #'
 #' @return matrix containing module enrichment scores (module x samples)
-Enrichment_Modules <- function(Expr.matrix,
+enrichment_modules <- function(Expr.matrix,
                                modules,
                                bin.size = 100,
                                min.size = 10,
                                max.size = 200,
-                               method = "OE",
-                               cores = 1) {
+                               method = "OE") {
 
 
 
   print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
 
-  no_cores <- cores
-  cl <- makePSOCKcluster(25)
-  registerDoParallel(cl)
-
   if (method == "OE") {
+      i = 0
       Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
-                                        .export = c("OE_module", "get.semi.random.OE", "discretize"),
+                                        .export = c("fn_OE_module", "fn_get_semi_random_OE","fn_discretize_spongeffects"),
                                         .combine = "cbind") %dopar% {
       results <- list()
 
       if(length(modules[[Module]]) > min.size & length(modules[[Module]]) < max.size) {
         if (sum((modules[[Module]] %in% rownames(Expr.matrix)), na.rm = TRUE) > 10) {
-          Enrichment.module <- round(OE_module(Expr.matrix,modules[[Module]],bin.size),2)
+          Enrichment.module <- round(fn_OE_module(Expr.matrix,modules[[Module]],bin.size),2)
           colnames(Enrichment.module) <- names(modules)[Module]
           return(Enrichment.module)
         }
-        }
       }
+    }
     Enrichmentscores.modules <- Enrichmentscores.modules %>% t() %>% as.data.frame
 
     colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
 
   } else if (method == "GSVA") {
     Enrichmentscores.modules <- GSVA::gsva(as.matrix(Expr.matrix), modules, min.sz= min.size,
-                                     max.sz=200,method= 'gsva',parallel.sz = cores,
-                                     verbose=FALSE) %>% as.data.frame()
+                                     max.sz=200,method= 'gsva',verbose=FALSE) %>% as.data.frame()
 
     colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
 
@@ -388,7 +489,7 @@ Enrichment_Modules <- function(Expr.matrix,
 #' @param model (default: NULL)
 #'
 #' @return Model and confusion matrix in a list
-ExactMatch_Summary <- function (data,
+fn_exact_match_summary <- function (data,
                                 lev = NULL,
                                 model = NULL) {
   metric <- sum(data$obs == data$pred, na.rm = TRUE) / length(data$obs)
@@ -397,6 +498,18 @@ ExactMatch_Summary <- function (data,
 }
 
 #' RF classification model
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param Input.object data.frame made by predictors and dependent variable
 #' @param K number of folds (k-fold)
@@ -407,7 +520,7 @@ ExactMatch_Summary <- function (data,
 #' @param set_seed set seed (default: 42)
 #'
 #' @return
-RF_Classifier <- function(Input.object,
+fn_RF_classifier <- function(Input.object,
                           K,
                           rep,
                           metric = "Exact_match",
@@ -423,7 +536,7 @@ RF_Classifier <- function(Input.object,
   if (metric == "Exact_match") {
     control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
                             savePredictions = "final", classProbs = F,
-                            summaryFunction = ExactMatch_Summary,
+                            summaryFunction = fn_exact_match_summary,
                             allowParallel = TRUE, index = trainIndex)
   } else if (metric == "Accuracy") {
       control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
@@ -443,11 +556,17 @@ RF_Classifier <- function(Input.object,
 
 #' prepare TCGA formats for spongEffects
 #'
-#' @importFrom tidyverse
-#' @importFrom caret
-#' @importFrom foreach
-#' @importFrom doParallel
-#' @importFrom dplyr
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param tcga_cancer_symbol e.g., BRCA for breast cancer
 #' @param normal_ceRNA_expression_data normal ceRNA expression data
@@ -464,6 +583,8 @@ RF_Classifier <- function(Input.object,
 #' c(STAGE I', 'STAGE IA', 'STAGE IB', 'STAGE II', 'STAGE IIA')
 #' @param subtypes_of_interest array e.g.,
 #' c("LumA",  "LumB",  "Her2",  "Basal", "Normal")
+#'
+#' @export
 #'
 #' @return list of prepared data. You can access it with list$objectname for
 #' further spongEffects steps
@@ -515,12 +636,17 @@ prepare_tcga_for_spongEffects <- function(tcga_cancer_symbol,
 }
 #' prepare METABRIC formats for spongEffects
 #'
-#' @importFrom tidyverse
-#' @importFrom caret
-#' @importFrom foreach
-#' @importFrom doParallel
-#' @importFrom dplyr
-#' @importFrom Biobase
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param metabric_expression filepath to expression data in metabric format
 #' @param metabric_metadata filepath to metabric metadata in metabric format
@@ -534,6 +660,8 @@ prepare_tcga_for_spongEffects <- function(tcga_cancer_symbol,
 #' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
 #' (default: hgnc_symbol)
 #'
+#' @export
+#'
 #' @return list with metabric expression and metadata. You can access it with
 #' list$objectname for further spongEffects steps
 prepare_metabric_for_spongEffects <- function(metabric_expression,
@@ -545,7 +673,7 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
                               header=T) %>% dplyr::select(-Entrez_Gene_Id)
   METABRIC.expr <- METABRIC.expr[Biobase::isUnique(METABRIC.expr$Hugo_Symbol), ]
 
-  METABRIC.expr <- Convert_Gene_Names(METABRIC.expr,bioMart_gene_ensembl,bioMart_gene_symbol_columns)
+  METABRIC.expr <- fn_convert_gene_names(METABRIC.expr,bioMart_gene_ensembl,bioMart_gene_symbol_columns)
   colnames(METABRIC.expr) <- gsub("\\.", "-", colnames(METABRIC.expr))
 
   METABRIC.meta <- read.delim(metabric_metadata, comment.char="#") %>%
@@ -563,11 +691,17 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #' prepare ceRNA network and network centralities from SPONGE / SPONGEdb
 #' for spongEffects
 #'
-#' @importFrom tidyverse
-#' @importFrom caret
-#' @importFrom foreach
-#' @importFrom doParallel
-#' @importFrom dplyr
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param sponge_effects the ceRNA network downloaded as R object from SPONGEdb
 #' (Hoffmann et al., 2021) or created by SPONGE (List et al., 2019)
@@ -579,6 +713,8 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #' @param mscor.threshold mscor threshold to be filtered (default: 0.1)
 #' @param padj.threshold adjusted p-value to be filtered (default: 0.01)
 #'
+#' @export
+#'
 #' @return list of filtered ceRNA network and network centrailies. You can
 #' access it with list$objectname for further spongEffects steps
 filter_ceRNA_network <- function(sponge_effects,
@@ -588,7 +724,7 @@ filter_ceRNA_network <- function(sponge_effects,
 
   #Filter SPONGE network for significant edges
   Sponge.filtered <- sponge_effects %>%
-    filter_network(mscor.threshold =  .1, padj.threshold = .01)
+    fn_filter_network(mscor.threshold =  .1, padj.threshold = .01)
 
   # Calculate weighted centrality scores and add them to the ones present in SpongeDB
   #cancerType.Centrality <- gsub(" ", "_", cancerType)
@@ -601,7 +737,7 @@ filter_ceRNA_network <- function(sponge_effects,
   else
   {
     Node.Centrality <- network_analysis
-    Nodes <- Weighted_degree(Sponge.filtered, undirected = T, Alpha = 1)
+    Nodes <- fn_weighted_degree(Sponge.filtered, undirected = T, Alpha = 1)
 
     Node.Centrality <- Node.Centrality %>%
       mutate(Weighted_Degree = Nodes$Weighted_degree[match(Node.Centrality$gene, Nodes$Nodes)])
@@ -615,19 +751,25 @@ filter_ceRNA_network <- function(sponge_effects,
 
 
 #' prepare ceRNA network and network centralities from SPONGE / SPONGEdb
-#' @importFrom tidyverse
-#' @importFrom caret
-#' @importFrom foreach
-#' @importFrom doParallel
-#' @importFrom dplyr
-#' @importFrom Biobase
-#' @importFrom biomaRt
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
 #'
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
 #' (e.g., hsapiens_gene_ensembl).
 #' (See https://www.bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html)
 #' @param weighted_node_centrality output from filter_ceRNA_network()
 #' @param cutoff the top cutoff modules will be returned (default: 1000)
+#'
+#' @export
 #'
 #' @return top cutoff modules, with lncRNA as central genes
 get_lncRNA_modules <- function(bioMart_gene_ensembl,
@@ -665,9 +807,22 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
 
 #' tests and trains a model for a disease using a training and test data set
 #' (e.g., TCGA-BRCA and METABRIC)
-#' @param Modules_training return from Enrichment_Modules() function
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param Modules_training return from enrichment_modules() function
 #' @param Modules_training.metadata TCGA-BRCA data
-#' @param Modules_testing return from Enrichment_Modules() function
+#' @param Modules_testing return from enrichment_modules() function
 #' @param Modules_testing.metadata e.g., METABRIC data or other TCGA data
 #' @param Modules_testing.metadata.type e.g. METABRIC or TCGA
 #' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
@@ -675,7 +830,8 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
 #' cross validation (caret package) (default: 1:100)
 #' @param n_folds number of folds (default: 10)
 #' @param repetitions  number of k-fold cv iterations (default: 3)
-#' @param cores cores for parallelisation (default: 1)
+#'
+#' @export
 #'
 #' @return returns a list with the trained model and the prediction results
 train_and_test_model <- function(Modules_training,
@@ -686,8 +842,7 @@ train_and_test_model <- function(Modules_training,
                                  Metric = "Exact_match",
                                  tunegrid_c = c(1:100),
                                  n_folds = 10,
-                                 repetitions = 3,
-                                 cores = 1){
+                                 repetitions = 3){
 
 
     TCGA.meta.tumor = Modules_training.metadata
@@ -700,9 +855,6 @@ train_and_test_model <- function(Modules_training,
     METABRIC.Modules.OE <- METABRIC.Modules.OE[CommonModules, ]
 
     # Train subtype classifier -------------------------------------------------------------
-    no_cores <- 1
-    cl <- makePSOCKcluster(25)
-    registerDoParallel(cl)
 
     # Define input
     Inputdata.model <- t(BRCA.Modules.OE) %>% scale(center = T, scale = T) %>%
@@ -718,7 +870,7 @@ train_and_test_model <- function(Modules_training,
     repetitions <- repetitions # number of k-fold cv iterations
 
     # Calibrate model
-    SpongingActivity.model <- RF_Classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
+    SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
 
     #Test classification performance on second cohort
     METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
@@ -740,12 +892,25 @@ train_and_test_model <- function(Modules_training,
 }
 
 #' build classifiers for central genes
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param expression_data_set1 expression data of dataset 1,
 #' genenames must be in rownames
 #' @param expression_data_set2 expression data of dataset 2,
 #' genenames must be in rownames
-#' @param enrichment.modules.data.set1 return of Enrichment_Modules
-#' @param enrichment.modules.data.set2 return of Enrichment_Modules
+#' @param enrichment.modules.data.set1 return of enrichment_modules()
+#' @param enrichment.modules.data.set2 return of enrichment_modules()
 #' @param meta.data.set1 meta data of data set 1
 #' @param meta.data.set2 meta data of data set 2
 #' @param type.data.set1 TCGA or METABRIC
@@ -755,7 +920,8 @@ train_and_test_model <- function(Modules_training,
 #' cross validation (caret package) (default: 1:100)
 #' @param n.folds number of folds to be calculated
 #' @param repetitions  number of k-fold cv iterations (default: 3)
-#' @param cores cores for parallelisation (default: 1)
+#'
+#' @export
 #'
 #' @return model for central genes
 build_classifier_central_genes<-function(expression.data.set1,
@@ -769,11 +935,7 @@ build_classifier_central_genes<-function(expression.data.set1,
                                          Metric="Exact_match",
                                          tunegrid_c=c(1:100),
                                          n.folds = 10,
-                                         repetitions=3,
-                                         cores = 1){
-    no_cores <- cores
-    cl <- makePSOCKcluster(15)
-    registerDoParallel(cl)
+                                         repetitions=3){
 
     TCGA.expr.tumor<-expression.data.set1
     METABRIC.expr<-expression.data.set2
@@ -805,7 +967,7 @@ build_classifier_central_genes<-function(expression.data.set1,
 
     Inputdata.centralGene <- Inputdata.centralGene[! is.na(Inputdata.centralGene$Class), ]
 
-    CentralGenes.model <- RF_Classifier(Inputdata.centralGene, n.folds, repetitions, metric = Metric, tunegrid)
+    CentralGenes.model <- fn_RF_classifier(Inputdata.centralGene, n.folds, repetitions, metric = Metric, tunegrid)
 
     #Test classification performance on second cohort
     Inputdata.centralGene.Metabric <- t(METABRIC.expr[Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE)
@@ -817,13 +979,25 @@ build_classifier_central_genes<-function(expression.data.set1,
     if(type.data.set2 == "METABRIC"){
         CentralGenes.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.centralGenes.model), as.factor(METABRIC.meta$CLAUDIN_SUBTYPE))
     }
-    stopCluster(cl)
 
     return(CentralGenes.model)
 
 }
 #' build random classifiers
-#' @param Sponge.modules result of Define_Modules
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param Sponge.modules result of define_modules()
 #' @param expression_data_set1 expression data of dataset 1,
 #' genenames must be in rownames
 #' @param expression_data_set2 expression data of dataset 2,
@@ -837,7 +1011,9 @@ build_classifier_central_genes<-function(expression.data.set1,
 #' cross validation (caret package) (default: 1:100)
 #' @param n.folds number of folds to be calculated
 #' @param repetitions  number of k-fold cv iterations (default: 3)
-#' @param cores cores for parallelisation (default: 1)
+#'
+#' @export
+#'
 #' @return randomized prediction model
 build_classifier_random<-function(Sponge.modules,
                                   expression.data.set1,
@@ -849,11 +1025,7 @@ build_classifier_random<-function(Sponge.modules,
                                   Metric="Exact_match",
                                   tunegrid_c=c(1:100),
                                   n.folds = 10,
-                                  repetitions=3,
-                                  cores = 1){
-    no_cores <- cores
-    cl <- makePSOCKcluster(15)
-    registerDoParallel(cl)
+                                  repetitions=3){
 
     Sizes.modules <- lengths(Sponge.modules)
 
@@ -876,10 +1048,10 @@ build_classifier_random<-function(Sponge.modules,
     names(Random.Modules) <- names(Sponge.modules)
 
     # Calculate enrichment scores for BRCA and METABRIC
-    BRCA.RandomModules.OE <- Enrichment_Modules(TCGA.expr.tumor, Random.Modules,
-                                                bin.size = 100, min.size = 10, max.size = 200, method = "OE", cores = cores)
-    METABRIC.RandomModules.OE <- Enrichment_Modules(METABRIC.expr, Random.Modules,
-                                                    bin.size = 100, min.size = 10, max.size = 200, method = "OE", cores = cores)
+    BRCA.RandomModules.OE <- enrichment_modules(TCGA.expr.tumor, Random.Modules,
+                                                bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+    METABRIC.RandomModules.OE <- enrichment_modules(METABRIC.expr, Random.Modules,
+                                                    bin.size = 100, min.size = 10, max.size = 200, method = "OE")
 
     #Find common modules
 
@@ -902,7 +1074,7 @@ build_classifier_random<-function(Sponge.modules,
 
     Inputdata.model.RANDOM <- Inputdata.model.RANDOM[! is.na(Inputdata.model.RANDOM$Class), ]
 
-    Random.model <- RF_Classifier(Inputdata.model.RANDOM, n.folds, repetitions, metric = Metric, tunegrid)
+    Random.model <- fn_RF_classifier(Inputdata.model.RANDOM, n.folds, repetitions, metric = Metric, tunegrid)
 
     #Test classification performance on second cohort
     METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[ ,complete.cases(t(METABRIC.RandomModules.OE))]
@@ -919,13 +1091,24 @@ build_classifier_random<-function(Sponge.modules,
     Random.model$Prediction.model <- Prediction.random.model
     Random.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.random.model), Meta.metabric)
 
-    stopCluster(cl)
-
     return(Random.model)
 }
 
 
 #' plots the top x gini index modules (see Boniolo 2022 et al. Figure 5)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param trained.model returned from train_and_test_model
 #' @param k_modules top k modules to be shown (default: 25)
 #' @param k_modules_red top k modules shown in red - NOTE: must be smaller
@@ -936,6 +1119,8 @@ build_classifier_random<-function(Sponge.modules,
 #' (default: hgnc_symbol)
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
 #' (e.g., hsapiens_gene_ensembl).
+#'
+#' @export
 #'
 #' @return plot object for lollipop plot
 plot_top_modules <- function(trained.model,
@@ -995,13 +1180,26 @@ plot_top_modules <- function(trained.model,
 }
 
 #' plots the density of the model scores for subtypes (see Boniolo 2022 et al. Fig. 2)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param trained.model returned from train_and_test_model
-#' @param modules output of Enrichment_Modules()
+#' @param modules output of enrichment_modules()
 #' @param meta_data metadata of samples
 #' (retrieved from prepare_tcga_for_spongEffects() or
 #' from prepare_metabric_for_spongEffects())
 #' @param data_type TCGA or METABRIC
-#' @subtypes array of subtypes
+#' @param subtypes array of subtypes
 #' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
 #' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
 #' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
@@ -1009,6 +1207,7 @@ plot_top_modules <- function(trained.model,
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
 #' (e.g., hsapiens_gene_ensembl).
 #'
+#' @export
 #'
 #' @return plots density scores for subtypes
 plot_density_scores <- function(trained.model,
@@ -1099,13 +1298,28 @@ plot_density_scores <- function(trained.model,
 #' list of plots for (1) accuracy and (2) sensitivity + specificity
 #' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
 #'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param trained.model returned from train_and_test_model
-#' @param CentralGenes.model
+#' @param CentralGenes.model returned from build_classifier_central_genes()
 #' @param random.model returned from train_and_test_model using the randomization
 #' @param training_dataset_name name of training (e.g., TCGA)
 #' @param testing_dataset_name name of testing set (e.g., METABRIC)
-#' @subtypes array of subtypes
+#' @param subtypes array of subtypes
 #' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
+#'
+#' @export
+#'
 #' @return list of plots for (1) accuracy and (2) sensitivity + specificity
 plot_accuracy_sensitivity_specificity <- function(trained.model,
                                                   CentralGenes.model,
@@ -1212,10 +1426,26 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 
 #' plots the confusion matrix from spongEffects train_and_test()
 #' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param trained.model returned from train_and_test_model
 #' @param subtypes_testing_factors subtypes of testing samples as factors
 #' @return plot of the confusion matrix
-#' NOT FUNCTIONAL
+#'
+#' @export
+#'
+#' @return returns confusion matrix plots of the trained model
 plot_confusion_matrices <- function(trained.model,
                                     subtypes.testing.factors){
     # Visualize confusion matrices  -------------------------------------------
@@ -1246,12 +1476,25 @@ plot_confusion_matrices <- function(trained.model,
 
 #' plots the heatmaps from training_and_test_model
 #' (see Boniolo 2022 et al. Fig. 6)
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
 #' @param trained.model returned from train_and_test_model
-#' @param Sponge.modules result of Define_Modules
-#' @param enrichment.modules.data.set1 return of Enrichment_Modules
+#' @param Sponge.modules result of define_modules()
+#' @param enrichment.modules.data.set1 return of enrichment_modules()
 #' @param meta.data meta data
 #' @param type.data.set TCGA or METABRIC
-#' @subtypes array of subtypes
+#' @param subtypes array of subtypes
 #' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
 #' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
 #' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
@@ -1262,6 +1505,8 @@ plot_confusion_matrices <- function(trained.model,
 #' used for the subtypes (default: "Austria")
 #' @param met_brewer.palette_heatmap which  met brewer colour palette should be
 #' used for the heatmap (default "Troy")
+#'
+#' @export
 #'
 #' @return
 #' NOT FUNCTIONAL
@@ -1385,7 +1630,20 @@ plot_heatmaps_training_test<-function(trained.model,
 
 #' plots the heatmap of miRNAs invovled in the interactions of the modules
 #' (see Boniolo 2022 et al. Fig. 7a)
-#' @param Sponge.modules result of Define_Modules
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param Sponge.modules result of define_modules()
 #' @param trained.model returned from train_and_test_model
 #' @param dir_miRNAs_significance output of SPONGE or SPONGEdb (RDATA object)
 #' @param k_modules top k modules to be shown (default: 25)
@@ -1395,6 +1653,9 @@ plot_heatmaps_training_test<-function(trained.model,
 #' (default: hgnc_symbol)
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
 #' (e.g., hsapiens_gene_ensembl).
+#'
+#' @export
+#'
 #' @return plot object
 plot_involved_miRNAs_to_modules<-function(Sponge.modules,
                                           trained.model,

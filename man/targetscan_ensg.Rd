@@ -4,8 +4,10 @@
 \name{targetscan_ensg}
 \alias{targetscan_ensg}
 \title{targetscan predicted miRNA gene interactions}
-\format{A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
-is predicted, 0 otherwise}
+\format{
+A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
+is predicted, 0 otherwise
+}
 \source{
 http://www.targetscan.org/vert_71/
 }

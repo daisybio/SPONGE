@@ -5,10 +5,16 @@
 \title{run sponge benchmark where various settings, i.e. with or without
 regression, single or pooled miRNAs, are compared.}
 \usage{
-sponge_run_benchmark(gene_expr, mir_expr, mir_predicted_targets,
-  number_of_samples = 100, number_of_datasets = 100,
-  number_of_genes_to_test = c(25), compute_significance = FALSE,
-  folder = NULL)
+sponge_run_benchmark(
+  gene_expr,
+  mir_expr,
+  mir_predicted_targets,
+  number_of_samples = 100,
+  number_of_datasets = 100,
+  number_of_genes_to_test = c(25),
+  compute_significance = FALSE,
+  folder = NULL
+)
 }
 \arguments{
 \item{gene_expr}{A gene expression matrix with samples in rows and featurs

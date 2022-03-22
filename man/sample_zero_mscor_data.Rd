@@ -4,8 +4,11 @@
 \alias{sample_zero_mscor_data}
 \title{Sample mscor coefficients from pre-computed covariance matrices}
 \usage{
-sample_zero_mscor_data(cov_matrices, number_of_samples = 100,
-  number_of_datasets = 100)
+sample_zero_mscor_data(
+  cov_matrices,
+  number_of_samples = 100,
+  number_of_datasets = 100
+)
 }
 \arguments{
 \item{cov_matrices}{a list of pre-computed covariance matrices}

@@ -14,19 +14,13 @@ vignette: >
 We start with loading the package and its dependencies
 
 ```{r, warning=FALSE, message=FALSE}
-#library(SPONGE)
-
-library(tidyverse)
-library(biomaRt)
+library(SPONGE)
 library(doParallel)
-library(caret)
-library(randomForest)
-library(ggridges)
-library(MetBrewer)
-library(cvms)
-library(ComplexHeatmap)
-library(miRBaseConverter)
-    source("/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/R/fn_spongeffects_utility.R")
+library(foreach)
+
+num.of.cores <- 25 #many more on a compute cluster
+cl <- makeCluster(num.of.cores) 
+registerDoParallel(cl)
 ```
 
 ## (B) prepare TCGA data
@@ -71,7 +65,7 @@ lncRNA_modules<-get_lncRNA_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl
 ## (F) Define Modules
 ```{r, warning=FALSE, message=FALSE}
 
-Sponge.modules <- Define_Modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = F)
+Sponge.modules <- define_modules(network = filtered_network_centralities$Sponge.filtered, central.modules = lncRNA_modules, remove.central = T, set.parallel = F)
 # Module size distribution
 Size.modules <- sapply(Sponge.modules, length)
 
@@ -87,21 +81,21 @@ Size.modules <- sapply(Sponge.modules, length)
 
 #sponge_effects<-NULL
 
-BRCA.Modules.OE <- Enrichment_Modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, cores = 1, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+BRCA.Modules.OE <- enrichment_modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
 
 ```
 
 ## (H)[METABRIC] calculate Enrichment Scores (OE)
 ```{r, warning=FALSE, message=FALSE}
-METABRIC.Modules.OE <- Enrichment_Modules(Expr.matrix= prep_list_METABRIC_spongEffects$METABRIC.expr, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+METABRIC.Modules.OE <- enrichment_modules(Expr.matrix= prep_list_METABRIC_spongEffects$METABRIC.expr, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
 
 ```
 
 ## (I) Calculate Enrichment Scores (GSVA) if you want to compare enrichment scores
 ```{r, warning=FALSE, message=FALSE}
-BRCA.Modules.GSVA <- Enrichment_Modules(Expr.matrix= prep_list_tcga_spongEffects$TCGA.expr.tumor,modules = Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA", cores = 16)
+BRCA.Modules.GSVA <- enrichment_modules(Expr.matrix= prep_list_tcga_spongEffects$TCGA.expr.tumor,modules = Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA")
 
-METABRIC.Modules.GSVA <- Enrichment_Modules(prep_list_METABRIC_spongEffects$METABRIC.expr,modules =Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA", cores = 16)
+METABRIC.Modules.GSVA <- enrichment_modules(prep_list_METABRIC_spongEffects$METABRIC.expr,modules =Sponge.modules, bin.size = 100, min.size = 10,max.size = 200, method = "GSVA")
 
 ```
 ## (J) 1. Train and test random forests
@@ -113,12 +107,12 @@ trained.model = train_and_test_model(Modules_training = BRCA.Modules.OE, Modules
 ```
 ## (J) 2. Train and test on Central Genes
 ```{r, warning=FALSE, message=FALSE}
-central.genes.model = build_classifier_central_genes(expression.data.set1 = prep_list_tcga_spongEffects$TCGA.expr.tumor, expression.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.expr, enrichment.modules.data.set1 = BRCA.Modules.OE, enrichment.modules.data.set2 = METABRIC.Modules.OE, meta.data.set1 = prep_list_tcga_spongEffects$TCGA.meta.tumor, meta.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set1 = "TCGA", type.data.set2 = "METABRIC", Metric="Exact_match", n.folds=10, cores = 1)
+central.genes.model = build_classifier_central_genes(expression.data.set1 = prep_list_tcga_spongEffects$TCGA.expr.tumor, expression.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.expr, enrichment.modules.data.set1 = BRCA.Modules.OE, enrichment.modules.data.set2 = METABRIC.Modules.OE, meta.data.set1 = prep_list_tcga_spongEffects$TCGA.meta.tumor, meta.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set1 = "TCGA", type.data.set2 = "METABRIC", Metric="Exact_match", n.folds=10)
 ```
 
 ## (J) 3. Randomly train and test
 ```{r, warning=FALSE, message=FALSE}
-random.model = build_classifier_random(Sponge.modules= Sponge.modules,expression.data.set1 = prep_list_tcga_spongEffects$TCGA.expr.tumor, expression.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.expr, meta.data.set1 = prep_list_tcga_spongEffects$TCGA.meta.tumor, meta.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set1 = "TCGA", type.data.set2 = "METABRIC", Metric="Exact_match", n.folds=10, cores = 1)
+random.model = build_classifier_random(Sponge.modules= Sponge.modules,expression.data.set1 = prep_list_tcga_spongEffects$TCGA.expr.tumor, expression.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.expr, meta.data.set1 = prep_list_tcga_spongEffects$TCGA.meta.tumor, meta.data.set2 = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set1 = "TCGA", type.data.set2 = "METABRIC", Metric="Exact_match", n.folds=10)
 ```
 
 ## (K) Plot top k modules
@@ -153,7 +147,7 @@ conf_matrix_random<-plot_confusion_matrices(trained.model = random.model,subtype
 ```{r, warning=FALSE, message=FALSE}
 
 tcga.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = BRCA.Modules.OE, meta.data = prep_list_tcga_spongEffects$TCGA.meta.tumor,type.data.set = "TCGA",subtypes = tcga_subtypes)
-metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = METABRIC.Modules.OE, meta.data = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set = "METABRIC",subtypes = tcga_subtypes)
+#metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Sponge.modules = Sponge.modules,enrichment.modules = METABRIC.Modules.OE, meta.data = prep_list_METABRIC_spongEffects$METABRIC.meta, type.data.set = "METABRIC",subtypes = tcga_subtypes)
 
 ```
 
@@ -162,12 +156,7 @@ metabric.heatmap<-plot_heatmaps_training_test(trained.model = trained.model, Spo
 plot_involved_miRNAs_to_modules(Sponge.modules = Sponge.modules, trained.model = trained.model,dir_miRNAs_significance = "/nfs/data/SPONGE/results/breast invasive carcinoma_mirna_targets_all_mirs.RData")
 ```
 
-
-
-
+## (Q) stop the cluster for parallelization
 ```{r, warning=FALSE, message=FALSE}
-
+stopCluster(cl) 
 ```
-
-
-
