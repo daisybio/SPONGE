@@ -74,7 +74,7 @@ Size.modules <- sapply(Sponge.modules, length)
 ## (G) [TCGA] calculate Enrichment Scores (OE)
 ```{r, warning=FALSE, message=FALSE}
 
-#Either method="OE" (OverallEnrichment) or method="GSVA" (Gene Set Variation Analysis)
+#Possible methods: "OE" (OverallEnrichment), "GSVA" (Gene Set Variation Analysis), "ssGSEA" #(single-sample gene set ernichment analysis)
 #We used OE in our Boniolo et al., 2022
 
 #We also accept multi threading here. Default is 1 core.

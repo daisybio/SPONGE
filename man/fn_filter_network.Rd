@@ -2,7 +2,27 @@
 % Please edit documentation in R/fn_spongeffects_utility.R
 \name{fn_filter_network}
 \alias{fn_filter_network}
-\title{Preprocessing ceRNA network}
+\title{#' Calculate z-scores
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param x input to calculate z score on
+#'
+#' @return z score
+fn_cal_z_score <- function(x){
+  (x - mean(x)) / sd(x)
+}
+Preprocessing ceRNA network}
 \usage{
 fn_filter_network(network, mscor.threshold = 0.1, padj.threshold = 0.01)
 }
@@ -18,5 +38,25 @@ sponge)}
 filtered ceRNA network
 }
 \description{
+#' Calculate z-scores
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param x input to calculate z score on
+#'
+#' @return z score
+fn_cal_z_score <- function(x){
+  (x - mean(x)) / sd(x)
+}
 Preprocessing ceRNA network
 }

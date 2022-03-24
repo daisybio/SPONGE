@@ -63,26 +63,26 @@ fn_convert_gene_names <- function(ceRNA_expression_data,
   return(dplyr::select(ceRNA_expression_data[-1], -Ensembl))
 }
 
-#' Calculate z-scores
-#'
-#' @import tidyverse
-#' @import caret
-#' @import dplyr
-#' @import Biobase
-#' @import biomaRt
-#' @import randomForest
-#' @import ggridges
-#' @import MetBrewer
-#' @import cvms
-#' @import ComplexHeatmap
-#' @import miRBaseConverter
-#'
-#' @param x input to calculate z score on
-#'
-#' @return z score
-fn_cal_z_score <- function(x){
-  (x - mean(x)) / sd(x)
-}
+#' #' Calculate z-scores
+#' #'
+#' #' @import tidyverse
+#' #' @import caret
+#' #' @import dplyr
+#' #' @import Biobase
+#' #' @import biomaRt
+#' #' @import randomForest
+#' #' @import ggridges
+#' #' @import MetBrewer
+#' #' @import cvms
+#' #' @import ComplexHeatmap
+#' #' @import miRBaseConverter
+#' #'
+#' #' @param x input to calculate z score on
+#' #'
+#' #' @return z score
+#' fn_cal_z_score <- function(x){
+#'   (x - mean(x)) / sd(x)
+#' }
 
 #' Preprocessing ceRNA network
 #' @param network  ceRNA network as data (typically present in the outputs of
@@ -270,6 +270,34 @@ define_modules <- function(network,
   } else {return(Sponge.Modules)}
 }
 
+#' discretize
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import MetBrewer
+#' @import cvms
+#' @import ComplexHeatmap
+#' @import miRBaseConverter
+#'
+#' @param v gene distance (defined by mother function OE module function)
+#' @param n.cat size of the bins (defined by mother function  OE module function)
+#'
+#' @return discretized
+fn_discretize_spongeffects<-function(v,
+                                     n.cat){
+  q1<-quantile(v,seq(from = (1/n.cat),to = 1,by = (1/n.cat)))
+  u<-matrix(nrow = length(v))
+  for(i in 2:n.cat){
+    u[(v>=q1[i-1])&(v<q1[i])]<-i
+  }
+  return(u)
+}
+
 #' Function to calculate enrichment scores of modules OE
 #' (functions taken from: Jerby-Arnon et al. 2018)
 #'
@@ -380,33 +408,6 @@ fn_get_semi_random_OE <- function(r,
   return(rand.scores)
 }
 
-#' discretize
-#'
-#' @import tidyverse
-#' @import caret
-#' @import dplyr
-#' @import Biobase
-#' @import biomaRt
-#' @import randomForest
-#' @import ggridges
-#' @import MetBrewer
-#' @import cvms
-#' @import ComplexHeatmap
-#' @import miRBaseConverter
-#'
-#' @param v gene distance (defined by mother function OE module function)
-#' @param n.cat size of the bins (defined by mother function  OE module function)
-#'
-#' @return discreted
-fn_discretize_spongeffects<-function(v,
-                     n.cat){
-  q1<-quantile(v,seq(from = (1/n.cat),to = 1,by = (1/n.cat)))
-  u<-matrix(nrow = length(v))
-  for(i in 2:n.cat){
-    u[(v>=q1[i-1])&(v<q1[i])]<-i
-  }
-  return(u)
-}
 
 # 3) Calculate enrichment scores
 # Input: List of modules (with module names), expression data (gene x samples)
@@ -444,14 +445,11 @@ enrichment_modules <- function(Expr.matrix,
                                max.size = 200,
                                method = "OE") {
 
-
-
   print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
 
   if (method == "OE") {
-      i = 0
       Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
-                                        .export = c("fn_OE_module", "fn_get_semi_random_OE","fn_discretize_spongeffects"),
+                                        .export = c("fn_OE_module", "fn_get_semi_random_OE"),
                                         .combine = "cbind") %dopar% {
       results <- list()
 
@@ -467,14 +465,14 @@ enrichment_modules <- function(Expr.matrix,
 
     colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
 
-  } else if (method == "GSVA") {
+  } else {
     Enrichmentscores.modules <- GSVA::gsva(as.matrix(Expr.matrix), modules, min.sz= min.size,
-                                     max.sz=200,method= 'gsva',verbose=FALSE) %>% as.data.frame()
+                                           max.sz=max.size,method= method,parallel.sz = cores,
+                                           verbose=FALSE) %>% as.data.frame()
 
     colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
 
   }
-
   if (!is_empty(Enrichmentscores.modules)) {
   	return(Enrichmentscores.modules)
   } else {
@@ -710,8 +708,8 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #' from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE
 #' (List et al., 2019) usually ends with _networkAnalysis
 #' if network_analysis is NA then the function only filters the ceRNA network
-#' @param mscor.threshold mscor threshold to be filtered (default: 0.1)
-#' @param padj.threshold adjusted p-value to be filtered (default: 0.01)
+#' @param mscor.threshold mscor threshold to be filtered (default: NA)
+#' @param padj.threshold adjusted p-value to be filtered (default: NA)
 #'
 #' @export
 #'
@@ -722,9 +720,11 @@ filter_ceRNA_network <- function(sponge_effects,
                                  mscor.threshold = 0.1,
                                  padj.threshold = 0.01){
 
-  #Filter SPONGE network for significant edges
-  Sponge.filtered <- sponge_effects %>%
-    fn_filter_network(mscor.threshold =  .1, padj.threshold = .01)
+    #Filter SPONGE network for significant edges
+    Sponge.filtered <- sponge_effects %>%
+        fn_filter_network(mscor.threshold =  mscor.threshold, padj.threshold = padj.threshold)
+
+
 
   # Calculate weighted centrality scores and add them to the ones present in SpongeDB
   #cancerType.Centrality <- gsub(" ", "_", cancerType)
@@ -767,13 +767,15 @@ filter_ceRNA_network <- function(sponge_effects,
 #' (e.g., hsapiens_gene_ensembl).
 #' (See https://www.bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html)
 #' @param weighted_node_centrality output from filter_ceRNA_network()
+#' @param ceRNA_class default c("lncRNA","circRNA","protein_coding") (see http://www.ensembl.org/info/genome/genebuild/biotypes.html)
 #' @param cutoff the top cutoff modules will be returned (default: 1000)
 #'
 #' @export
 #'
 #' @return top cutoff modules, with lncRNA as central genes
-get_lncRNA_modules <- function(bioMart_gene_ensembl,
+get_central_modules <- function(bioMart_gene_ensembl,
                                weighted_node_centrality,
+                               ceRNA_class = c("lncRNA","circRNA","protein_coding"),
                                cutoff = 1000){
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
   not_done=TRUE
@@ -782,8 +784,7 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
     tryCatch({
       ensembl=useMart("ensembl")
       ensemblH = useDataset(bioMart_gene_ensembl,mart=ensembl)
-      Human.lncRNA = getBM(attributes=c("ensembl_gene_id","gene_biotype","description"), mart=ensemblH, useCache = FALSE) %>%
-        dplyr::filter(gene_biotype == "lncRNA")
+      Human.lncRNA = getBM(attributes=c("ensembl_gene_id","gene_biotype","description"), mart=ensemblH, useCache = FALSE)
 
       not_done=FALSE
     }, warning = function(w) {
@@ -796,9 +797,19 @@ get_lncRNA_modules <- function(bioMart_gene_ensembl,
     })
   }
 
+  all_ceRNAs <- Human.lncRNA
+  Human.lncRNA<-Human.lncRNA%>% dplyr::filter(gene_biotype %in% ceRNA_class)
+
+  c_interesting_ceRNAs<-Human.lncRNA$ensembl_gene_id
+
+  if("circRNA" %in% ceRNA_class)
+  {
+      df_circRNAS_to_add <- weighted_node_centrality[ with(weighted_node_centrality, grepl("circ", gene) | grepl(":", gene) | grepl("chr", gene))]
+      c_interesting_ceRNAs<- c(c_interesting_ceRNAs,df_circRNAS_to_add$gene)
+  }
 
   Node.Centrality.weighted <- weighted_node_centrality %>%
-    dplyr::filter(gene %in% Human.lncRNA$ensembl_gene_id) %>%
+    dplyr::filter(gene %in% c_interesting_ceRNAs) %>%
     dplyr::arrange(desc(Weighted_Degree)) %>%
     dplyr::slice(1:cutoff)
 

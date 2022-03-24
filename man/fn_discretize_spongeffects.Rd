@@ -12,7 +12,7 @@ fn_discretize_spongeffects(v, n.cat)
 \item{n.cat}{size of the bins (defined by mother function  OE module function)}
 }
 \value{
-discreted
+discretized
 }
 \description{
 discretize
