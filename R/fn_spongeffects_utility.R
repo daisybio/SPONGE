@@ -421,13 +421,15 @@ fn_get_semi_random_OE <- function(r,
 #' @export
 #'
 #' @return matrix containing module enrichment scores (module x samples)
-enrichment_modules <- function(Expr.matrix,
+enrichment_modules <- function(gene_expr,
                                modules,
                                bin.size = 100,
                                min.size = 10,
                                max.size = 200,
                                min.expr = 10,
                                method = "OE") {
+
+    Expr.matrix <- gene_expr
 
   print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
 
@@ -803,12 +805,12 @@ get_central_modules <- function(bioMart_gene_ensembl,
 #' @import cvms
 #' @import miRBaseConverter
 #'
-#' @param Modules_training return from enrichment_modules() function
-#' @param Modules_training.metadata TCGA-BRCA data
-#' @param Modules_testing return from enrichment_modules() function
-#' @param Modules_testing.metadata e.g., METABRIC data or other TCGA data
-#' @param Modules_testing.metadata.type e.g. METABRIC or TCGA
-#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param train_modules return from enrichment_modules() function
+#' @param train_modules_metadata TCGA-BRCA data
+#' @param test_modules return from enrichment_modules() function
+#' @param test_modules_metadata e.g., METABRIC data or other TCGA data
+#' @param test_modules_meta_data_type e.g. METABRIC or TCGA
+#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
 #' @param tunegrid_c defines the grid for the hyperparameter optimization during
 #' cross validation (caret package) (default: 1:100)
 #' @param n_folds number of folds (default: 10)
@@ -817,19 +819,22 @@ get_central_modules <- function(bioMart_gene_ensembl,
 #' @export
 #'
 #' @return returns a list with the trained model and the prediction results
-train_and_test_model <- function(Modules_training,
-                                 Modules_training.metadata,
-                                 Modules_testing,
-                                 Modules_testing.metadata,
-                                 Modules_testing.metadata.type,
-                                 Metric = "Exact_match",
+train_and_test_model <- function(train_modules,
+                                 train_modules_metadata,
+                                 test_modules,
+                                 test_modules_metadata,
+                                 test_modules_meta_data_type = "TCGA",
+                                 metric = "Exact_match",
                                  tunegrid_c = c(1:100),
                                  n_folds = 10,
                                  repetitions = 3){
 
+    Modules_training <- train_modules
+    Modules_testing <-test_modules
+    TCGA.meta.tumor = train_modules_metadata
+    METABRIC.meta = test_modules_metadata
 
-    TCGA.meta.tumor = Modules_training.metadata
-    METABRIC.meta = Modules_testing.metadata
+    Metric <- metric
 
     #Find common modules
 
@@ -857,10 +862,10 @@ train_and_test_model <- function(Modules_training,
 
     #Test classification performance on second cohort
     METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
-    if(Modules_testing.metadata.type == "METABRIC"){
+    if(test_modules_meta_data_type == "METABRIC"){
         Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
     }
-    if(Modules_testing.metadata.type == "TCGA"){
+    if(test_modules_meta_data_type == "TCGA"){
         Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$sampleID)]
     }
 
@@ -886,17 +891,17 @@ train_and_test_model <- function(Modules_training,
 #' @import cvms
 #' @import miRBaseConverter
 #'
-#' @param expression_data_set1 expression data of dataset 1,
+#' @param train_gene_expr expression data of train dataset,
 #' genenames must be in rownames
-#' @param expression_data_set2 expression data of dataset 2,
+#' @param test_gene_expr expression data of test dataset,
 #' genenames must be in rownames
-#' @param enrichment.modules.data.set1 return of enrichment_modules()
-#' @param enrichment.modules.data.set2 return of enrichment_modules()
-#' @param meta.data.set1 meta data of data set 1
-#' @param meta.data.set2 meta data of data set 2
-#' @param type.data.set1 TCGA or METABRIC
-#' @param type.data.set2 TCGA or METABRIC
-#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param train_enrichment_modules return of enrichment_modules()
+#' @param test_enrichment_modules return of enrichment_modules()
+#' @param train_meta_data meta data of train dataset
+#' @param test_meta_data meta data of test dataset
+#' @param train_meta_data_type TCGA or METABRIC
+#' @param test_meta_data_type TCGA or METABRIC
+#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
 #' @param tunegrid_c defines the grid for the hyperparameter optimization during
 #' cross validation (caret package) (default: 1:100)
 #' @param n.folds number of folds to be calculated
@@ -905,24 +910,25 @@ train_and_test_model <- function(Modules_training,
 #' @export
 #'
 #' @return model for central genes
-build_classifier_central_genes<-function(expression.data.set1,
-                                         expression.data.set2,
-                                         enrichment.modules.data.set1,
-                                         enrichment.modules.data.set2,
-                                         meta.data.set1,
-                                         meta.data.set2,
-                                         type.data.set1,
-                                         type.data.set2,
-                                         Metric="Exact_match",
+build_classifier_central_genes<-function(train_gene_expr,
+                                         test_gene_expr,
+                                         train_enrichment_modules,
+                                         test_enrichment_modules,
+                                         train_meta_data,
+                                         test_meta_data,
+                                         train_meta_data_type="TCGA",
+                                         test_meta_data_type="TCGA",
+                                         metric="Exact_match",
                                          tunegrid_c=c(1:100),
                                          n.folds = 10,
                                          repetitions=3){
 
-    TCGA.expr.tumor<-expression.data.set1
-    METABRIC.expr<-expression.data.set2
-    BRCA.Modules.OE<-enrichment.modules.data.set1
-    TCGA.meta.tumor<-meta.data.set1
-    METABRIC.meta<-meta.data.set2
+    TCGA.expr.tumor<-train_gene_expr
+    METABRIC.expr<-test_gene_expr
+    BRCA.Modules.OE<-train_enrichment_modules
+    TCGA.meta.tumor<-train_meta_data
+    METABRIC.meta<-test_meta_data_type
+    Metric<-metric
 
     tunegrid<-expand.grid(.mtry=tunegrid_c)
 
@@ -936,11 +942,11 @@ build_classifier_central_genes<-function(expression.data.set1,
     Inputdata.centralGene <- t(TCGA.expr.tumor[rownames(TCGA.expr.tumor) %in% Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE) %>%
         as.data.frame()
 
-    if(type.data.set1=="TCGA"){
+    if(train_meta_data_type=="TCGA"){
         Inputdata.centralGene <- Inputdata.centralGene %>%
             mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.centralGene), TCGA.meta.tumor$sampleID)]))
     }
-    if(type.data.set1=="METABRIC"){
+    if(train_meta_data_type=="METABRIC"){
         Inputdata.centralGene <- Inputdata.centralGene %>%
             mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.centralGene), TCGA.meta.tumor$PATIENT_ID)]))
     }
@@ -954,10 +960,10 @@ build_classifier_central_genes<-function(expression.data.set1,
     Inputdata.centralGene.Metabric <- t(METABRIC.expr[Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE)
     Prediction.centralGenes.model <- predict(CentralGenes.model$Model, Inputdata.centralGene.Metabric)
 
-    if(type.data.set2 == "TCGA"){
+    if(test_meta_data_type == "TCGA"){
         CentralGenes.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.centralGenes.model), as.factor(METABRIC.meta$SUBTYPE))
     }
-    if(type.data.set2 == "METABRIC"){
+    if(test_meta_data_type == "METABRIC"){
         CentralGenes.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.centralGenes.model), as.factor(METABRIC.meta$CLAUDIN_SUBTYPE))
     }
 
@@ -976,16 +982,16 @@ build_classifier_central_genes<-function(expression.data.set1,
 #' @import cvms
 #' @import miRBaseConverter
 #'
-#' @param Sponge.modules result of define_modules()
-#' @param expression_data_set1 expression data of dataset 1,
+#' @param sponge_modules result of define_modules()
+#' @param train_gene_expr expression data of train dataset,
 #' genenames must be in rownames
-#' @param expression_data_set2 expression data of dataset 2,
+#' @param test_gene_expr expression data of test dataset,
 #' genenames must be in rownames
-#' @param meta.data.set1 meta data of data set 1
-#' @param meta.data.set2 meta data of data set 2
-#' @param type.data.set1 TCGA or METABRIC
-#' @param type.data.set2 TCGA or METABRIC
-#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param train_meta_data meta data of train dataset
+#' @param test_meta_data meta data of test dataset
+#' @param train_meta_data_type TCGA or METABRIC
+#' @param test_meta_data_type TCGA or METABRIC
+#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
 #' @param tunegrid_c defines the grid for the hyperparameter optimization during
 #' cross validation (caret package) (default: 1:100)
 #' @param n.folds number of folds to be calculated
@@ -994,24 +1000,27 @@ build_classifier_central_genes<-function(expression.data.set1,
 #' @export
 #'
 #' @return randomized prediction model
-build_classifier_random<-function(Sponge.modules,
-                                  expression.data.set1,
-                                  expression.data.set2,
-                                  meta.data.set1,
-                                  meta.data.set2,
-                                  type.data.set1,
-                                  type.data.set2,
-                                  Metric="Exact_match",
+build_classifier_random<-function(sponge_modules,
+                                  train_gene_expr,
+                                  test_gene_expr,
+                                  train_meta_data,
+                                  test_meta_data,
+                                  train_meta_data_type="TCGA",
+                                  test_meta_data_type="TCGA",
+                                  metric="Exact_match",
                                   tunegrid_c=c(1:100),
                                   n.folds = 10,
                                   repetitions=3){
 
+    Sponge.modules<- sponge_modules
+    Metric<-metric
+
     Sizes.modules <- lengths(Sponge.modules)
 
-    TCGA.expr.tumor<-expression.data.set1
-    METABRIC.expr<-expression.data.set2
-    TCGA.meta.tumor<-meta.data.set1
-    METABRIC.meta<-meta.data.set2
+    TCGA.expr.tumor<-train_gene_expr
+    METABRIC.expr<-test_gene_expr
+    TCGA.meta.tumor<-train_meta_data
+    METABRIC.meta<-test_meta_data
 
     tunegrid<-expand.grid(.mtry=tunegrid_c)
 
@@ -1042,11 +1051,11 @@ build_classifier_random<-function(Sponge.modules,
     Inputdata.model.RANDOM <- t(BRCA.RandomModules.OE) %>% scale(center = T, scale = T) %>%
         as.data.frame()
 
-    if(type.data.set1=="TCGA"){
+    if(train_meta_data_type=="TCGA"){
         Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
             mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$sampleID)]))
     }
-    if(type.data.set1=="METABRIC"){
+    if(train_meta_data_type=="METABRIC"){
         Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
             mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$PATIENT_ID)]))
     }
@@ -1058,10 +1067,10 @@ build_classifier_random<-function(Sponge.modules,
     #Test classification performance on second cohort
     METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[ ,complete.cases(t(METABRIC.RandomModules.OE))]
 
-    if(type.data.set2=="TCGA"){
+    if(test_meta_data_type=="TCGA"){
         Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$sampleID)]
     }
-    if(type.data.set2=="METABRIC"){
+    if(test_meta_data_type=="METABRIC"){
         Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$PATIENT_ID)]
     }
 
@@ -1089,7 +1098,7 @@ build_classifier_random<-function(Sponge.modules,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param trained.model returned from train_and_test_model
+#' @param trained_model returned from train_and_test_model
 #' @param k_modules top k modules to be shown (default: 25)
 #' @param k_modules_red top k modules shown in red - NOTE: must be smaller
 #' than k_modules (default: 10)
@@ -1103,7 +1112,7 @@ build_classifier_random<-function(Sponge.modules,
 #' @export
 #'
 #' @return plot object for lollipop plot
-plot_top_modules <- function(trained.model,
+plot_top_modules <- function(trained_model,
                              k_modules = 25,
                              k_modules_red = 10,
                              text_size = 16,
@@ -1111,6 +1120,7 @@ plot_top_modules <- function(trained.model,
                              bioMart_gene_ensembl = "hsapiens_gene_ensembl") {
 
     SpongingActiivty.model <-trained.model$SpongingActivity.model
+    trained.model<-trained_model
 
     final.model <- SpongingActiivty.model$Model$finalModel
     Variable.importance <- importance(final.model) %>% as.data.frame() %>%
@@ -1174,12 +1184,12 @@ plot_top_modules <- function(trained.model,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param trained.model returned from train_and_test_model
+#' @param trained_model returned from train_and_test_model
 #' @param modules output of enrichment_modules()
 #' @param meta_data metadata of samples
 #' (retrieved from prepare_tcga_for_spongEffects() or
 #' from prepare_metabric_for_spongEffects())
-#' @param data_type TCGA or METABRIC
+#' @param meta_data_type TCGA or METABRIC
 #' @param subtypes array of subtypes
 #' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
 #' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
@@ -1191,14 +1201,16 @@ plot_top_modules <- function(trained.model,
 #' @export
 #'
 #' @return plots density scores for subtypes
-plot_density_scores <- function(trained.model,
+plot_density_scores <- function(trained_model,
                                 modules,
                                 meta_data,
-                                data_type,
+                                meta_data_type,
                                 subtypes,
                                 bioMart_gene_symbol_columns = "hgnc_symbol",
                                 bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
     ##FIGURE 2
+    trained.model<-trained_model
+    data_type<-meta_data_type
 
     title<-paste0("spongEffects - ",data_type," (Training)")
 
@@ -1292,9 +1304,9 @@ plot_density_scores <- function(trained.model,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param trained.model returned from train_and_test_model
-#' @param CentralGenes.model returned from build_classifier_central_genes()
-#' @param random.model returned from train_and_test_model using the randomization
+#' @param trained_model returned from train_and_test_model
+#' @param central_genes_model returned from build_classifier_central_genes()
+#' @param random_model returned from train_and_test_model using the randomization
 #' @param training_dataset_name name of training (e.g., TCGA)
 #' @param testing_dataset_name name of testing set (e.g., METABRIC)
 #' @param subtypes array of subtypes
@@ -1303,12 +1315,16 @@ plot_density_scores <- function(trained.model,
 #' @export
 #'
 #' @return list of plots for (1) accuracy and (2) sensitivity + specificity
-plot_accuracy_sensitivity_specificity <- function(trained.model,
-                                                  CentralGenes.model,
-                                                  Random.model,
+plot_accuracy_sensitivity_specificity <- function(trained_model,
+                                                  central_genes_model,
+                                                  random_model,
                                                   training_dataset_name,
                                                   testing_dataset_name,
                                                   subtypes){
+    trained.model<-trained_model
+    CentralGenes.model<-central_genes_model
+    Random.model<-random_model
+
     training_string<-paste0(training_dataset_name," (Training)")
     testing_string<-paste0(testing_dataset_name," (Testing)")
     set_names<-c(training_string,testing_string)
@@ -1422,15 +1438,17 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param trained.model returned from train_and_test_model
+#' @param trained_model returned from train_and_test_model
 #' @param subtypes_testing_factors subtypes of testing samples as factors
 #' @return plot of the confusion matrix
 #'
 #' @export
 #'
 #' @return returns confusion matrix plots of the trained model
-plot_confusion_matrices <- function(trained.model,
+plot_confusion_matrices <- function(trained_model,
                                     subtypes.testing.factors){
+
+    trained.model<-trained_model
     # Visualize confusion matrices  -------------------------------------------
     # SpongEffect model (Supplementary Confusion Matrices)
 
@@ -1473,11 +1491,11 @@ plot_confusion_matrices <- function(trained.model,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param trained.model returned from train_and_test_model
-#' @param Sponge.modules result of define_modules()
-#' @param enrichment.modules.data.set1 return of enrichment_modules()
-#' @param meta.data meta data
-#' @param type.data.set TCGA or METABRIC
+#' @param trained_model returned from train_and_test_model
+#' @param sponge_modules result of define_modules()
+#' @param enrichment_modules return of enrichment_modules()
+#' @param meta_data meta data
+#' @param meta_data_type TCGA or METABRIC
 #' @param subtypes array of subtypes
 #' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
 #' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
@@ -1494,16 +1512,22 @@ plot_confusion_matrices <- function(trained.model,
 #'
 #' @return
 #' NOT FUNCTIONAL
-plot_heatmaps_training_test<-function(trained.model,
-                                      Sponge.modules,
-                                      enrichment.modules,
-                                      meta.data,
-                                      type.data.set,
+plot_heatmaps_training_test<-function(trained_model,
+                                      sponge_modules,
+                                      enrichment_modules,
+                                      meta_data,
+                                      meta_data_type = "TCGA",
                                       subtypes,
                                       bioMart_gene_symbol_columns = "hgnc_symbol",
                                       bioMart_gene_ensembl = "hsapiens_gene_ensembl",
                                       met_brewer.palette_subtypes = "Austria",
                                       met_brewer.palette_heatmap = "Troy"){
+
+    trained.model<-trained_model
+    Sponge.modules<-sponge_modules
+    enrichment.modules<-enrichment_modules
+    meta.data<-meta_data
+    type.data.set<-meta_data_type
 
     colors_palette <- met.brewer("Austria",n=length(subtypes))
     colors_palette <- as.character(colors_palette)
@@ -1628,9 +1652,9 @@ plot_heatmaps_training_test<-function(trained.model,
 #' @import ggplot2
 #' @import MetBrewer
 #'
-#' @param Sponge.modules result of define_modules()
-#' @param trained.model returned from train_and_test_model
-#' @param dir_miRNAs_significance output of SPONGE or SPONGEdb (RDATA object)
+#' @param sponge_modules result of define_modules()
+#' @param trained_model returned from train_and_test_model
+#' @param gene_mirna_candidates output of SPONGE or SPONGEdb (miRNAs_significance)
 #' @param k_modules top k modules to be shown (default: 25)
 #' @param filter_miRNAs min rowsum to be reach of miRNAs (default: 3.0)
 #' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
@@ -1642,15 +1666,18 @@ plot_heatmaps_training_test<-function(trained.model,
 #' @export
 #'
 #' @return plot object
-plot_involved_miRNAs_to_modules<-function(Sponge.modules,
-                                          trained.model,
-                                          dir_miRNAs_significance,
+plot_involved_miRNAs_to_modules<-function(sponge_modules,
+                                          trained_model,
+                                          gene_mirna_candidates,
                                           k_modules = 25,
                                           filter_miRNAs = 3.0,
                                           bioMart_gene_symbol_columns = "hgnc_symbol",
                                           bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
 
-    load(dir_miRNAs_significance)
+    Sponge.modules<-sponge_modules
+    trained.model<-trained_model
+    dir_miRNAs_significance<-gene_mirna_candidates
+
     miRNAs_significance.downstream<-miRNAs_significance
     miRNAs_significance.downstream.Target<-miRNAs_significance
 
