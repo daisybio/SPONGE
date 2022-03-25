@@ -829,11 +829,10 @@ train_and_test_model <- function(train_modules,
                                  n_folds = 10,
                                  repetitions = 3){
 
-    Modules_training <- train_modules
-    Modules_testing <-test_modules
+    BRCA.Modules.OE <- train_modules
+    METABRIC.Modules.OE <-test_modules
     TCGA.meta.tumor = train_modules_metadata
     METABRIC.meta = test_modules_metadata
-
     Metric <- metric
 
     #Find common modules

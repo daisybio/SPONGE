@@ -19,7 +19,7 @@ library(doParallel)
 library(foreach)
 
 #if you want to use parallelization, you can register your backend here
-num.of.cores <- 25 #many more on a compute cluster
+num.of.cores <- 4 #many more on a compute cluster
 cl <- makeCluster(num.of.cores) 
 registerDoParallel(cl)
 ```
