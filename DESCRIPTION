@@ -45,6 +45,7 @@ Imports:
     ComplexHeatmap,
     ggplot2,
     MetBrewer,
+    rlang
 VignetteBuilder: knitr
 biocViews: GeneExpression,
     Transcription,
