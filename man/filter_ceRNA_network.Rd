@@ -22,9 +22,9 @@ from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE
 (List et al., 2019) usually ends with _networkAnalysis
 if network_analysis is NA then the function only filters the ceRNA network}
 
-\item{mscor.threshold}{mscor threshold to be filtered (default: 0.1)}
+\item{mscor.threshold}{mscor threshold to be filtered (default: NA)}
 
-\item{padj.threshold}{adjusted p-value to be filtered (default: 0.01)}
+\item{padj.threshold}{adjusted p-value to be filtered (default: NA)}
 }
 \value{
 list of filtered ceRNA network and network centrailies. You can

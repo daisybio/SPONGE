@@ -137,7 +137,7 @@ We now want to filter the network to only use significant ceRNA interactions
 filtered_network_centralities=filter_ceRNA_network(sponge_effects = spongEffects_ceRNA_interactions_sign, network_analysis = spongEffects_network_centralities, mscor.threshold = 0.01, padj.threshold = 0.1)
 ```
 
-## (D) Discover lncRNA modules
+## (D) Discover modules
 
 We now want to discover spongEffects modules, here you can choose, if you want lncRNAs, circRNAs, protein_coding or a combination of those classes to be the central of a module.
 ```{r, warning=FALSE, message=FALSE}

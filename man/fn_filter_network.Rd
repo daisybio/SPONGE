@@ -11,9 +11,7 @@
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param x input to calculate z score on
@@ -47,9 +45,7 @@ filtered ceRNA network
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param x input to calculate z score on

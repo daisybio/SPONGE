@@ -7,9 +7,7 @@
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param ceRNA_expression_data ceRNA expression data (same structure as input
@@ -72,9 +70,7 @@ fn_convert_gene_names <- function(ceRNA_expression_data,
 #' #' @import biomaRt
 #' #' @import randomForest
 #' #' @import ggridges
-#' #' @import MetBrewer
 #' #' @import cvms
-#' #' @import ComplexHeatmap
 #' #' @import miRBaseConverter
 #' #'
 #' #' @param x input to calculate z score on
@@ -108,9 +104,7 @@ fn_filter_network <- function(network,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param CentralityMeasures dataframe with centrality score measures as columns
@@ -150,9 +144,7 @@ fn_combined_centrality <- function(CentralityMeasures) {
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param network Network formatted as a dataframe with three columns containing
@@ -201,9 +193,7 @@ fn_weighted_degree <- function(network,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param network Network as dataframe and list of central nodes. First two
@@ -279,9 +269,7 @@ define_modules <- function(network,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param v gene distance (defined by mother function OE module function)
@@ -308,9 +296,7 @@ fn_discretize_spongeffects<-function(v,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param NormCount normalized counts
@@ -369,9 +355,7 @@ fn_OE_module <- function(NormCount,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param r expression matrix
@@ -422,9 +406,7 @@ fn_get_semi_random_OE <- function(r,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param Expr.matrix ceRNA expression matrix
@@ -504,9 +486,7 @@ fn_exact_match_summary <- function (data,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param Input.object data.frame made by predictors and dependent variable
@@ -561,9 +541,7 @@ fn_RF_classifier <- function(Input.object,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param tcga_cancer_symbol e.g., BRCA for breast cancer
@@ -641,9 +619,7 @@ prepare_tcga_for_spongEffects <- function(tcga_cancer_symbol,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param metabric_expression filepath to expression data in metabric format
@@ -696,9 +672,7 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param sponge_effects the ceRNA network downloaded as R object from SPONGEdb
@@ -758,9 +732,7 @@ filter_ceRNA_network <- function(sponge_effects,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
@@ -826,9 +798,7 @@ get_central_modules <- function(bioMart_gene_ensembl,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param Modules_training return from enrichment_modules() function
@@ -911,9 +881,7 @@ train_and_test_model <- function(Modules_training,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param expression_data_set1 expression data of dataset 1,
@@ -1003,9 +971,7 @@ build_classifier_central_genes<-function(expression.data.set1,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param Sponge.modules result of define_modules()
@@ -1115,9 +1081,7 @@ build_classifier_random<-function(Sponge.modules,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param trained.model returned from train_and_test_model
@@ -1199,9 +1163,7 @@ plot_top_modules <- function(trained.model,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param trained.model returned from train_and_test_model
@@ -1316,9 +1278,7 @@ plot_density_scores <- function(trained.model,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param trained.model returned from train_and_test_model
@@ -1445,9 +1405,7 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param trained.model returned from train_and_test_model
@@ -1495,9 +1453,7 @@ plot_confusion_matrices <- function(trained.model,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param trained.model returned from train_and_test_model
@@ -1649,9 +1605,7 @@ plot_heatmaps_training_test<-function(trained.model,
 #' @import biomaRt
 #' @import randomForest
 #' @import ggridges
-#' @import MetBrewer
 #' @import cvms
-#' @import ComplexHeatmap
 #' @import miRBaseConverter
 #'
 #' @param Sponge.modules result of define_modules()

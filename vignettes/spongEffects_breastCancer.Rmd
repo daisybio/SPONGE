@@ -58,7 +58,7 @@ filtered_network_centralities=filter_ceRNA_network(sponge_effects = sponge_effec
 ## (E) discover lncRNA modules
 ```{r, warning=FALSE, message=FALSE}
 
-lncRNA_modules<-get_lncRNA_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl", weighted_node_centrality = filtered_network_centralities$Node.Centrality, cutoff = 750)
+lncRNA_modules<-get_central_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl", weighted_node_centrality = filtered_network_centralities$Node.Centrality, cutoff = 750)
 
 ```
 
