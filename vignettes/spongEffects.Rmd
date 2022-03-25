@@ -22,23 +22,6 @@ library(foreach)
 num.of.cores <- 25 #many more on a compute cluster
 cl <- makeCluster(num.of.cores) 
 registerDoParallel(cl)
-
-#will be deleted after testing
-library(biomaRt)
-library(dplyr)
-source("/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/R/fn_spongeffects_utility.R")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_cancer_gene_expr.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_cancer_mir_expr.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_cancer_metadata.RDATA")
-
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/test_cancer_gene_expr.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/test_cancer_mir_expr.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/test_cancer_metadata.RDATA")
-
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/spongEffects_targets.RDATA")
-
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_ceRNA_interactions.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_network_centralities.RDATA")
 ```
 
 ## (B) Formats of input data necessary for spongEffect
