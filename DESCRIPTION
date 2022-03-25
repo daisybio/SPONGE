@@ -20,9 +20,6 @@ Suggests:
     digest,
     doParallel,
     bigmemory,
-    ComplexHeatmap,
-    ggplot2,
-    MetBrewer,
 Imports:
     Biobase,
     stats,
@@ -45,6 +42,9 @@ Imports:
     ggridges,
     cvms,
     miRBaseConverter,
+    ComplexHeatmap,
+    ggplot2,
+    MetBrewer,
 VignetteBuilder: knitr
 biocViews: GeneExpression,
     Transcription,

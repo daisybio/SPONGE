@@ -1085,6 +1085,9 @@ build_classifier_random<-function(Sponge.modules,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param trained.model returned from train_and_test_model
 #' @param k_modules top k modules to be shown (default: 25)
@@ -1167,6 +1170,9 @@ plot_top_modules <- function(trained.model,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param trained.model returned from train_and_test_model
 #' @param modules output of enrichment_modules()
@@ -1282,6 +1288,9 @@ plot_density_scores <- function(trained.model,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param trained.model returned from train_and_test_model
 #' @param CentralGenes.model returned from build_classifier_central_genes()
@@ -1409,6 +1418,9 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param trained.model returned from train_and_test_model
 #' @param subtypes_testing_factors subtypes of testing samples as factors
@@ -1457,6 +1469,9 @@ plot_confusion_matrices <- function(trained.model,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param trained.model returned from train_and_test_model
 #' @param Sponge.modules result of define_modules()
@@ -1609,6 +1624,9 @@ plot_heatmaps_training_test<-function(trained.model,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import ComplexHeatmap
+#' @import ggplot2
+#' @import MetBrewer
 #'
 #' @param Sponge.modules result of define_modules()
 #' @param trained.model returned from train_and_test_model

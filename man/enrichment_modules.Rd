@@ -10,6 +10,7 @@ enrichment_modules(
   bin.size = 100,
   min.size = 10,
   max.size = 200,
+  min.expr = 10,
   method = "OE"
 )
 }
@@ -23,6 +24,8 @@ enrichment_modules(
 \item{min.size}{minimum module size (default: 10)}
 
 \item{max.size}{maximum module size (default: 200)}
+
+\item{min.expr}{minimum expression (default: 10)}
 
 \item{method}{Enrichment to be used (Overall Enrichment: OE or Gene Set
 Variation Analysis: GSVA) (default: OE)}
