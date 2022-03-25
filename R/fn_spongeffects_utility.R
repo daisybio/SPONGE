@@ -414,6 +414,7 @@ fn_get_semi_random_OE <- function(r,
 #' @param bin.size bin size (default: 100)
 #' @param min.size minimum module size (default: 10)
 #' @param max.size maximum module size (default: 200)
+#' @param min.expr minimum expression (default: 10)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
 #'
@@ -425,6 +426,7 @@ enrichment_modules <- function(Expr.matrix,
                                bin.size = 100,
                                min.size = 10,
                                max.size = 200,
+                               min.expr = 10,
                                method = "OE") {
 
   print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
@@ -436,7 +438,7 @@ enrichment_modules <- function(Expr.matrix,
       results <- list()
 
       if(length(modules[[Module]]) > min.size & length(modules[[Module]]) < max.size) {
-        if (sum((modules[[Module]] %in% rownames(Expr.matrix)), na.rm = TRUE) > 10) {
+        if (sum((modules[[Module]] %in% rownames(Expr.matrix)), na.rm = TRUE) > min.expr) {
           Enrichment.module <- round(fn_OE_module(Expr.matrix,modules[[Module]],bin.size),2)
           colnames(Enrichment.module) <- names(modules)[Module]
           return(Enrichment.module)

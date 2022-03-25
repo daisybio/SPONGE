@@ -164,7 +164,7 @@ Size.modules <- sapply(Sponge.modules, length)
 #Either method="OE" (OverallEnrichment) or method="GSVA" (Gene Set Variation Analysis)
 #We used OE in our Boniolo and Hoffmann et al., 2022
 
-train.modules <- enrichment_modules(Expr.matrix = train_cancer_gene_expr, modules = Sponge.modules, bin.size = 10, min.size = 0, max.size = 2000, method = "OE")
+train.modules <- enrichment_modules(Expr.matrix = train_cancer_gene_expr, modules = Sponge.modules, bin.size = 10, min.size = 1, max.size = 2000, min.expr = 1, method = "OE")
 
 ```
 ### Test:

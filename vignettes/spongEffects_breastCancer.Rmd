@@ -81,7 +81,7 @@ Size.modules <- sapply(Sponge.modules, length)
 
 #sponge_effects<-NULL
 
-BRCA.Modules.OE <- enrichment_modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+BRCA.Modules.OE <- enrichment_modules(Expr.matrix = prep_list_tcga_spongEffects$TCGA.expr.tumor, modules = Sponge.modules, bin.size = 100, min.size = 10, max.size = 200,min.expr = 10, method = "OE")
 
 ```
 
