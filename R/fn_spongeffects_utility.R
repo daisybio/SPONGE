@@ -1074,7 +1074,7 @@ build_classifier_random<-function(Sponge.modules,
 }
 
 
-#' plots the top x gini index modules (see Boniolo 2022 et al. Figure 5)
+#' plots the top x gini index modules (see Boniolo and Hoffmann 2022 et al. Figure 5)
 #'
 #' @import tidyverse
 #' @import caret
@@ -1159,7 +1159,7 @@ plot_top_modules <- function(trained.model,
 
 }
 
-#' plots the density of the model scores for subtypes (see Boniolo 2022 et al. Fig. 2)
+#' plots the density of the model scores for subtypes (see Boniolo and Hoffmann 2022 et al. Fig. 2)
 #'
 #' @import tidyverse
 #' @import caret
@@ -1277,7 +1277,7 @@ plot_density_scores <- function(trained.model,
 
 }
 #' list of plots for (1) accuracy and (2) sensitivity + specificity
-#' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+#' (see Boniolo and Hoffmann 2022 et al. Fig. 3a and Fig. 3b)
 #'
 #' @import tidyverse
 #' @import caret
@@ -1407,7 +1407,7 @@ plot_accuracy_sensitivity_specificity <- function(trained.model,
 }
 
 #' plots the confusion matrix from spongEffects train_and_test()
-#' (see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+#' (see Boniolo and Hoffmann 2022 et al. Fig. 3a and Fig. 3b)
 #'
 #' @import tidyverse
 #' @import caret
@@ -1458,7 +1458,7 @@ plot_confusion_matrices <- function(trained.model,
 }
 
 #' plots the heatmaps from training_and_test_model
-#' (see Boniolo 2022 et al. Fig. 6)
+#' (see Boniolo and Hoffmann 2022 et al. Fig. 6)
 #'
 #' @import tidyverse
 #' @import caret
@@ -1613,7 +1613,7 @@ plot_heatmaps_training_test<-function(trained.model,
 }
 
 #' plots the heatmap of miRNAs invovled in the interactions of the modules
-#' (see Boniolo 2022 et al. Fig. 7a)
+#' (see Boniolo and Hoffmann 2022 et al. Fig. 7a)
 #'
 #' @import tidyverse
 #' @import caret
