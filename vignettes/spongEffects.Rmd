@@ -37,8 +37,8 @@ load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/test_cancer_meta
 
 load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/spongEffects_targets.RDATA")
 
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/spongEffects_ceRNA_interactions_sign.RDATA")
-load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/spongEffects_network_centralities.RDATA")
+load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_ceRNA_interactions.RDATA")
+load(file="/nfs/data/TCGA_TGCT/spongEffects_package/SPONGE/data/train_network_centralities.RDATA")
 ```
 
 ## (B) Formats of input data necessary for spongEffect
@@ -85,11 +85,11 @@ knitr::kable(test_cancer_mir_expr[1:5,1:8])
 
 ### ceRNA network
 ```{r, eval=FALSE}
-head(ceRNA_interactions)
+head(train_ceRNA_interactions)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-knitr::kable(spongEffects_ceRNA_interactions_sign[1:5,1:8])
+knitr::kable(train_ceRNA_interactions[1:5,1:8])
 ```
 
 ### gene-miRNA-targets
@@ -103,11 +103,11 @@ knitr::kable(spongEffects_targets[1:5,1:8])
 
 ### centrality measures (of the ceRNA network)
 ```{r, eval=FALSE}
-head(spongEffects_network_centralities)
+head(train_network_centralities)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-knitr::kable(spongEffects_network_centralities[1:5,1:5])
+knitr::kable(train_network_centralities[1:5,1:5])
 ```
 
 ### specification of meta data (e.g., subtypes of a cancer, column name of the subtypes is important) (format name = TCGA)
@@ -134,7 +134,7 @@ knitr::kable(test_cancer_metadata[1:5,1:8])
 We now want to filter the network to only use significant ceRNA interactions
 
 ```{r message=FALSE, warning=FALSE}
-filtered_network_centralities=filter_ceRNA_network(sponge_effects = spongEffects_ceRNA_interactions_sign, network_analysis = spongEffects_network_centralities, mscor.threshold = 0.01, padj.threshold = 0.1)
+filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_interactions, network_analysis = train_network_centralities, mscor.threshold = 0.01, padj.threshold = 0.1)
 ```
 
 ## (D) Discover modules

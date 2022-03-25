@@ -60,3 +60,35 @@
 #' @format A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
 #' is predicted, 0 otherwise
 "targetscan_ensg"
+
+#' example training expression data for spongEffects
+#' @format a matrix with gene expression data
+"train_cancer_gene_expr"
+
+#' example training miRNA data for spongEffects
+#' @format a matrix with miRNA expression data
+"train_cancer_mir_expr"
+
+#' example training sample meta data for spongEffects
+#' @format a data frame with sample meta data, SUBTYPE must be inside your dataframe
+"train_cancer_metadata"
+
+#' example test expression data for spongEffects
+#' @format a matrix with gene expression data
+"test_cancer_gene_expr"
+
+#' example test miRNA data for spongEffects
+#' @format a matrix with miRNA expression data
+"test_cancer_mir_expr"
+
+#' example test sample meta data for spongEffects
+#' @format a data frame with sample meta data, SUBTYPE must be inside your dataframe
+"test_cancer_metadata"
+
+#' example train ceRNA interactions for spongEffects
+#' @format (obtained by SPONGE method)
+"train_ceRNA_interactions"
+
+#' example train network centralities for spongEffects
+#' @format (obtained by SPONGE method)
+"train_network_centralities"
