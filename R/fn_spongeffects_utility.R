@@ -1624,8 +1624,8 @@ plot_heatmaps_training_test<-function(trained_model,
                                            # Her_SNP = METABRIC.meta.p$HER2_SNP6,
                                            col = list(Subtype = Colours.subtypes))
 
-        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:25], rownames(METABRIC.Modules.OE)), ]
-        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:25]
+        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:length(Variable.importance$Module)], rownames(METABRIC.Modules.OE)), ]
+        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:length(Variable.importance$Module)]
 
         # Plot
         Heatmap.METABRIC.p <- Heatmap.METABRIC %>%

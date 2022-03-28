@@ -172,7 +172,7 @@ random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene
 
 ## (K) Plot top k modules
 ```{r, warning=FALSE, message=FALSE}
-lollipop_plot=plot_top_modules(trained_model=trained.model)
+lollipop_plot=plot_top_modules(trained_model=trained.model, k_modules_red = 2, k_modules = 4)
 ```
 
 
