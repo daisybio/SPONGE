@@ -167,7 +167,7 @@ central.genes.model = build_classifier_central_genes(train_gene_expr = train_can
 
 ## (J) 3. Randomly train and test
 ```{r, warning=FALSE, message=FALSE}
-random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repetitions = 1, bin.size = 10, min.size = 1, max.size = 10, method = "OE", min.expression =  1)
+random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repetitions = 1, bin.size = 10, min.size = 1, max.size = 2000, method = "OE", min.expression =  1)
 ```
 
 ## (K) Plot top k modules
