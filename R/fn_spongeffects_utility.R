@@ -409,6 +409,7 @@ fn_get_semi_random_OE <- function(r,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import rlang
 #'
 #' @param Expr.matrix ceRNA expression matrix
 #' @param modules Result of define_modules()
@@ -1023,6 +1024,7 @@ build_classifier_random<-function(sponge_modules,
                                   bin.size = 100,
                                   max.size = 200,
                                   min.expression=10,
+                                  replace = F,
                                   method = "OE"){
 
     Sponge.modules<- sponge_modules
@@ -1042,7 +1044,7 @@ build_classifier_random<-function(sponge_modules,
 
     for(j in 1:length(Size.modules)) {
         Module.Elements <-  sample.int(n = nrow(TCGA.expr.tumor), size = Size.modules[j],
-                                       replace = F)
+                                       replace = replace)
         # print(Module.Elements)
         Random.Modules[[j]] <- rownames(TCGA.expr.tumor)[Module.Elements]
     }
