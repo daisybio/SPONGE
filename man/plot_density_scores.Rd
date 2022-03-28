@@ -8,7 +8,7 @@ plot_density_scores(
   trained_model,
   modules,
   meta_data,
-  meta_data_type,
+  meta_data_type = "TCGA",
   subtypes,
   bioMart_gene_symbol_columns = "hgnc_symbol",
   bioMart_gene_ensembl = "hsapiens_gene_ensembl"

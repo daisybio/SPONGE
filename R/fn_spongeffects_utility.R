@@ -1196,6 +1196,7 @@ plot_top_modules <- function(trained_model,
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
+#' @import tidyr
 #'
 #' @param trained_model returned from train_and_test_model
 #' @param modules output of enrichment_modules()
@@ -1217,7 +1218,7 @@ plot_top_modules <- function(trained_model,
 plot_density_scores <- function(trained_model,
                                 modules,
                                 meta_data,
-                                meta_data_type,
+                                meta_data_type="TCGA",
                                 subtypes,
                                 bioMart_gene_symbol_columns = "hgnc_symbol",
                                 bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
@@ -1689,7 +1690,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
 
     Sponge.modules<-sponge_modules
     trained.model<-trained_model
-    dir_miRNAs_significance<-gene_mirna_candidates
+    miRNAs_significance<-gene_mirna_candidates
 
     miRNAs_significance.downstream<-miRNAs_significance
     miRNAs_significance.downstream.Target<-miRNAs_significance

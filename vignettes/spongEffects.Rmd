@@ -178,8 +178,8 @@ lollipop_plot=plot_top_modules(trained_model=trained.model)
 
 ## (L) Density of module scores
 ```{r, warning=FALSE, message=FALSE}
-density_plot_TCGA=plot_density_scores(trained_model=trained.model,modules = BRCA.Modules.OE,meta_data =prep_list_tcga_spongEffects$TCGA.meta.tumor,meta_data_type="TCGA",subtypes = tcga_subtypes)
-density_plot_METABRIC=plot_density_scores(trained_model=trained.model,modules = METABRIC.Modules.OE, meta_data = prep_list_METABRIC_spongEffects$METABRIC.meta,meta_data_type = "METABRIC",subtypes = tcga_subtypes)
+density_plot_train=plot_density_scores(trained_model=trained.model,modules = train.modules,meta_data =train_cancer_metadata,subtypes = unique(train_cancer_metadata$SUBTYPE))
+density_plot_test=plot_density_scores(trained_model=trained.model,modules = test.modules, meta_data = test_cancer_metadata,subtypes = unique(test_cancer_metadata$SUBTYPE))
 ```
 
 ## (M) plot accuracy, sensitiviy, and specificity
@@ -190,11 +190,8 @@ metric_plot_list<-plot_accuracy_sensitivity_specificity(trained_model = trained.
 
 ## (N) plot confusion matrices
 ```{r, warning=FALSE, message=FALSE}
-
-subtypes.testing.factors <-prep_list_METABRIC_spongEffects$METABRIC.meta$CLAUDIN_SUBTYPE[complete.cases(t(METABRIC.Modules.OE))]
-
-conf_matrix_trained<-plot_confusion_matrices(trained_model = trained.model, subtypes.testing.factors = subtypes.testing.factors)
-conf_matrix_random<-plot_confusion_matrices(trained_model = random.model,subtypes.testing.factors = subtypes.testing.factors)
+conf_matrix_trained<-plot_confusion_matrices(trained_model = trained.model, subtypes.testing.factors = as.factor(test_cancer_metadata$SUBTYPE))
+conf_matrix_random<-plot_confusion_matrices(trained_model = random.model,subtypes.testing.factors = as.factor(test_cancer_metadata$SUBTYPE))
 ```
 
 ## (O) plot module heatmaps

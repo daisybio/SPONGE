@@ -15,7 +15,12 @@ build_classifier_random(
   metric = "Exact_match",
   tunegrid_c = c(1:100),
   n.folds = 10,
-  repetitions = 3
+  repetitions = 3,
+  min.size = 10,
+  bin.size = 100,
+  max.size = 200,
+  min.expression = 10,
+  method = "OE"
 )
 }
 \arguments{
@@ -43,6 +48,17 @@ cross validation (caret package) (default: 1:100)}
 \item{n.folds}{number of folds to be calculated}
 
 \item{repetitions}{number of k-fold cv iterations (default: 3)}
+
+\item{min.size}{minimum module size (default: 10)}
+
+\item{bin.size}{bin size (default: 100)}
+
+\item{max.size}{maximum module size (default: 200)}
+
+\item{method}{Enrichment to be used (Overall Enrichment: OE or Gene Set
+Variation Analysis: GSVA) (default: OE)}
+
+\item{min.expr}{minimum expression (default: 10)}
 }
 \value{
 randomized prediction model
