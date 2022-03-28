@@ -870,6 +870,7 @@ train_and_test_model <- function(train_modules,
 
     Input.Metabric <- t(METABRIC.Modules.OE) %>% scale(center = T, scale = T)
     Prediction.model <- predict(SpongingActivity.model$Model, Input.Metabric)
+    Meta.metabric<-as.factor(Meta.metabric)
     SpongingActivity.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.model), Meta.metabric)
 
     prediction_model<-list(SpongingActivity.model,Prediction.model)
