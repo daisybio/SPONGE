@@ -386,9 +386,38 @@ fn_get_semi_random_OE <- function(r,
       }
     }
   }
-  rand.scores<-apply(B,2,function(x) colMeans(r[x,]))
 
-  rand.scores<-rowMeans(rand.scores)
+  rand.scores<-tryCatch({
+      rand.scores<-apply(B,2,function(x) colMeans(r[x,]))
+      return(rand.scores)
+  }, warning = function(w) {
+      print("WARNING SECTION")
+      return(rand.scores)
+  }, error = function(e) {
+      print("ERROR SECTION")
+      return(rand.scores)
+  }, finally = {
+  })
+
+
+  rand.scores2<-tryCatch({
+      rand.scores<-rowMeans(rand.scores)
+      return(rand.scores)
+  }, warning = function(w) {
+      print("WARNING SECTION")
+      return(rand.scores)
+  }, error = function(e) {
+      print("ERROR SECTION")
+      return(rand.scores)
+  }, finally = {
+  })
+
+  if(is.null(rand.scores2) | is.na(rand.scores2)){
+      return(rand.scores)
+  }
+  else{
+      return(rand.scores2)
+  }
   return(rand.scores)
 }
 
