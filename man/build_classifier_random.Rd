@@ -20,6 +20,7 @@ build_classifier_random(
   bin.size = 100,
   max.size = 200,
   min.expression = 10,
+  replace = F,
   method = "OE"
 )
 }
@@ -54,6 +55,9 @@ cross validation (caret package) (default: 1:100)}
 \item{bin.size}{bin size (default: 100)}
 
 \item{max.size}{maximum module size (default: 200)}
+
+\item{replace}{Possibility of keeping or removing (default) central
+genes in the modules (default: T)}
 
 \item{method}{Enrichment to be used (Overall Enrichment: OE or Gene Set
 Variation Analysis: GSVA) (default: OE)}
