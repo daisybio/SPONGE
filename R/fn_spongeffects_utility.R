@@ -927,7 +927,7 @@ build_classifier_central_genes<-function(train_gene_expr,
     METABRIC.expr<-test_gene_expr
     BRCA.Modules.OE<-train_enrichment_modules
     TCGA.meta.tumor<-train_meta_data
-    METABRIC.meta<-test_meta_data_type
+    METABRIC.meta<-test_meta_data
     Metric<-metric
 
     tunegrid<-expand.grid(.mtry=tunegrid_c)
