@@ -3,14 +3,14 @@
 \name{plot_heatmaps_training_test}
 \alias{plot_heatmaps_training_test}
 \title{plots the heatmaps from training_and_test_model
-(see Boniolo 2022 et al. Fig. 6)}
+(see Boniolo and Hoffmann 2022 et al. Fig. 6)}
 \usage{
 plot_heatmaps_training_test(
-  trained.model,
-  Sponge.modules,
-  enrichment.modules,
-  meta.data,
-  type.data.set,
+  trained_model,
+  sponge_modules,
+  enrichment_modules,
+  meta_data,
+  meta_data_type = "TCGA",
   subtypes,
   bioMart_gene_symbol_columns = "hgnc_symbol",
   bioMart_gene_ensembl = "hsapiens_gene_ensembl",
@@ -19,13 +19,15 @@ plot_heatmaps_training_test(
 )
 }
 \arguments{
-\item{trained.model}{returned from train_and_test_model}
+\item{trained_model}{returned from train_and_test_model}
 
-\item{Sponge.modules}{result of define_modules()}
+\item{sponge_modules}{result of define_modules()}
 
-\item{meta.data}{meta data}
+\item{enrichment_modules}{return of enrichment_modules()}
 
-\item{type.data.set}{TCGA or METABRIC}
+\item{meta_data}{meta data}
+
+\item{meta_data_type}{TCGA or METABRIC}
 
 \item{subtypes}{array of subtypes
 (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))}
@@ -42,13 +44,11 @@ used for the subtypes (default: "Austria")}
 
 \item{met_brewer.palette_heatmap}{which  met brewer colour palette should be
 used for the heatmap (default "Troy")}
-
-\item{enrichment.modules.data.set1}{return of enrichment_modules()}
 }
 \value{
 NOT FUNCTIONAL
 }
 \description{
 plots the heatmaps from training_and_test_model
-(see Boniolo 2022 et al. Fig. 6)
+(see Boniolo and Hoffmann 2022 et al. Fig. 6)
 }

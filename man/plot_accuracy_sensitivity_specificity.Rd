@@ -3,21 +3,23 @@
 \name{plot_accuracy_sensitivity_specificity}
 \alias{plot_accuracy_sensitivity_specificity}
 \title{list of plots for (1) accuracy and (2) sensitivity + specificity
-(see Boniolo 2022 et al. Fig. 3a and Fig. 3b)}
+(see Boniolo and Hoffmann 2022 et al. Fig. 3a and Fig. 3b)}
 \usage{
 plot_accuracy_sensitivity_specificity(
-  trained.model,
-  CentralGenes.model,
-  Random.model,
+  trained_model,
+  central_genes_model,
+  random_model,
   training_dataset_name,
   testing_dataset_name,
   subtypes
 )
 }
 \arguments{
-\item{trained.model}{returned from train_and_test_model}
+\item{trained_model}{returned from train_and_test_model}
 
-\item{CentralGenes.model}{returned from build_classifier_central_genes()}
+\item{central_genes_model}{returned from build_classifier_central_genes()}
+
+\item{random_model}{returned from train_and_test_model using the randomization}
 
 \item{training_dataset_name}{name of training (e.g., TCGA)}
 
@@ -25,13 +27,11 @@ plot_accuracy_sensitivity_specificity(
 
 \item{subtypes}{array of subtypes
 (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))}
-
-\item{random.model}{returned from train_and_test_model using the randomization}
 }
 \value{
 list of plots for (1) accuracy and (2) sensitivity + specificity
 }
 \description{
 list of plots for (1) accuracy and (2) sensitivity + specificity
-(see Boniolo 2022 et al. Fig. 3a and Fig. 3b)
+(see Boniolo and Hoffmann 2022 et al. Fig. 3a and Fig. 3b)
 }

@@ -5,31 +5,37 @@
 \title{build random classifiers}
 \usage{
 build_classifier_random(
-  Sponge.modules,
-  expression.data.set1,
-  expression.data.set2,
-  meta.data.set1,
-  meta.data.set2,
-  type.data.set1,
-  type.data.set2,
-  Metric = "Exact_match",
+  sponge_modules,
+  train_gene_expr,
+  test_gene_expr,
+  train_meta_data,
+  test_meta_data,
+  train_meta_data_type = "TCGA",
+  test_meta_data_type = "TCGA",
+  metric = "Exact_match",
   tunegrid_c = c(1:100),
   n.folds = 10,
   repetitions = 3
 )
 }
 \arguments{
-\item{Sponge.modules}{result of define_modules()}
+\item{sponge_modules}{result of define_modules()}
 
-\item{meta.data.set1}{meta data of data set 1}
+\item{train_gene_expr}{expression data of train dataset,
+genenames must be in rownames}
 
-\item{meta.data.set2}{meta data of data set 2}
+\item{test_gene_expr}{expression data of test dataset,
+genenames must be in rownames}
 
-\item{type.data.set1}{TCGA or METABRIC}
+\item{train_meta_data}{meta data of train dataset}
 
-\item{type.data.set2}{TCGA or METABRIC}
+\item{test_meta_data}{meta data of test dataset}
 
-\item{Metric}{metric (Exact_match, Accuracy) (default: Exact_match)}
+\item{train_meta_data_type}{TCGA or METABRIC}
+
+\item{test_meta_data_type}{TCGA or METABRIC}
+
+\item{metric}{metric (Exact_match, Accuracy) (default: Exact_match)}
 
 \item{tunegrid_c}{defines the grid for the hyperparameter optimization during
 cross validation (caret package) (default: 1:100)}
@@ -37,12 +43,6 @@ cross validation (caret package) (default: 1:100)}
 \item{n.folds}{number of folds to be calculated}
 
 \item{repetitions}{number of k-fold cv iterations (default: 3)}
-
-\item{expression_data_set1}{expression data of dataset 1,
-genenames must be in rownames}
-
-\item{expression_data_set2}{expression data of dataset 2,
-genenames must be in rownames}
 }
 \value{
 randomized prediction model

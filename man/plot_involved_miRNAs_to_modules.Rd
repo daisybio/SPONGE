@@ -3,12 +3,12 @@
 \name{plot_involved_miRNAs_to_modules}
 \alias{plot_involved_miRNAs_to_modules}
 \title{plots the heatmap of miRNAs invovled in the interactions of the modules
-(see Boniolo 2022 et al. Fig. 7a)}
+(see Boniolo and Hoffmann 2022 et al. Fig. 7a)}
 \usage{
 plot_involved_miRNAs_to_modules(
-  Sponge.modules,
-  trained.model,
-  dir_miRNAs_significance,
+  sponge_modules,
+  trained_model,
+  gene_mirna_candidates,
   k_modules = 25,
   filter_miRNAs = 3,
   bioMart_gene_symbol_columns = "hgnc_symbol",
@@ -16,11 +16,11 @@ plot_involved_miRNAs_to_modules(
 )
 }
 \arguments{
-\item{Sponge.modules}{result of define_modules()}
+\item{sponge_modules}{result of define_modules()}
 
-\item{trained.model}{returned from train_and_test_model}
+\item{trained_model}{returned from train_and_test_model}
 
-\item{dir_miRNAs_significance}{output of SPONGE or SPONGEdb (RDATA object)}
+\item{gene_mirna_candidates}{output of SPONGE or SPONGEdb (miRNAs_significance)}
 
 \item{k_modules}{top k modules to be shown (default: 25)}
 
@@ -38,5 +38,5 @@ plot object
 }
 \description{
 plots the heatmap of miRNAs invovled in the interactions of the modules
-(see Boniolo 2022 et al. Fig. 7a)
+(see Boniolo and Hoffmann 2022 et al. Fig. 7a)
 }

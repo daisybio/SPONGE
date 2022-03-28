@@ -2,20 +2,20 @@
 % Please edit documentation in R/fn_spongeffects_utility.R
 \name{plot_density_scores}
 \alias{plot_density_scores}
-\title{plots the density of the model scores for subtypes (see Boniolo 2022 et al. Fig. 2)}
+\title{plots the density of the model scores for subtypes (see Boniolo and Hoffmann 2022 et al. Fig. 2)}
 \usage{
 plot_density_scores(
-  trained.model,
+  trained_model,
   modules,
   meta_data,
-  data_type,
+  meta_data_type,
   subtypes,
   bioMart_gene_symbol_columns = "hgnc_symbol",
   bioMart_gene_ensembl = "hsapiens_gene_ensembl"
 )
 }
 \arguments{
-\item{trained.model}{returned from train_and_test_model}
+\item{trained_model}{returned from train_and_test_model}
 
 \item{modules}{output of enrichment_modules()}
 
@@ -23,7 +23,7 @@ plot_density_scores(
 (retrieved from prepare_tcga_for_spongEffects() or
 from prepare_metabric_for_spongEffects())}
 
-\item{data_type}{TCGA or METABRIC}
+\item{meta_data_type}{TCGA or METABRIC}
 
 \item{subtypes}{array of subtypes
 (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))}
@@ -39,5 +39,5 @@ from prepare_metabric_for_spongEffects())}
 plots density scores for subtypes
 }
 \description{
-plots the density of the model scores for subtypes (see Boniolo 2022 et al. Fig. 2)
+plots the density of the model scores for subtypes (see Boniolo and Hoffmann 2022 et al. Fig. 2)
 }

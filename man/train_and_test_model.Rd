@@ -6,29 +6,29 @@
 (e.g., TCGA-BRCA and METABRIC)}
 \usage{
 train_and_test_model(
-  Modules_training,
-  Modules_training.metadata,
-  Modules_testing,
-  Modules_testing.metadata,
-  Modules_testing.metadata.type,
-  Metric = "Exact_match",
+  train_modules,
+  train_modules_metadata,
+  test_modules,
+  test_modules_metadata,
+  test_modules_meta_data_type = "TCGA",
+  metric = "Exact_match",
   tunegrid_c = c(1:100),
   n_folds = 10,
   repetitions = 3
 )
 }
 \arguments{
-\item{Modules_training}{return from enrichment_modules() function}
+\item{train_modules}{return from enrichment_modules() function}
 
-\item{Modules_training.metadata}{TCGA-BRCA data}
+\item{train_modules_metadata}{TCGA-BRCA data}
 
-\item{Modules_testing}{return from enrichment_modules() function}
+\item{test_modules}{return from enrichment_modules() function}
 
-\item{Modules_testing.metadata}{e.g., METABRIC data or other TCGA data}
+\item{test_modules_metadata}{e.g., METABRIC data or other TCGA data}
 
-\item{Modules_testing.metadata.type}{e.g. METABRIC or TCGA}
+\item{test_modules_meta_data_type}{e.g. METABRIC or TCGA}
 
-\item{Metric}{metric (Exact_match, Accuracy) (default: Exact_match)}
+\item{metric}{metric (Exact_match, Accuracy) (default: Exact_match)}
 
 \item{tunegrid_c}{defines the grid for the hyperparameter optimization during
 cross validation (caret package) (default: 1:100)}

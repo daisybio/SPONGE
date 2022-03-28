@@ -2,10 +2,10 @@
 % Please edit documentation in R/fn_spongeffects_utility.R
 \name{plot_top_modules}
 \alias{plot_top_modules}
-\title{plots the top x gini index modules (see Boniolo 2022 et al. Figure 5)}
+\title{plots the top x gini index modules (see Boniolo and Hoffmann 2022 et al. Figure 5)}
 \usage{
 plot_top_modules(
-  trained.model,
+  trained_model,
   k_modules = 25,
   k_modules_red = 10,
   text_size = 16,
@@ -14,7 +14,7 @@ plot_top_modules(
 )
 }
 \arguments{
-\item{trained.model}{returned from train_and_test_model}
+\item{trained_model}{returned from train_and_test_model}
 
 \item{k_modules}{top k modules to be shown (default: 25)}
 
@@ -34,5 +34,5 @@ than k_modules (default: 10)}
 plot object for lollipop plot
 }
 \description{
-plots the top x gini index modules (see Boniolo 2022 et al. Figure 5)
+plots the top x gini index modules (see Boniolo and Hoffmann 2022 et al. Figure 5)
 }

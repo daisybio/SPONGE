@@ -5,7 +5,7 @@
 \title{Calculate enrichment scores}
 \usage{
 enrichment_modules(
-  Expr.matrix,
+  gene_expr,
   modules,
   bin.size = 100,
   min.size = 10,
@@ -15,8 +15,6 @@ enrichment_modules(
 )
 }
 \arguments{
-\item{Expr.matrix}{ceRNA expression matrix}
-
 \item{modules}{Result of define_modules()}
 
 \item{bin.size}{bin size (default: 100)}
@@ -29,6 +27,8 @@ enrichment_modules(
 
 \item{method}{Enrichment to be used (Overall Enrichment: OE or Gene Set
 Variation Analysis: GSVA) (default: OE)}
+
+\item{Expr.matrix}{ceRNA expression matrix}
 }
 \value{
 matrix containing module enrichment scores (module x samples)
