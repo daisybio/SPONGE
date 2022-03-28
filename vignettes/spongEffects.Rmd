@@ -158,16 +158,16 @@ test.modules <- enrichment_modules(gene_expr = test_cancer_gene_expr, modules = 
 
 ## (G) 1. Train and test random forests
 ```{r, warning=FALSE, message=FALSE}
-trained.model = train_and_test_model(train_modules = train.modules, train_modules_metadata = train_cancer_metadata, test_modules = test.modules, test_modules_metadata = test_cancer_metadata, n_folds = 1, repititions = 1)
+trained.model = train_and_test_model(train_modules = train.modules, train_modules_metadata = train_cancer_metadata, test_modules = test.modules, test_modules_metadata = test_cancer_metadata, n_folds = 1, repetitions = 1)
 ```
 ## (G) 2. Train and test on Central Genes
 ```{r, warning=FALSE, message=FALSE}
-central.genes.model = build_classifier_central_genes(train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_enrichment_modules = train.modules, test_enrichment_modules = test.modules, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repititions = 1)
+central.genes.model = build_classifier_central_genes(train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_enrichment_modules = train.modules, test_enrichment_modules = test.modules, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repetitions = 1)
 ```
 
 ## (J) 3. Randomly train and test
 ```{r, warning=FALSE, message=FALSE}
-random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repititions = 1, bin.size = 10, min.size = 1, max.size = 10, method = "OE", min.expr =  1)
+random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repetitions = 1, bin.size = 10, min.size = 1, max.size = 10, method = "OE", min.expression =  1)
 ```
 
 ## (K) Plot top k modules
