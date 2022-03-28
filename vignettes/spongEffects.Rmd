@@ -162,12 +162,12 @@ trained.model = train_and_test_model(train_modules = train.modules, train_module
 ```
 ## (G) 2. Train and test on Central Genes
 ```{r, warning=FALSE, message=FALSE}
-central.genes.model = build_classifier_central_genes(train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_enrichment_modules = train.modules, test_enrichment_modules = test.modules, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1)
+central.genes.model = build_classifier_central_genes(train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_enrichment_modules = train.modules, test_enrichment_modules = test.modules, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repititions = 1)
 ```
 
 ## (J) 3. Randomly train and test
 ```{r, warning=FALSE, message=FALSE}
-random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=10)
+random.model = build_classifier_random(sponge_modules= Sponge.modules,train_gene_expr = train_cancer_gene_expr, test_gene_expr = test_cancer_gene_expr, train_meta_data = train_cancer_metadata, test_meta_data = test_cancer_metadata, metric="Exact_match", n.folds=1, repititions = 1, bin.size = 10, min.size = 1, max.size = 10, method = "OE", min.expr =  1)
 ```
 
 ## (K) Plot top k modules

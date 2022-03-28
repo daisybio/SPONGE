@@ -997,6 +997,13 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @param n.folds number of folds to be calculated
 #' @param repetitions  number of k-fold cv iterations (default: 3)
 #'
+#' @param bin.size bin size (default: 100)
+#' @param min.size minimum module size (default: 10)
+#' @param max.size maximum module size (default: 200)
+#' @param min.expr minimum expression (default: 10)
+#' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
+#' Variation Analysis: GSVA) (default: OE)
+#'
 #' @export
 #'
 #' @return randomized prediction model
@@ -1010,7 +1017,12 @@ build_classifier_random<-function(sponge_modules,
                                   metric="Exact_match",
                                   tunegrid_c=c(1:100),
                                   n.folds = 10,
-                                  repetitions=3){
+                                  repetitions=3,
+                                  min.size = 10,
+                                  bin.size = 100,
+                                  max.size = 200,
+                                  min.expression=10,
+                                  method = "OE"){
 
     Sponge.modules<- sponge_modules
     Metric<-metric
@@ -1037,9 +1049,9 @@ build_classifier_random<-function(sponge_modules,
 
     # Calculate enrichment scores for BRCA and METABRIC
     BRCA.RandomModules.OE <- enrichment_modules(TCGA.expr.tumor, Random.Modules,
-                                                bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+                                                bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
     METABRIC.RandomModules.OE <- enrichment_modules(METABRIC.expr, Random.Modules,
-                                                    bin.size = 100, min.size = 10, max.size = 200, method = "OE")
+                                                    bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
 
     #Find common modules
 
