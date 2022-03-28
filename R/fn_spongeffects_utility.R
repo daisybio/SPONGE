@@ -1005,6 +1005,8 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @param min.expr minimum expression (default: 10)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
+#' @param replace Possibility of keeping or removing (default) central
+#' genes in the modules (default: T)
 #'
 #' @export
 #'
