@@ -205,7 +205,7 @@ tcga.heatmap<-plot_heatmaps_training_test(trained_model = trained.model, sponge_
 
 ## (P) plot miRNA to modules heatmap
 ```{r, warning=FALSE, message=FALSE}
-plot_involved_miRNAs_to_modules(sponge_modules = Sponge.modules, trained_model = trained.model,gene_mirna_candidates =train_genes_miRNA_candidates)
+plot_involved_miRNAs_to_modules(sponge_modules = Sponge.modules, trained_model = trained.model,gene_mirna_candidates =train_genes_miRNA_candidates, k_modules=4)
 ```
 
 ## (Q) stop the cluster for parallelization

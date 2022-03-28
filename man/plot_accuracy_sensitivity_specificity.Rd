@@ -9,8 +9,8 @@ plot_accuracy_sensitivity_specificity(
   trained_model,
   central_genes_model,
   random_model,
-  training_dataset_name,
-  testing_dataset_name,
+  training_dataset_name = "TCGA",
+  testing_dataset_name = "TCGA",
   subtypes
 )
 }

@@ -1332,8 +1332,8 @@ plot_density_scores <- function(trained_model,
 plot_accuracy_sensitivity_specificity <- function(trained_model,
                                                   central_genes_model,
                                                   random_model,
-                                                  training_dataset_name,
-                                                  testing_dataset_name,
+                                                  training_dataset_name="TCGA",
+                                                  testing_dataset_name="TCGA",
                                                   subtypes){
     trained.model<-trained_model
     CentralGenes.model<-central_genes_model
@@ -1589,8 +1589,8 @@ plot_heatmaps_training_test<-function(trained_model,
                                            # Her_SNP = METABRIC.meta.p$HER2_SNP6,
                                            col = list(Subtype = Colours.subtypes))
 
-        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:25], rownames(METABRIC.Modules.OE)), ]
-        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:25]
+        Heatmap.METABRIC <- METABRIC.Modules.OE[match(Variable.importance$Module[1:length(Variable.importance$Module)], rownames(METABRIC.Modules.OE)), ]
+        rownames(Heatmap.METABRIC) <- Variable.importance$Name_lncRNA_Results[1:length(Variable.importance$Module)]
 
         # Plot
         Heatmap.METABRIC.p <- Heatmap.METABRIC %>%
@@ -1665,6 +1665,7 @@ plot_heatmaps_training_test<-function(trained_model,
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
+#' @import grid
 #'
 #' @param sponge_modules result of define_modules()
 #' @param trained_model returned from train_and_test_model
