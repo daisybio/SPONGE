@@ -146,6 +146,7 @@ fn_combined_centrality <- function(CentralityMeasures) {
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import tnet
 #'
 #' @param network Network formatted as a dataframe with three columns containing
 #' respectively node1, node2 and weights
@@ -370,6 +371,7 @@ fn_get_semi_random_OE <- function(r,
                                b.sign,
                                num.rounds = 1000){
   # Previous name: get.random.sig.scores
+
   sign.q<-as.matrix(table(genes.dist.q[b.sign]))
   q<-rownames(sign.q)
   idx.all<-c()
@@ -387,8 +389,13 @@ fn_get_semi_random_OE <- function(r,
     }
   }
 
-  rand.scores<-apply(B,2,function(x) colMeans(r[x,]))
-  rand.scores<-rowMeans(rand.scores)
+  rand.scores<-apply(B,2,function(x){
+      sel_matrix <- r[x,]
+      if(is.array(sel_matrix)) return(colMeans(sel_matrix))
+      else return(mean(sel_matrix))
+  })
+  if(is.array(rand.scores)) rand.scores<-rowMeans(rand.scores)
+  else rand.scores <- mean(rand.scores)
 
   return(rand.scores)
 }
@@ -419,7 +426,7 @@ fn_get_semi_random_OE <- function(r,
 #' @param min.expr minimum expression (default: 10)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
-#'
+#' @param cores number of cores. Only for the GSVA and ssGSEA methods
 #' @export
 #'
 #' @return matrix containing module enrichment scores (module x samples)
@@ -429,7 +436,8 @@ enrichment_modules <- function(gene_expr,
                                min.size = 10,
                                max.size = 200,
                                min.expr = 10,
-                               method = "OE") {
+                               method = "OE",
+                               cores = 1) {
 
     Expr.matrix <- gene_expr
 
@@ -437,7 +445,7 @@ enrichment_modules <- function(gene_expr,
 
   if (method == "OE") {
       Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
-                                        .export = c("fn_OE_module", "fn_get_semi_random_OE"),
+                                        .export = c("fn_OE_module", "fn_get_semi_random_OE", "fn_discretize_spongeffects"),
                                         .combine = "cbind") %dopar% {
       results <- list()
 
@@ -740,6 +748,7 @@ filter_ceRNA_network <- function(sponge_effects,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import tnet
 #'
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
 #' (e.g., hsapiens_gene_ensembl).
