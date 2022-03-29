@@ -11,7 +11,8 @@ enrichment_modules(
   min.size = 10,
   max.size = 200,
   min.expr = 10,
-  method = "OE"
+  method = "OE",
+  cores = 1
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ enrichment_modules(
 
 \item{method}{Enrichment to be used (Overall Enrichment: OE or Gene Set
 Variation Analysis: GSVA) (default: OE)}
+
+\item{cores}{number of cores to be used to calculate entichment scores
+with gsva or ssgsea methods. Default 1}
 
 \item{Expr.matrix}{ceRNA expression matrix}
 }

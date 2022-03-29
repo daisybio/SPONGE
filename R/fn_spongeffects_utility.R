@@ -22,43 +22,43 @@
 #' @return Expression matrix (genes x samples). Row names are ensembl
 #' gene symbols
 fn_convert_gene_names <- function(ceRNA_expression_data,
-                               bioMart_gene_ensembl,
-                               bioMart_gene_symbol_columns) {
+                                  bioMart_gene_ensembl,
+                                  bioMart_gene_symbol_columns) {
 
-  httr::set_config(httr::config(ssl_verifypeer = FALSE))
-  not_done=TRUE
+    httr::set_config(httr::config(ssl_verifypeer = FALSE))
+    not_done=TRUE
 
-  ceRNA_expression_data <-  ceRNA_expression_data[!duplicated(ceRNA_expression_data[,1]), ]
-  genes <- ceRNA_expression_data[,1] %>% as.character()
+    ceRNA_expression_data <-  ceRNA_expression_data[!duplicated(ceRNA_expression_data[,1]), ]
+    genes <- ceRNA_expression_data[,1] %>% as.character()
 
-  G_list= data.frame()
+    G_list= data.frame()
 
-  while(not_done)
-  {
-    tryCatch({
-      ensembl <- biomaRt::useMart("ensembl", dataset=bioMart_gene_ensembl)
-      GeneNames.df <- getBM(attributes=c('ensembl_gene_id',
-                                         'external_gene_name'),
-                            filters = bioMart_gene_symbol_columns,mart = ensembl,values = genes,
-                            useCache = FALSE)
-      not_done=FALSE
-    }, warning = function(w) {
-      print("WARNING SECTION")
-      print(w)
-    }, error = function(e) {
-      print("ERROR SECTION")
-      print(e)
-    }, finally = {
-    })
-  }
+    while(not_done)
+    {
+        tryCatch({
+            ensembl <- biomaRt::useMart("ensembl", dataset=bioMart_gene_ensembl)
+            GeneNames.df <- getBM(attributes=c('ensembl_gene_id',
+                                               'external_gene_name'),
+                                  filters = bioMart_gene_symbol_columns,mart = ensembl,values = genes,
+                                  useCache = FALSE)
+            not_done=FALSE
+        }, warning = function(w) {
+            print("WARNING SECTION")
+            print(w)
+        }, error = function(e) {
+            print("ERROR SECTION")
+            print(e)
+        }, finally = {
+        })
+    }
 
 
-  ceRNA_expression_data$Ensembl <- GeneNames.df[match(ceRNA_expression_data[,1], GeneNames.df$external_gene_name), 1]
-  ceRNA_expression_data <- ceRNA_expression_data[!is.na(ceRNA_expression_data$Ensembl), ]
+    ceRNA_expression_data$Ensembl <- GeneNames.df[match(ceRNA_expression_data[,1], GeneNames.df$external_gene_name), 1]
+    ceRNA_expression_data <- ceRNA_expression_data[!is.na(ceRNA_expression_data$Ensembl), ]
 
-  rownames(ceRNA_expression_data) <- ceRNA_expression_data$Ensembl
+    rownames(ceRNA_expression_data) <- ceRNA_expression_data$Ensembl
 
-  return(dplyr::select(ceRNA_expression_data[-1], -Ensembl))
+    return(dplyr::select(ceRNA_expression_data[-1], -Ensembl))
 }
 
 #' #' Calculate z-scores
@@ -88,10 +88,10 @@ fn_convert_gene_names <- function(ceRNA_expression_data,
 #'
 #' @return filtered ceRNA network
 fn_filter_network <- function(network,
-                           mscor.threshold = .1,
-                           padj.threshold = .01) {
-  network %>%
-    filter(mscor > mscor.threshold & p.adj < padj.threshold)
+                              mscor.threshold = .1,
+                              padj.threshold = .01) {
+    network %>%
+        filter(mscor > mscor.threshold & p.adj < padj.threshold)
 }
 
 #' Function to calculate centrality scores
@@ -113,23 +113,23 @@ fn_filter_network <- function(network,
 #' @return Vector containing combined centrality scores
 fn_combined_centrality <- function(CentralityMeasures) {
 
-  CombinedCentrality.Score <- c()
+    CombinedCentrality.Score <- c()
 
-  for (v in 1:nrow(CentralityMeasures)) {
-    combined.c <- 0
-    for (m in  colnames(CentralityMeasures)) {
+    for (v in 1:nrow(CentralityMeasures)) {
+        combined.c <- 0
+        for (m in  colnames(CentralityMeasures)) {
 
-      max.c <- max(CentralityMeasures[,m])
-      min.c <- min(CentralityMeasures[,m])
+            max.c <- max(CentralityMeasures[,m])
+            min.c <- min(CentralityMeasures[,m])
 
-      gene.c <- CentralityMeasures[v,m]
+            gene.c <- CentralityMeasures[v,m]
 
-      combined.c <- combined.c + ((max.c - gene.c) / (max.c - min.c)^2)
+            combined.c <- combined.c + ((max.c - gene.c) / (max.c - min.c)^2)
+        }
+
+        CombinedCentrality.Score <- c(CombinedCentrality.Score, 0.5*combined.c)
     }
-
-    CombinedCentrality.Score <- c(CombinedCentrality.Score, 0.5*combined.c)
-  }
-  return(CombinedCentrality.Score)
+    return(CombinedCentrality.Score)
 }
 
 #' Function to calculate centrality scores
@@ -157,31 +157,31 @@ fn_combined_centrality <- function(CentralityMeasures) {
 #' @return Dataframe containing information about nodes and their weighted
 #' centrality measure
 fn_weighted_degree <- function(network,
-                            undirected = T,
-                            Alpha = 1){
+                               undirected = T,
+                               Alpha = 1){
 
-  # Format input matrix by using numeric as node IDs
-  Nodes <- data.frame(Nodes = union(network$geneA, network$geneB),
-                      Nodes_numeric = seq(1, length(union(network$geneA,
-                                                          network$geneB))))
+    # Format input matrix by using numeric as node IDs
+    Nodes <- data.frame(Nodes = union(network$geneA, network$geneB),
+                        Nodes_numeric = seq(1, length(union(network$geneA,
+                                                            network$geneB))))
 
-  geneA.numeric <- Nodes$Nodes_numeric[match(network$geneA, Nodes$Nodes)]
-  geneB.numeric <- Nodes$Nodes_numeric[match(network$geneB, Nodes$Nodes)]
+    geneA.numeric <- Nodes$Nodes_numeric[match(network$geneA, Nodes$Nodes)]
+    geneB.numeric <- Nodes$Nodes_numeric[match(network$geneB, Nodes$Nodes)]
 
-  Input.network <- data.frame(Sender = geneA.numeric, Receiver = geneB.numeric,
-                              Weight = network$mscor)
+    Input.network <- data.frame(Sender = geneA.numeric, Receiver = geneB.numeric,
+                                Weight = network$mscor)
 
-  if (undirected) {
-    # Define networks as undirected
-    Undirected.net <- Input.network %>% tnet::symmetrise_w()
-    Weighted_degree <- tnet::degree_w(Undirected.net, alpha = Alpha) %>%
-      as.data.frame()
+    if (undirected) {
+        # Define networks as undirected
+        Undirected.net <- Input.network %>% tnet::symmetrise_w()
+        Weighted_degree <- tnet::degree_w(Undirected.net, alpha = Alpha) %>%
+            as.data.frame()
 
-    Nodes$Weighted_degree <- Weighted_degree$output[match(Weighted_degree$node,
-                                                          Nodes$Nodes_numeric)]
-    return(Nodes)
+        Nodes$Weighted_degree <- Weighted_degree$output[match(Weighted_degree$node,
+                                                              Nodes$Nodes_numeric)]
+        return(Nodes)
 
-  }
+    }
 }
 
 #' Functions to define Sponge modules, created as all the first neighbors of
@@ -213,52 +213,52 @@ define_modules <- function(network,
                            central.modules = F,
                            remove.central = T,
                            set.parallel = T) {
-  set.parallel = F
-  if (set.parallel) {
-    Sponge.Modules <- foreach(i = 1:nrow(central.modules),  .packages = "dplyr") %dopar% {
-      Sponge.temp <- network %>%
-        dplyr::filter(geneA == central.modules$gene[i] | geneB == central.modules$gene[i])
+    set.parallel = F
+    if (set.parallel) {
+        Sponge.Modules <- foreach(i = 1:nrow(central.modules),  .packages = "dplyr") %dopar% {
+            Sponge.temp <- network %>%
+                dplyr::filter(geneA == central.modules$gene[i] | geneB == central.modules$gene[i])
 
-      if(nrow(Sponge.temp) != 0) {
-        Module.temp <- union(Sponge.temp$geneA, Sponge.temp$geneB)
-        Module.temp <- Module.temp[Module.temp != central.modules$gene[i]]
+            if(nrow(Sponge.temp) != 0) {
+                Module.temp <- union(Sponge.temp$geneA, Sponge.temp$geneB)
+                Module.temp <- Module.temp[Module.temp != central.modules$gene[i]]
 
-        names(Module.temp) <- as.character(central.modules$gene[i])
+                names(Module.temp) <- as.character(central.modules$gene[i])
+            }
         }
-      }
     } else {
 
-      Sponge.Modules <- list()
-      k <- 1
-      for(i in 1:nrow(central.modules)) {
-        Sponge.temp <- network %>%
-          filter(geneA == central.modules$gene[i] | geneB == central.modules$gene[i])
+        Sponge.Modules <- list()
+        k <- 1
+        for(i in 1:nrow(central.modules)) {
+            Sponge.temp <- network %>%
+                filter(geneA == central.modules$gene[i] | geneB == central.modules$gene[i])
 
-        if(nrow(Sponge.temp) != 0) {
-          Module.temp <- union(Sponge.temp$geneA, Sponge.temp$geneB)
-          Module.temp <- Module.temp[Module.temp != central.modules$gene[i]]
+            if(nrow(Sponge.temp) != 0) {
+                Module.temp <- union(Sponge.temp$geneA, Sponge.temp$geneB)
+                Module.temp <- Module.temp[Module.temp != central.modules$gene[i]]
 
-          Sponge.Modules[[k]] <- Module.temp
-          names(Sponge.Modules)[k] <- as.character(central.modules$gene)[i]
+                Sponge.Modules[[k]] <- Module.temp
+                names(Sponge.Modules)[k] <- as.character(central.modules$gene)[i]
 
-          k <- k+1
+                k <- k+1
 
+            }
         }
-      }
     }
 
-  if (remove.central) {
-    # Remove central lncRNA from each module
-    Sponge.Modules.DoubleRemoved <- list()
+    if (remove.central) {
+        # Remove central lncRNA from each module
+        Sponge.Modules.DoubleRemoved <- list()
 
-    for (z in 1:length(Sponge.Modules)) {
-      toKeep <- !(Sponge.Modules[[z]] %in% central.modules$gene)
-      Sponge.Modules.DoubleRemoved[[z]] <- Sponge.Modules[[z]][!(Sponge.Modules[[z]] %in% central.modules$gene)]
-    }
+        for (z in 1:length(Sponge.Modules)) {
+            toKeep <- !(Sponge.Modules[[z]] %in% central.modules$gene)
+            Sponge.Modules.DoubleRemoved[[z]] <- Sponge.Modules[[z]][!(Sponge.Modules[[z]] %in% central.modules$gene)]
+        }
 
-    names(Sponge.Modules.DoubleRemoved) <- names(Sponge.Modules)
-    return(Sponge.Modules.DoubleRemoved)
-  } else {return(Sponge.Modules)}
+        names(Sponge.Modules.DoubleRemoved) <- names(Sponge.Modules)
+        return(Sponge.Modules.DoubleRemoved)
+    } else {return(Sponge.Modules)}
 }
 
 #' discretize
@@ -279,12 +279,12 @@ define_modules <- function(network,
 #' @return discretized
 fn_discretize_spongeffects<-function(v,
                                      n.cat){
-  q1<-quantile(v,seq(from = (1/n.cat),to = 1,by = (1/n.cat)))
-  u<-matrix(nrow = length(v))
-  for(i in 2:n.cat){
-    u[(v>=q1[i-1])&(v<q1[i])]<-i
-  }
-  return(u)
+    q1<-quantile(v,seq(from = (1/n.cat),to = 1,by = (1/n.cat)))
+    u<-matrix(nrow = length(v))
+    for(i in 2:n.cat){
+        u[(v>=q1[i-1])&(v<q1[i])]<-i
+    }
+    return(u)
 }
 
 #' Function to calculate enrichment scores of modules OE
@@ -308,42 +308,42 @@ fn_discretize_spongeffects<-function(v,
 #'
 #' @return Signature scores
 fn_OE_module <- function(NormCount,
-                      gene.sign,
-                      bin.size = 100,
-                      num.rounds = 1000,
-                      set_seed = 42){
-  set.seed(set_seed)
+                         gene.sign,
+                         bin.size = 100,
+                         num.rounds = 1000,
+                         set_seed = 42){
+    set.seed(set_seed)
 
-  SequencedGenes <- rownames(NormCount)
-  # Center gene expression
-  Centered.expr <- NormCount %>% t() %>% scale(center =T, scale = F) %>% t()
+    SequencedGenes <- rownames(NormCount)
+    # Center gene expression
+    Centered.expr <- NormCount %>% t() %>% scale(center =T, scale = F) %>% t()
 
-  # Average expression of a gene across cells
-  Genes.dist <- rowMeans(NormCount,na.rm = T)
+    # Average expression of a gene across cells
+    Genes.dist <- rowMeans(NormCount,na.rm = T)
 
-  # Divide genes in  expression bins
-  Discretized.Genes.dist <- fn_discretize_spongeffects(Genes.dist,n.cat = bin.size)
+    # Divide genes in  expression bins
+    Discretized.Genes.dist <- fn_discretize_spongeffects(Genes.dist,n.cat = bin.size)
 
-  # Calculate OE scores
-  Signature.scores <- matrix(data = 0,nrow = ncol(NormCount),ncol =1)
-  sign.names <- names(gene.sign)
-  colnames(Signature.scores) <- sign.names
+    # Calculate OE scores
+    Signature.scores <- matrix(data = 0,nrow = ncol(NormCount),ncol =1)
+    sign.names <- names(gene.sign)
+    colnames(Signature.scores) <- sign.names
 
-  Signature.scores.raw <- Signature.scores
-  random.scores<- Signature.scores
+    Signature.scores.raw <- Signature.scores
+    random.scores<- Signature.scores
 
-  b.sign <- is.element(SequencedGenes, gene.sign)
-  if(sum(b.sign)<2) {next()}
+    b.sign <- is.element(SequencedGenes, gene.sign)
+    if(sum(b.sign)<2) {next()}
 
-  rand.scores<-fn_get_semi_random_OE(Centered.expr, Discretized.Genes.dist,b.sign,num.rounds = num.rounds)
+    rand.scores<-fn_get_semi_random_OE(Centered.expr, Discretized.Genes.dist,b.sign,num.rounds = num.rounds)
 
-  raw.scores <- colMeans(Centered.expr[b.sign,])
-  final.scores <- raw.scores-rand.scores
-  Signature.scores[,1] <- final.scores
-  Signature.scores.raw[,1] <- raw.scores
-  random.scores[,1] <- rand.scores
+    raw.scores <- colMeans(Centered.expr[b.sign,])
+    final.scores <- raw.scores-rand.scores
+    Signature.scores[,1] <- final.scores
+    Signature.scores.raw[,1] <- raw.scores
+    random.scores[,1] <- rand.scores
 
-  return(Signature.scores)
+    return(Signature.scores)
 }
 
 #' Function to calculate semi random enrichment scores of modules OE
@@ -367,37 +367,37 @@ fn_OE_module <- function(NormCount,
 #'
 #' @return random signature scores
 fn_get_semi_random_OE <- function(r,
-                               genes.dist.q,
-                               b.sign,
-                               num.rounds = 1000){
-  # Previous name: get.random.sig.scores
+                                  genes.dist.q,
+                                  b.sign,
+                                  num.rounds = 1000){
+    # Previous name: get.random.sig.scores
 
-  sign.q<-as.matrix(table(genes.dist.q[b.sign]))
-  q<-rownames(sign.q)
-  idx.all<-c()
-  B<-matrix(data = F,nrow = length(genes.dist.q),ncol = num.rounds)
-  Q<-matrix(data = 0,nrow = length(genes.dist.q),ncol = num.rounds)
-  for (i in 1:nrow(sign.q)){
-    num.genes<-sign.q[i]
-    if(num.genes>0){
-      idx<-which(is.element(genes.dist.q,q[i]))
-      for (j in 1:num.rounds){
-        idxj<-sample(idx,num.genes)
-        Q[i,j]<-sum(B[idxj,j]==T)
-        B[idxj,j]<-T
-      }
+    sign.q<-as.matrix(table(genes.dist.q[b.sign]))
+    q<-rownames(sign.q)
+    idx.all<-c()
+    B<-matrix(data = F,nrow = length(genes.dist.q),ncol = num.rounds)
+    Q<-matrix(data = 0,nrow = length(genes.dist.q),ncol = num.rounds)
+    for (i in 1:nrow(sign.q)){
+        num.genes<-sign.q[i]
+        if(num.genes>0){
+            idx<-which(is.element(genes.dist.q,q[i]))
+            for (j in 1:num.rounds){
+                idxj<-sample(idx,num.genes)
+                Q[i,j]<-sum(B[idxj,j]==T)
+                B[idxj,j]<-T
+            }
+        }
     }
-  }
 
-  rand.scores<-apply(B,2,function(x){
-      sel_matrix <- r[x,]
-      if(is.array(sel_matrix)) return(colMeans(sel_matrix))
-      else return(mean(sel_matrix))
-  })
-  if(is.array(rand.scores)) rand.scores<-rowMeans(rand.scores)
-  else rand.scores <- mean(rand.scores)
+    rand.scores<-apply(B,2,function(x){
+        sel_matrix <- r[x,]
+        if(is.array(sel_matrix)) return(colMeans(sel_matrix))
+        else return(mean(sel_matrix))
+    })
+    if(is.array(rand.scores)) rand.scores<-rowMeans(rand.scores)
+    else rand.scores <- mean(rand.scores)
 
-  return(rand.scores)
+    return(rand.scores)
 }
 
 
@@ -426,7 +426,8 @@ fn_get_semi_random_OE <- function(r,
 #' @param min.expr minimum expression (default: 10)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
-#' @param cores number of cores. Only for the GSVA and ssGSEA methods
+#' @param cores number of cores to be used to calculate entichment scores
+#' with gsva or ssgsea methods. Default 1
 #' @export
 #'
 #' @return matrix containing module enrichment scores (module x samples)
@@ -441,39 +442,39 @@ enrichment_modules <- function(gene_expr,
 
     Expr.matrix <- gene_expr
 
-  print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
+    print(paste0("Calculating modules with bin size: ", bin.size, ", min size: ", min.size, ", max size:", max.size))
 
-  if (method == "OE") {
-      Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
-                                        .export = c("fn_OE_module", "fn_get_semi_random_OE", "fn_discretize_spongeffects"),
-                                        .combine = "cbind") %dopar% {
-      results <- list()
+    if (method == "OE") {
+        Enrichmentscores.modules <- foreach(Module = 1:length(modules), .packages = c("dplyr", "GSVA"),
+                                            .export = c("fn_OE_module", "fn_get_semi_random_OE", "fn_discretize_spongeffects"),
+                                            .combine = "cbind") %dopar% {
+                                                results <- list()
 
-      if(length(modules[[Module]]) > min.size & length(modules[[Module]]) < max.size) {
-        if (sum((modules[[Module]] %in% rownames(Expr.matrix)), na.rm = TRUE) > min.expr) {
-          Enrichment.module <- round(fn_OE_module(Expr.matrix,modules[[Module]],bin.size),2)
-          colnames(Enrichment.module) <- names(modules)[Module]
-          return(Enrichment.module)
-        }
-      }
+                                                if(length(modules[[Module]]) > min.size & length(modules[[Module]]) < max.size) {
+                                                    if (sum((modules[[Module]] %in% rownames(Expr.matrix)), na.rm = TRUE) > min.expr) {
+                                                        Enrichment.module <- round(fn_OE_module(Expr.matrix,modules[[Module]],bin.size),2)
+                                                        colnames(Enrichment.module) <- names(modules)[Module]
+                                                        return(Enrichment.module)
+                                                    }
+                                                }
+                                            }
+        Enrichmentscores.modules <- Enrichmentscores.modules %>% t() %>% as.data.frame
+
+        colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
+
+    } else {
+        Enrichmentscores.modules <- GSVA::gsva(as.matrix(Expr.matrix), modules, min.sz= min.size,
+                                               max.sz=max.size,method= method,parallel.sz = cores,
+                                               verbose=FALSE) %>% as.data.frame()
+
+        colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
+
     }
-    Enrichmentscores.modules <- Enrichmentscores.modules %>% t() %>% as.data.frame
-
-    colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
-
-  } else {
-    Enrichmentscores.modules <- GSVA::gsva(as.matrix(Expr.matrix), modules, min.sz= min.size,
-                                           max.sz=max.size,method= method,parallel.sz = cores,
-                                           verbose=FALSE) %>% as.data.frame()
-
-    colnames(Enrichmentscores.modules) <- colnames(Expr.matrix)
-
-  }
-  if (!is_empty(Enrichmentscores.modules)) {
-  	return(Enrichmentscores.modules)
-  } else {
-    return(NULL)
-  }
+    if (!is_empty(Enrichmentscores.modules)) {
+        return(Enrichmentscores.modules)
+    } else {
+        return(NULL)
+    }
 }
 
 #' Calibrate classification method
@@ -484,11 +485,11 @@ enrichment_modules <- function(gene_expr,
 #'
 #' @return Model and confusion matrix in a list
 fn_exact_match_summary <- function (data,
-                                lev = NULL,
-                                model = NULL) {
-  metric <- sum(data$obs == data$pred, na.rm = TRUE) / length(data$obs)
-  names(metric) <- "Exact_match"
-  return(metric)
+                                    lev = NULL,
+                                    model = NULL) {
+    metric <- sum(data$obs == data$pred, na.rm = TRUE) / length(data$obs)
+    names(metric) <- "Exact_match"
+    return(metric)
 }
 
 #' RF classification model
@@ -513,37 +514,37 @@ fn_exact_match_summary <- function (data,
 #'
 #' @return
 fn_RF_classifier <- function(Input.object,
-                          K,
-                          rep,
-                          metric = "Exact_match",
-                          tunegrid,
-                          set_seed = 42){
-  set.seed(set_seed)
+                             K,
+                             rep,
+                             metric = "Exact_match",
+                             tunegrid,
+                             set_seed = 42){
+    set.seed(set_seed)
 
-  # Training settings
-  # k Fold stratified CV
-  trainIndex <- createFolds(Input.object$Class, k = K,
-                            list = T, returnTrain = T)
+    # Training settings
+    # k Fold stratified CV
+    trainIndex <- createFolds(Input.object$Class, k = K,
+                              list = T, returnTrain = T)
 
-  if (metric == "Exact_match") {
-    control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
-                            savePredictions = "final", classProbs = F,
-                            summaryFunction = fn_exact_match_summary,
-                            allowParallel = TRUE, index = trainIndex)
-  } else if (metric == "Accuracy") {
-      control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
-                              savePredictions = "final", classProbs = F,
-                              allowParallel = TRUE, index = trainIndex)
-  }
+    if (metric == "Exact_match") {
+        control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
+                                savePredictions = "final", classProbs = F,
+                                summaryFunction = fn_exact_match_summary,
+                                allowParallel = TRUE, index = trainIndex)
+    } else if (metric == "Accuracy") {
+        control <- trainControl(method="repeatedcv", number=K, repeats=rep, search="grid",
+                                savePredictions = "final", classProbs = F,
+                                allowParallel = TRUE, index = trainIndex)
+    }
 
-  rf.model <- train(Class~., data=Input.object, method="rf", metric=metric,
-                    tuneGrid=tunegrid, trControl=control,
-                    importance = TRUE)
+    rf.model <- train(Class~., data=Input.object, method="rf", metric=metric,
+                      tuneGrid=tunegrid, trControl=control,
+                      importance = TRUE)
 
-  Confusion.matrix <- confusionMatrix(rf.model$pred$pred, rf.model$pred$obs)
+    Confusion.matrix <- confusionMatrix(rf.model$pred$pred, rf.model$pred$obs)
 
-  Output.rf <-list(Model = rf.model, ConfusionMatrix_training = Confusion.matrix)
-  return(Output.rf)
+    Output.rf <-list(Model = rf.model, ConfusionMatrix_training = Confusion.matrix)
+    return(Output.rf)
 }
 
 #' prepare TCGA formats for spongEffects
@@ -587,42 +588,42 @@ prepare_tcga_for_spongEffects <- function(tcga_cancer_symbol,
                                           tumor_stages_of_interest,
                                           subtypes_of_interest){
 
-  tcga_cancer_symbol=paste0(tcga_cancer_symbol,"_")
+    tcga_cancer_symbol=paste0(tcga_cancer_symbol,"_")
 
-  # Tidy and prepare input dataset
-  TCGA.expr.tumor <- tumor_ceRNA_expression_data %>% t() %>% as.data.frame()
-  TCGA.expr.normal <-normal_ceRNA_expression_data %>% t() %>% as.data.frame()
-  TCGA.meta.normal <- normal_metadata %>%
-    dplyr::filter(sampleID %in% colnames(TCGA.expr.normal))
-  TCGA.meta.tumor <- tumor_metadata %>%
-    dplyr::filter(sampleID %in% colnames(TCGA.expr.tumor))
+    # Tidy and prepare input dataset
+    TCGA.expr.tumor <- tumor_ceRNA_expression_data %>% t() %>% as.data.frame()
+    TCGA.expr.normal <-normal_ceRNA_expression_data %>% t() %>% as.data.frame()
+    TCGA.meta.normal <- normal_metadata %>%
+        dplyr::filter(sampleID %in% colnames(TCGA.expr.normal))
+    TCGA.meta.tumor <- tumor_metadata %>%
+        dplyr::filter(sampleID %in% colnames(TCGA.expr.tumor))
 
-  TCGA.meta.tumor$PATIENT_ID <- substr(TCGA.meta.tumor$sampleID,1,nchar(TCGA.meta.tumor$sampleID)-3)
+    TCGA.meta.tumor$PATIENT_ID <- substr(TCGA.meta.tumor$sampleID,1,nchar(TCGA.meta.tumor$sampleID)-3)
 
-  # Load metadata with grading information and keep only samples with StageI, II, III, and IV
-  # clean stage mess
-  MetaData_TCGA_Complete <- clinical_data %>%
-    dplyr::filter(!(SUBTYPE %in% c("")) & PATIENT_ID %in% TCGA.meta.tumor$PATIENT_ID) %>%
-    dplyr::filter(AJCC_PATHOLOGIC_TUMOR_STAGE %in% tumor_stages_of_interest) %>%
-    mutate(Grading = ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% c('STAGE I', 'STAGE IA', 'STAGE IB'), "Stage_I",
-                            ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% c('STAGE II', 'STAGE IIA', 'STAGE IIB'), "Stage_II",
-                                   ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% "STAGE IV", "Stage_IV", "Stage_III"))))
+    # Load metadata with grading information and keep only samples with StageI, II, III, and IV
+    # clean stage mess
+    MetaData_TCGA_Complete <- clinical_data %>%
+        dplyr::filter(!(SUBTYPE %in% c("")) & PATIENT_ID %in% TCGA.meta.tumor$PATIENT_ID) %>%
+        dplyr::filter(AJCC_PATHOLOGIC_TUMOR_STAGE %in% tumor_stages_of_interest) %>%
+        mutate(Grading = ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% c('STAGE I', 'STAGE IA', 'STAGE IB'), "Stage_I",
+                                ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% c('STAGE II', 'STAGE IIA', 'STAGE IIB'), "Stage_II",
+                                       ifelse(AJCC_PATHOLOGIC_TUMOR_STAGE %in% "STAGE IV", "Stage_IV", "Stage_III"))))
 
-  TCGA.meta.tumor <- TCGA.meta.tumor[match(MetaData_TCGA_Complete$PATIENT_ID, TCGA.meta.tumor$PATIENT_ID), ] %>%
-    left_join(MetaData_TCGA_Complete, .by = PATIENT_ID)
-  TCGA.meta.tumor$SUBTYPE <- gsub(tcga_cancer_symbol,"", TCGA.meta.tumor$SUBTYPE)
-  TCGA.meta.tumor$SUBTYPE <- factor(TCGA.meta.tumor$SUBTYPE, levels = subtypes_of_interest)
+    TCGA.meta.tumor <- TCGA.meta.tumor[match(MetaData_TCGA_Complete$PATIENT_ID, TCGA.meta.tumor$PATIENT_ID), ] %>%
+        left_join(MetaData_TCGA_Complete, .by = PATIENT_ID)
+    TCGA.meta.tumor$SUBTYPE <- gsub(tcga_cancer_symbol,"", TCGA.meta.tumor$SUBTYPE)
+    TCGA.meta.tumor$SUBTYPE <- factor(TCGA.meta.tumor$SUBTYPE, levels = subtypes_of_interest)
 
-  TCGA.expr.normal <- TCGA.expr.normal[, match(TCGA.meta.normal$sampleID, colnames(TCGA.expr.normal))]
-  TCGA.expr.tumor <- TCGA.expr.tumor[, match(TCGA.meta.tumor$sampleID, colnames(TCGA.expr.tumor))]
+    TCGA.expr.normal <- TCGA.expr.normal[, match(TCGA.meta.normal$sampleID, colnames(TCGA.expr.normal))]
+    TCGA.expr.tumor <- TCGA.expr.tumor[, match(TCGA.meta.tumor$sampleID, colnames(TCGA.expr.tumor))]
 
-  rownames(TCGA.expr.tumor) <- gsub("\\..*","",rownames(TCGA.expr.tumor))
-  rownames(TCGA.expr.normal) <- gsub("\\..*","",rownames(TCGA.expr.normal))
+    rownames(TCGA.expr.tumor) <- gsub("\\..*","",rownames(TCGA.expr.tumor))
+    rownames(TCGA.expr.normal) <- gsub("\\..*","",rownames(TCGA.expr.normal))
 
-  prep_TCGA_spongEffects <- list(TCGA.expr.tumor,TCGA.expr.normal,TCGA.meta.tumor,TCGA.meta.normal,MetaData_TCGA_Complete)
-  names(prep_TCGA_spongEffects) <- c("TCGA.expr.tumor","TCGA.expr.normal","TCGA.meta.tumor","TCGA.meta.normal","MetaData_TCGA_Complete")
+    prep_TCGA_spongEffects <- list(TCGA.expr.tumor,TCGA.expr.normal,TCGA.meta.tumor,TCGA.meta.normal,MetaData_TCGA_Complete)
+    names(prep_TCGA_spongEffects) <- c("TCGA.expr.tumor","TCGA.expr.normal","TCGA.meta.tumor","TCGA.meta.normal","MetaData_TCGA_Complete")
 
-  return(prep_TCGA_spongEffects)
+    return(prep_TCGA_spongEffects)
 }
 #' prepare METABRIC formats for spongEffects
 #'
@@ -657,23 +658,23 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
                                               subtypes_of_interest,
                                               bioMart_gene_ensembl = "hsapiens_gene_ensembl",
                                               bioMart_gene_symbol_columns = "hgnc_symbol"){
-  METABRIC.expr <- read.delim(metabric_expression,
-                              header=T) %>% dplyr::select(-Entrez_Gene_Id)
-  METABRIC.expr <- METABRIC.expr[Biobase::isUnique(METABRIC.expr$Hugo_Symbol), ]
+    METABRIC.expr <- read.delim(metabric_expression,
+                                header=T) %>% dplyr::select(-Entrez_Gene_Id)
+    METABRIC.expr <- METABRIC.expr[Biobase::isUnique(METABRIC.expr$Hugo_Symbol), ]
 
-  METABRIC.expr <- fn_convert_gene_names(METABRIC.expr,bioMart_gene_ensembl,bioMart_gene_symbol_columns)
-  colnames(METABRIC.expr) <- gsub("\\.", "-", colnames(METABRIC.expr))
+    METABRIC.expr <- fn_convert_gene_names(METABRIC.expr,bioMart_gene_ensembl,bioMart_gene_symbol_columns)
+    colnames(METABRIC.expr) <- gsub("\\.", "-", colnames(METABRIC.expr))
 
-  METABRIC.meta <- read.delim(metabric_metadata, comment.char="#") %>%
-    filter(CLAUDIN_SUBTYPE %in% subtypes_of_interest & PATIENT_ID %in% colnames(METABRIC.expr))
-  METABRIC.meta$CLAUDIN_SUBTYPE <- factor(METABRIC.meta$CLAUDIN_SUBTYPE, levels = subtypes_of_interest)
+    METABRIC.meta <- read.delim(metabric_metadata, comment.char="#") %>%
+        filter(CLAUDIN_SUBTYPE %in% subtypes_of_interest & PATIENT_ID %in% colnames(METABRIC.expr))
+    METABRIC.meta$CLAUDIN_SUBTYPE <- factor(METABRIC.meta$CLAUDIN_SUBTYPE, levels = subtypes_of_interest)
 
-  METABRIC.expr <- METABRIC.expr[, match(METABRIC.meta$PATIENT_ID, colnames(METABRIC.expr))]
+    METABRIC.expr <- METABRIC.expr[, match(METABRIC.meta$PATIENT_ID, colnames(METABRIC.expr))]
 
-  prep_metabric_spongEffects<-list(METABRIC.expr,METABRIC.meta)
-  names(prep_metabric_spongEffects) <- c("METABRIC.expr","METABRIC.meta")
+    prep_metabric_spongEffects<-list(METABRIC.expr,METABRIC.meta)
+    names(prep_metabric_spongEffects) <- c("METABRIC.expr","METABRIC.meta")
 
-  return(prep_metabric_spongEffects)
+    return(prep_metabric_spongEffects)
 }
 
 #' prepare ceRNA network and network centralities from SPONGE / SPONGEdb
@@ -714,29 +715,28 @@ filter_ceRNA_network <- function(sponge_effects,
 
 
 
-  # Calculate weighted centrality scores and add them to the ones present in SpongeDB
-  #cancerType.Centrality <- gsub(" ", "_", cancerType)
+    # Calculate weighted centrality scores and add them to the ones present in SpongeDB
+    #cancerType.Centrality <- gsub(" ", "_", cancerType)
 
-  if(is.na(network_analysis))
-  {
-    sponge_network_centralites <- list(Sponge.filtered)
-    names(sponge_network_centralites) <- c("Sponge.filtered")
-  }
-  else
-  {
-    Node.Centrality <- network_analysis
-    Nodes <- fn_weighted_degree(Sponge.filtered, undirected = T, Alpha = 1)
+    if(is.na(network_analysis))
+    {
+        sponge_network_centralites <- list(Sponge.filtered)
+        names(sponge_network_centralites) <- c("Sponge.filtered")
+    }
+    else
+    {
+        Node.Centrality <- network_analysis
+        Nodes <- fn_weighted_degree(Sponge.filtered, undirected = T, Alpha = 1)
 
-    Node.Centrality <- Node.Centrality %>%
-      mutate(Weighted_Degree = Nodes$Weighted_degree[match(Node.Centrality$gene, Nodes$Nodes)])
-    sponge_network_centralites <- list(Sponge.filtered,Node.Centrality)
-    names(sponge_network_centralites) <- c("Sponge.filtered","Node.Centrality")
+        Node.Centrality <- Node.Centrality %>%
+            mutate(Weighted_Degree = Nodes$Weighted_degree[match(Node.Centrality$gene, Nodes$Nodes)])
+        sponge_network_centralites <- list(Sponge.filtered,Node.Centrality)
+        names(sponge_network_centralites) <- c("Sponge.filtered","Node.Centrality")
 
-  }
-  return(sponge_network_centralites)
+    }
+    return(sponge_network_centralites)
 
 }
-
 
 #' prepare ceRNA network and network centralities from SPONGE / SPONGEdb
 #' @import tidyverse
@@ -761,46 +761,46 @@ filter_ceRNA_network <- function(sponge_effects,
 #'
 #' @return top cutoff modules, with lncRNA as central genes
 get_central_modules <- function(bioMart_gene_ensembl,
-                               weighted_node_centrality,
-                               ceRNA_class = c("lncRNA","circRNA","protein_coding"),
-                               cutoff = 1000){
-  httr::set_config(httr::config(ssl_verifypeer = FALSE))
-  not_done=TRUE
-  while(not_done)
-  {
-    tryCatch({
-      ensembl=useMart("ensembl")
-      ensemblH = useDataset(bioMart_gene_ensembl,mart=ensembl)
-      Human.lncRNA = getBM(attributes=c("ensembl_gene_id","gene_biotype","description"), mart=ensemblH, useCache = FALSE)
+                                weighted_node_centrality,
+                                ceRNA_class = c("lncRNA","circRNA","protein_coding"),
+                                cutoff = 1000){
+    httr::set_config(httr::config(ssl_verifypeer = FALSE))
+    not_done=TRUE
+    while(not_done)
+    {
+        tryCatch({
+            ensembl=useMart("ensembl")
+            ensemblH = useDataset(bioMart_gene_ensembl,mart=ensembl)
+            Human.lncRNA = getBM(attributes=c("ensembl_gene_id","gene_biotype","description"), mart=ensemblH, useCache = FALSE)
 
-      not_done=FALSE
-    }, warning = function(w) {
-      print("WARNING SECTION")
-      print(w)
-    }, error = function(e) {
-      print("ERROR SECTION")
-      print(e)
-    }, finally = {
-    })
-  }
+            not_done=FALSE
+        }, warning = function(w) {
+            print("WARNING SECTION")
+            print(w)
+        }, error = function(e) {
+            print("ERROR SECTION")
+            print(e)
+        }, finally = {
+        })
+    }
 
-  all_ceRNAs <- Human.lncRNA
-  Human.lncRNA<-Human.lncRNA%>% dplyr::filter(gene_biotype %in% ceRNA_class)
+    all_ceRNAs <- Human.lncRNA
+    Human.lncRNA<-Human.lncRNA%>% dplyr::filter(gene_biotype %in% ceRNA_class)
 
-  c_interesting_ceRNAs<-Human.lncRNA$ensembl_gene_id
+    c_interesting_ceRNAs<-Human.lncRNA$ensembl_gene_id
 
-  if("circRNA" %in% ceRNA_class)
-  {
-      df_circRNAS_to_add <- weighted_node_centrality[ with(weighted_node_centrality, grepl("circ", gene) | grepl(":", gene) | grepl("chr", gene))]
-      c_interesting_ceRNAs<- c(c_interesting_ceRNAs,df_circRNAS_to_add$gene)
-  }
+    if("circRNA" %in% ceRNA_class)
+    {
+        df_circRNAS_to_add <- weighted_node_centrality[ with(weighted_node_centrality, grepl("circ", gene) | grepl(":", gene) | grepl("chr", gene))]
+        c_interesting_ceRNAs<- c(c_interesting_ceRNAs,df_circRNAS_to_add$gene)
+    }
 
-  Node.Centrality.weighted <- weighted_node_centrality %>%
-    dplyr::filter(gene %in% c_interesting_ceRNAs) %>%
-    dplyr::arrange(desc(Weighted_Degree)) %>%
-    dplyr::slice(1:cutoff)
+    Node.Centrality.weighted <- weighted_node_centrality %>%
+        dplyr::filter(gene %in% c_interesting_ceRNAs) %>%
+        dplyr::arrange(desc(Weighted_Degree)) %>%
+        dplyr::slice(1:cutoff)
 
-  return(Node.Centrality.weighted)
+    return(Node.Centrality.weighted)
 }
 
 #' tests and trains a model for a disease using a training and test data set
@@ -816,12 +816,11 @@ get_central_modules <- function(bioMart_gene_ensembl,
 #' @import cvms
 #' @import miRBaseConverter
 #'
-#' @param train_modules return from enrichment_modules() function
-#' @param train_modules_metadata TCGA-BRCA data
-#' @param test_modules return from enrichment_modules() function
-#' @param test_modules_metadata e.g., METABRIC data or other TCGA data
-#' @param test_modules_meta_data_type e.g. METABRIC or TCGA
-#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param modules return from enrichment_modules() function
+#' @param modules_metadata metadata table containing information about samples/patients
+#' @param label Column of metadata to use as label in classification model
+#' @param sampleIDs Column of metadata containing sample/patient IDs to be matched with column names of spongEffects scores
+#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
 #' @param tunegrid_c defines the grid for the hyperparameter optimization during
 #' cross validation (caret package) (default: 1:100)
 #' @param n_folds number of folds (default: 10)
@@ -830,64 +829,122 @@ get_central_modules <- function(bioMart_gene_ensembl,
 #' @export
 #'
 #' @return returns a list with the trained model and the prediction results
-train_and_test_model <- function(train_modules,
-                                 train_modules_metadata,
-                                 test_modules,
-                                 test_modules_metadata,
-                                 test_modules_meta_data_type = "TCGA",
-                                 metric = "Exact_match",
-                                 tunegrid_c = c(1:100),
-                                 n_folds = 10,
-                                 repetitions = 3){
+# train_and_test_model <- function(train_modules,
+#                                  train_modules_metadata,
+#                                  test_modules,
+#                                  test_modules_metadata,
+#                                  test_modules_meta_data_type = "TCGA",
+#                                  metric = "Exact_match",
+#                                  tunegrid_c = c(1:100),
+#                                  n_folds = 10,
+#                                  repetitions = 3){
+#
+#     BRCA.Modules.OE <- train_modules
+#     METABRIC.Modules.OE <-test_modules
+#     TCGA.meta.tumor = train_modules_metadata
+#     METABRIC.meta = test_modules_metadata
+#     Metric <- metric
+#
+#     #Find common modules
+#
+#     CommonModules <- intersect(rownames(BRCA.Modules.OE), rownames(METABRIC.Modules.OE))
+#     BRCA.Modules.OE <- BRCA.Modules.OE[CommonModules, ]
+#     METABRIC.Modules.OE <- METABRIC.Modules.OE[CommonModules, ]
+#
+#     # Train subtype classifier -------------------------------------------------------------
+#
+#     # Define input
+#     Inputdata.model <- t(BRCA.Modules.OE) %>% scale(center = T, scale = T) %>%
+#         as.data.frame()
+#     Inputdata.model <- Inputdata.model %>%
+#         mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model), TCGA.meta.tumor$sampleID)]))
+#     Inputdata.model <- Inputdata.model[! is.na(Inputdata.model$Class), ]
+#
+#     # Define hyperparameters
+#     Metric <- Metric
+#     tunegrid <- expand.grid(.mtry=tunegrid_c)
+#     n.folds <- n_folds # number of folds
+#     repetitions <- repetitions # number of k-fold cv iterations
+#
+#     # Calibrate model
+#     SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
+#
+#     #Test classification performance on second cohort
+#     METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
+#     if(test_modules_meta_data_type == "METABRIC"){
+#         Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
+#     }
+#     if(test_modules_meta_data_type == "TCGA"){
+#         Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$sampleID)]
+#     }
+#
+#     Input.Metabric <- t(METABRIC.Modules.OE) %>% scale(center = T, scale = T)
+#     Prediction.model <- predict(SpongingActivity.model$Model, Input.Metabric)
+#     Meta.metabric<-as.factor(Meta.metabric)
+#     SpongingActivity.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.model), Meta.metabric)
+#
+#     prediction_model<-list(SpongingActivity.model,Prediction.model)
+#     names(prediction_model) <- c("SpongingActivity.model","Prediction.model")
+#
+#     return(prediction_model)
+# }
 
-    BRCA.Modules.OE <- train_modules
-    METABRIC.Modules.OE <-test_modules
-    TCGA.meta.tumor = train_modules_metadata
-    METABRIC.meta = test_modules_metadata
-    Metric <- metric
+#' Calibrate classification RF classification model
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import cvms
+#' @import miRBaseConverter
+#'
+#' @param modules return from enrichment_modules() function
+#' @param modules_metadata metadata table containing information about samples/patients
+#' @param label Column of metadata to use as label in classification model
+#' @param sampleIDs Column of metadata containing sample/patient IDs to be matched with column names of spongEffects scores
+#' @param Metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param tunegrid_c defines the grid for the hyperparameter optimization during
+#' cross validation (caret package) (default: 1:100)
+#' @param n_folds number of folds (default: 10)
+#' @param repetitions  number of k-fold cv iterations (default: 3)
+#'
+#' @export
+#'
+#' @return returns a list with the trained model and the prediction results
+calibrate_model <- function(modules,
+                            modules_metadata,
+                            label,
+                            sampleIDs,
+                            Metric = "Exact_match",
+                            tunegrid_c = c(1:100),
+                            n_folds = 10,
+                            repetitions = 3){
 
-    #Find common modules
+    if (label %in% colnames(modules_metadata) & sampleIDs %in% colnames(modules_metadata)) {
 
-    CommonModules <- intersect(rownames(BRCA.Modules.OE), rownames(METABRIC.Modules.OE))
-    BRCA.Modules.OE <- BRCA.Modules.OE[CommonModules, ]
-    METABRIC.Modules.OE <- METABRIC.Modules.OE[CommonModules, ]
+        # Train subtype classifier -------------------------------------------------------------
+        # Define input
+        Inputdata.model <- t(modules) %>% scale(center = T, scale = T) %>%
+            as.data.frame()
+        Inputdata.model <- Inputdata.model %>%
+            mutate(Class = as.factor(modules_metadata[match(rownames(Inputdata.model), TCGA.meta.tumor[,sampleIDs]), label]))
+        Inputdata.model <- Inputdata.model[! is.na(Inputdata.model$Class), ]
 
-    # Train subtype classifier -------------------------------------------------------------
+        # Define hyperparameters
+        Metric <- Metric
+        tunegrid <- expand.grid(.mtry=tunegrid_c)
+        n.folds <- n_folds # number of folds
+        repetitions <- repetitions # number of k-fold cv iterations
 
-    # Define input
-    Inputdata.model <- t(BRCA.Modules.OE) %>% scale(center = T, scale = T) %>%
-        as.data.frame()
-    Inputdata.model <- Inputdata.model %>%
-        mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model), TCGA.meta.tumor$sampleID)]))
-    Inputdata.model <- Inputdata.model[! is.na(Inputdata.model$Class), ]
+        # Calibrate model
+        SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
 
-    # Define hyperparameters
-    Metric <- Metric
-    tunegrid <- expand.grid(.mtry=tunegrid_c)
-    n.folds <- n_folds # number of folds
-    repetitions <- repetitions # number of k-fold cv iterations
+        return(prediction_model)
 
-    # Calibrate model
-    SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
-
-    #Test classification performance on second cohort
-    METABRIC.Modules.OE <- METABRIC.Modules.OE[ ,complete.cases(t(METABRIC.Modules.OE))]
-    if(test_modules_meta_data_type == "METABRIC"){
-        Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$PATIENT_ID)]
-    }
-    if(test_modules_meta_data_type == "TCGA"){
-        Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.Modules.OE), METABRIC.meta$sampleID)]
-    }
-
-    Input.Metabric <- t(METABRIC.Modules.OE) %>% scale(center = T, scale = T)
-    Prediction.model <- predict(SpongingActivity.model$Model, Input.Metabric)
-    Meta.metabric<-as.factor(Meta.metabric)
-    SpongingActivity.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.model), Meta.metabric)
-
-    prediction_model<-list(SpongingActivity.model,Prediction.model)
-    names(prediction_model) <- c("SpongingActivity.model","Prediction.model")
-
-    return(prediction_model)
+    } else {print("label and/or sampleIDs must be columns in metadata")}
 }
 
 #' build classifiers for central genes
@@ -1014,100 +1071,170 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @param min.expr minimum expression (default: 10)
 #' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
 #' Variation Analysis: GSVA) (default: OE)
+#' @param cores number of cores to be used to calculate entichment scores with gsva or ssgsea methods. Default 1
 #' @param replace Possibility of keeping or removing (default) central
-#' genes in the modules (default: T)
+#' genes in the modules (default: F)
 #'
 #' @export
 #'
 #' @return randomized prediction model
-build_classifier_random<-function(sponge_modules,
-                                  train_gene_expr,
-                                  test_gene_expr,
-                                  train_meta_data,
-                                  test_meta_data,
-                                  train_meta_data_type="TCGA",
-                                  test_meta_data_type="TCGA",
-                                  metric="Exact_match",
-                                  tunegrid_c=c(1:100),
-                                  n.folds = 10,
-                                  repetitions=3,
-                                  min.size = 10,
-                                  bin.size = 100,
-                                  max.size = 200,
-                                  min.expression=10,
-                                  replace = F,
-                                  method = "OE"){
+# build_classifier_random<-function(sponge_modules,
+#                                   train_gene_expr,
+#                                   test_gene_expr,
+#                                   train_meta_data,
+#                                   test_meta_data,
+#                                   train_meta_data_type="TCGA",
+#                                   test_meta_data_type="TCGA",
+#                                   metric="Exact_match",
+#                                   tunegrid_c=c(1:100),
+#                                   n.folds = 10,
+#                                   repetitions=3,
+#                                   min.size = 10,
+#                                   bin.size = 100,
+#                                   max.size = 200,
+#                                   min.expression=10,
+#                                   replace = F,
+#                                   method = "OE"){
+#
+#     Sponge.modules<- sponge_modules
+#     Metric<-metric
+#
+#     Sizes.modules <- lengths(Sponge.modules)
+#
+#     TCGA.expr.tumor<-train_gene_expr
+#     METABRIC.expr<-test_gene_expr
+#     TCGA.meta.tumor<-train_meta_data
+#     METABRIC.meta<-test_meta_data
+#
+#     tunegrid<-expand.grid(.mtry=tunegrid_c)
+#
+#     # Define random modules
+#     Random.Modules <- list()
+#
+#     for(j in 1:length(Size.modules)) {
+#         Module.Elements <-  sample.int(n = nrow(TCGA.expr.tumor), size = Size.modules[j],
+#                                        replace = replace)
+#         # print(Module.Elements)
+#         Random.Modules[[j]] <- rownames(TCGA.expr.tumor)[Module.Elements]
+#     }
+#     names(Random.Modules) <- names(Sponge.modules)
+#
+#     # Calculate enrichment scores for BRCA and METABRIC
+#     BRCA.RandomModules.OE <- enrichment_modules(TCGA.expr.tumor, Random.Modules,
+#                                                 bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
+#     METABRIC.RandomModules.OE <- enrichment_modules(METABRIC.expr, Random.Modules,
+#                                                     bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
+#
+#     #Find common modules
+#
+#     CommonModules <- intersect(rownames(BRCA.RandomModules.OE), rownames(METABRIC.RandomModules.OE))
+#     BRCA.RandomModules.OE <- BRCA.RandomModules.OE[CommonModules, ]
+#     METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[CommonModules, ]
+#
+#     # Train model
+#     Inputdata.model.RANDOM <- t(BRCA.RandomModules.OE) %>% scale(center = T, scale = T) %>%
+#         as.data.frame()
+#
+#     if(train_meta_data_type=="TCGA"){
+#         Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
+#             mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$sampleID)]))
+#     }
+#     if(train_meta_data_type=="METABRIC"){
+#         Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
+#             mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$PATIENT_ID)]))
+#     }
+#
+#     Inputdata.model.RANDOM <- Inputdata.model.RANDOM[! is.na(Inputdata.model.RANDOM$Class), ]
+#
+#     Random.model <- fn_RF_classifier(Inputdata.model.RANDOM, n.folds, repetitions, metric = Metric, tunegrid)
+#
+#     #Test classification performance on second cohort
+#     METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[ ,complete.cases(t(METABRIC.RandomModules.OE))]
+#
+#     if(test_meta_data_type=="TCGA"){
+#         Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$sampleID)]
+#     }
+#     if(test_meta_data_type=="METABRIC"){
+#         Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$PATIENT_ID)]
+#     }
+#
+#     Input.Metabric.random <- t(METABRIC.RandomModules.OE) %>% scale(center = T, scale = T)
+#     Prediction.random.model <- predict(Random.model$Model, Input.Metabric.random)
+#     Random.model$Prediction.model <- Prediction.random.model
+#     Random.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.random.model), Meta.metabric)
+#
+#     return(Random.model)
+# }
 
-    Sponge.modules<- sponge_modules
-    Metric<-metric
+#' Define random modules
+#'
+#' @import tidyverse
+#' @import caret
+#' @import dplyr
+#' @import Biobase
+#' @import biomaRt
+#' @import randomForest
+#' @import ggridges
+#' @import cvms
+#' @import miRBaseConverter
+#'
+#' @param sponge_modules result of define_modules()
+#' @param train_gene_expr expression data of train dataset,
+#' genenames must be in rownames
+#' @param test_gene_expr expression data of test dataset,
+#' genenames must be in rownames
+#' @param train_meta_data meta data of train dataset
+#' @param test_meta_data meta data of test dataset
+#' @param train_meta_data_type TCGA or METABRIC
+#' @param test_meta_data_type TCGA or METABRIC
+#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
+#' @param tunegrid_c defines the grid for the hyperparameter optimization during
+#' cross validation (caret package) (default: 1:100)
+#' @param n.folds number of folds to be calculated
+#' @param repetitions  number of k-fold cv iterations (default: 3)
+#'
+#' @param bin.size bin size (default: 100)
+#' @param min.size minimum module size (default: 10)
+#' @param max.size maximum module size (default: 200)
+#' @param min.expr minimum expression (default: 10)
+#' @param method Enrichment to be used (Overall Enrichment: OE or Gene Set
+#' Variation Analysis: GSVA) (default: OE)
+#' @param cores number of cores to be used to calculate entichment scores with gsva or ssgsea methods. Default 1
+#' @param replace Possibility of keeping or removing (default) central
+#' genes in the modules (default: F)
+#'
+#' @export
+#'
+#' @return randomized prediction model
+Random_spongEffects<-function(sponge_modules,
+                              gene_expr,
+                              min.size = 10,
+                              bin.size = 100,
+                              max.size = 200,
+                              min.expression=10,
+                              replace = F,
+                              method = "OE",
+                              cores = 1){
 
-    Sizes.modules <- lengths(Sponge.modules)
-
-    TCGA.expr.tumor<-train_gene_expr
-    METABRIC.expr<-test_gene_expr
-    TCGA.meta.tumor<-train_meta_data
-    METABRIC.meta<-test_meta_data
-
-    tunegrid<-expand.grid(.mtry=tunegrid_c)
+    Size.modules = sapply(sponge_modules, length)
 
     # Define random modules
     Random.Modules <- list()
 
     for(j in 1:length(Size.modules)) {
-        Module.Elements <-  sample.int(n = nrow(TCGA.expr.tumor), size = Size.modules[j],
+        Module.Elements <-  sample.int(n = nrow(gene_expr), size = Size.modules[j],
                                        replace = replace)
         # print(Module.Elements)
-        Random.Modules[[j]] <- rownames(TCGA.expr.tumor)[Module.Elements]
+        Random.Modules[[j]] <- rownames(gene_expr)[Module.Elements]
     }
     names(Random.Modules) <- names(Sponge.modules)
 
-    # Calculate enrichment scores for BRCA and METABRIC
-    BRCA.RandomModules.OE <- enrichment_modules(TCGA.expr.tumor, Random.Modules,
-                                                bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
-    METABRIC.RandomModules.OE <- enrichment_modules(METABRIC.expr, Random.Modules,
-                                                    bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression)
+    # Calculate enrichment scores with chosen method
+    Random.modules <- enrichment_modules(gene_expr, Random.Modules,
+                                         bin.size = bin.size, min.size = min.size, max.size = max.size, method = method, min.expr =  min.expression, cores)
 
-    #Find common modules
-
-    CommonModules <- intersect(rownames(BRCA.RandomModules.OE), rownames(METABRIC.RandomModules.OE))
-    BRCA.RandomModules.OE <- BRCA.RandomModules.OE[CommonModules, ]
-    METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[CommonModules, ]
-
-    # Train model
-    Inputdata.model.RANDOM <- t(BRCA.RandomModules.OE) %>% scale(center = T, scale = T) %>%
-        as.data.frame()
-
-    if(train_meta_data_type=="TCGA"){
-        Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
-            mutate(Class = as.factor(TCGA.meta.tumor$SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$sampleID)]))
-    }
-    if(train_meta_data_type=="METABRIC"){
-        Inputdata.model.RANDOM <- Inputdata.model.RANDOM %>%
-            mutate(Class = as.factor(TCGA.meta.tumor$CLAUDIN_SUBTYPE[match(rownames(Inputdata.model.RANDOM), TCGA.meta.tumor$PATIENT_ID)]))
-    }
-
-    Inputdata.model.RANDOM <- Inputdata.model.RANDOM[! is.na(Inputdata.model.RANDOM$Class), ]
-
-    Random.model <- fn_RF_classifier(Inputdata.model.RANDOM, n.folds, repetitions, metric = Metric, tunegrid)
-
-    #Test classification performance on second cohort
-    METABRIC.RandomModules.OE <- METABRIC.RandomModules.OE[ ,complete.cases(t(METABRIC.RandomModules.OE))]
-
-    if(test_meta_data_type=="TCGA"){
-        Meta.metabric <- METABRIC.meta$SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$sampleID)]
-    }
-    if(test_meta_data_type=="METABRIC"){
-        Meta.metabric <- METABRIC.meta$CLAUDIN_SUBTYPE[match(colnames(METABRIC.RandomModules.OE), METABRIC.meta$PATIENT_ID)]
-    }
-
-    Input.Metabric.random <- t(METABRIC.RandomModules.OE) %>% scale(center = T, scale = T)
-    Prediction.random.model <- predict(Random.model$Model, Input.Metabric.random)
-    Random.model$Prediction.model <- Prediction.random.model
-    Random.model$ConfusionMatrix_testing <- confusionMatrix(as.factor(Prediction.random.model), Meta.metabric)
-
-    return(Random.model)
+    return(Random.modules)
 }
-
 
 #' plots the top x gini index modules (see Boniolo and Hoffmann 2022 et al. Figure 5)
 #'
@@ -1489,15 +1616,15 @@ plot_confusion_matrices <- function(trained_model,
                                                     predictions = Prediction.SpongeModules$Predicted)
 
     Confusion.matrix.SpongeModules <- cvms::plot_confusion_matrix(Prediction.SpongeModules.cm$`Confusion Matrix`[[1]],
-                                                            add_sums = T,
-                                                            add_normalized = FALSE,
-                                                            add_col_percentages = FALSE,
-                                                            add_row_percentages = FALSE,
-                                                            sums_settings = sum_tile_settings(
-                                                                palette = "Oranges",
-                                                                label = "Total",
-                                                                tc_tile_border_color = "black"),
-                                                            darkness = 0)
+                                                                  add_sums = T,
+                                                                  add_normalized = FALSE,
+                                                                  add_col_percentages = FALSE,
+                                                                  add_row_percentages = FALSE,
+                                                                  sums_settings = sum_tile_settings(
+                                                                      palette = "Oranges",
+                                                                      label = "Total",
+                                                                      tc_tile_border_color = "black"),
+                                                                  darkness = 0)
 
     return(Confusion.matrix.SpongeModules)
 }
@@ -1870,6 +1997,4 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
     #draw(heatmap.miRNA, heatmap_legend_side = "bottom",
     #     annotation_legend_side = "bottom")
 }
-
-
 

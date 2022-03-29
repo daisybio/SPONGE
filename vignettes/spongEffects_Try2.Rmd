@@ -1,0 +1,188 @@
+---
+title: "spongeEffects.Rmd"
+author: "Hoffmann M"
+date: "2/10/2022"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteEncoding{UTF-8}
+---
+  
+  ## (A) Loading dependencies for spongEffects
+  
+  We start with loading the package and its dependencies
+
+```{r, warning=FALSE, message=FALSE}
+library(SPONGE)
+library(doParallel)
+library(foreach)
+
+#if you want to use parallelization, you can register your backend here
+num.of.cores <- 4 #many more on a compute cluster
+cl <- makeCluster(num.of.cores) 
+registerDoParallel(cl)
+```
+
+## (B) Formats of input data necessary for spongEffect
+
+spongEffects comes with a very small example gene and miRNA expression dataset useful for illustrating functionality. We provide gene and miRNA expression datasets for train and test data. We also provide a small ceRNA network, gene-miRNA candidates, centrality measures (of the ceRNA network), and a small metadata for this example (the ceRNA network and the centrality measures were created using the SPONGE vignette).
+
+After loading the package, the example datasets can be accessed:
+  ### Gene expression:
+  #### Train:
+  ```{r, eval=FALSE}
+head(train_cancer_gene_expr)
+```
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(train_cancer_gene_expr[1:5,1:8])
+```
+
+### miRNA expression:
+#### Train
+```{r, eval=FALSE}
+head(train_cancer_mir_expr)
+```
+
+```{r, warning=FALSE, message=FALSE}
+knitr::kable(train_cancer_mir_expr[1:5,1:8])
+```
+
+### ceRNA network
+```{r, eval=FALSE}
+head(train_ceRNA_interactions)
+```
+
+```{r, warning=FALSE, message=FALSE}
+knitr::kable(train_ceRNA_interactions[1:5,1:8])
+```
+
+### gene-miRNA-candidates (output of SPONGE or SPONGEdb)
+```{r, eval=FALSE}
+head(train_genes_miRNA_candidates)
+```
+
+### centrality measures (of the ceRNA network)
+```{r, eval=FALSE}
+head(train_network_centralities)
+```
+
+```{r, warning=FALSE, message=FALSE}
+knitr::kable(train_network_centralities[1:5,1:5])
+```
+
+### specification of meta data (e.g., subtypes of a cancer, column name of the subtypes is important) (format name = TCGA)
+#### Train
+```{r, eval=FALSE}
+head(train_cancer_metadata)
+```
+
+```{r, warning=FALSE, message=FALSE}
+knitr::kable(train_cancer_metadata[1:5,1:8])
+```
+
+## (C) Filter ceRNA network
+
+We now want to filter the network to only use significant ceRNA interactions
+
+```{r message=FALSE, warning=FALSE}
+filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_interactions, network_analysis = train_network_centralities, mscor.threshold = 0.01, padj.threshold = 0.1)
+```
+
+## (D) Discover modules
+
+We now want to discover spongEffects modules, here you can choose, if you want lncRNAs, circRNAs, protein_coding or a combination of those classes to be the central of a module.
+```{r, warning=FALSE, message=FALSE}
+
+central_gene_modules<-get_central_modules(bioMart_gene_ensembl = "hsapiens_gene_ensembl", weighted_node_centrality = filtered_network_centralities$Node.Centrality,ceRNA_class = c("protein_coding"), cutoff = 100)
+
+```
+
+## (E) Define Modules 
+
+Here, we search for the surrounding ceRNAs (all ceRNA classes are now considered).
+```{r, warning=FALSE, message=FALSE}
+
+Sponge.modules <- define_modules(network = filtered_network_centralities$Sponge.filtered, central.modules = central_gene_modules, remove.central = F, set.parallel = F)
+# Module size distribution
+Size.modules <- sapply(Sponge.modules, length)
+
+```
+
+## (F) Calculate Enrichment Scores (OE)
+### Train:
+```{r, warning=FALSE, message=FALSE}
+
+#Either method="OE" (OverallEnrichment) or method="GSVA" (Gene Set Variation Analysis)
+#We used OE in our Boniolo and Hoffmann et al., 2022
+
+train.modules <- enrichment_modules(gene_expr = train_cancer_gene_expr, modules = Sponge.modules, bin.size = 10, min.size = 1, max.size = 2000, min.expr = 1, method = "OE")
+
+```
+
+## (G) 1. Train with random forests classifier
+```{r, warning=FALSE, message=FALSE}
+trained.model = calibrate_model(modules = train.modules, modules_metadata = train_cancer_metadata, label = "Subtype", sampleIDs = "PatientIDs",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+```
+
+## (J) 2. Define random modules and calcualte spongEffects scores
+```{r}
+# Define random modules
+Random.modules <- Random_spongEffects(sponge_modules = Sponge.modules,
+                                      gene_expr = train.modules, min.size = 10,bin.size = 100,
+                                      max.size = 200,min.expression=10, replace = F,
+                                      method = "OE",cores = 1)
+```
+
+# Train classification model on randomly defined modules
+```{r, warning=FALSE, message=FALSE}
+Random.model = calibrate_model(modules = Random.modules, modules_metadata = train_cancer_metadata, label = "Subtype", sampleIDs = "PatientIDs",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+```
+
+# creation of a combined 
+```{r, warning=FALSE, message=FALSE}
+```
+
+## (K) Plot top k modules
+```{r, warning=FALSE, message=FALSE}
+lollipop_plot=plot_top_modules(trained_model=trained.model, k_modules_red = 2, k_modules = 4)
+```
+
+## (L) Density of module scores
+```{r, warning=FALSE, message=FALSE}
+density_plot_train=plot_density_scores(trained_model=trained.model,modules = train.modules,meta_data =train_cancer_metadata,subtypes = unique(train_cancer_metadata$SUBTYPE))
+density_plot_test=plot_density_scores(trained_model=trained.model,modules = test.modules, meta_data = test_cancer_metadata,subtypes = unique(test_cancer_metadata$SUBTYPE))
+```
+
+## (M) plot accuracy, sensitiviy, and specificity
+```{r, warning=FALSE, message=FALSE}
+metric_plot_list<-plot_accuracy_sensitivity_specificity(trained_model = trained.model,central_genes_model = central.genes.model,random_model = random.model,training_dataset_name = "TCGA",testing_dataset_name = "METABRIC",subtypes = tcga_subtypes)
+
+```
+
+## (N) plot confusion matrices
+```{r, warning=FALSE, message=FALSE}
+conf_matrix_trained<-plot_confusion_matrices(trained_model = trained.model, subtypes.testing.factors = as.factor(test_cancer_metadata$SUBTYPE))
+conf_matrix_random<-plot_confusion_matrices(trained_model = random.model,subtypes.testing.factors = as.factor(test_cancer_metadata$SUBTYPE))
+```
+
+## (O) plot module heatmaps
+## TODO: METABRIC NOT WORKING! HAVE TO FIND BUG
+```{r, warning=FALSE, message=FALSE}
+
+tcga.heatmap<-plot_heatmaps_training_test(trained_model = trained.model, sponge_modules = Sponge.modules,enrichment_modules = BRCA.Modules.OE, meta_data = prep_list_tcga_spongEffects$TCGA.meta.tumor,meta_data_type = "TCGA",subtypes = tcga_subtypes)
+#metabric.heatmap<-plot_heatmaps_training_test(trained_model = trained.model, sponge_modules = Sponge.modules,enrichment_modules = METABRIC.Modules.OE, meta_data = prep_list_METABRIC_spongEffects$METABRIC.meta, meta_data_type = "METABRIC",subtypes = tcga_subtypes)
+
+```
+
+## (P) plot miRNA to modules heatmap
+```{r, warning=FALSE, message=FALSE}
+plot_involved_miRNAs_to_modules(sponge_modules = Sponge.modules, trained_model = trained.model,gene_mirna_candidates =train_genes_miRNA_candidates, k_modules=4)
+```
+
+## (Q) stop the cluster for parallelization
+```{r, warning=FALSE, message=FALSE}
+#stop your backend parallelisation if registered
+stopCluster(cl) 
+```
