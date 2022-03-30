@@ -930,7 +930,7 @@ calibrate_model <- function(modules,
         Inputdata.model <- t(modules) %>% scale(center = T, scale = T) %>%
             as.data.frame()
         Inputdata.model <- Inputdata.model %>%
-            mutate(Class = as.factor(modules_metadata[match(rownames(Inputdata.model), TCGA.meta.tumor[,sampleIDs]), label]))
+            mutate(Class = as.factor(modules_metadata[match(rownames(Inputdata.model), modules_metadata[,sampleIDs]), label]))
         Inputdata.model <- Inputdata.model[! is.na(Inputdata.model$Class), ]
 
         # Define hyperparameters
@@ -942,7 +942,7 @@ calibrate_model <- function(modules,
         # Calibrate model
         SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
 
-        return(prediction_model)
+        return(SpongingActivity.model)
 
     } else {print("label and/or sampleIDs must be columns in metadata")}
 }
@@ -1179,20 +1179,7 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @import miRBaseConverter
 #'
 #' @param sponge_modules result of define_modules()
-#' @param train_gene_expr expression data of train dataset,
-#' genenames must be in rownames
-#' @param test_gene_expr expression data of test dataset,
-#' genenames must be in rownames
-#' @param train_meta_data meta data of train dataset
-#' @param test_meta_data meta data of test dataset
-#' @param train_meta_data_type TCGA or METABRIC
-#' @param test_meta_data_type TCGA or METABRIC
-#' @param metric metric (Exact_match, Accuracy) (default: Exact_match)
-#' @param tunegrid_c defines the grid for the hyperparameter optimization during
-#' cross validation (caret package) (default: 1:100)
-#' @param n.folds number of folds to be calculated
-#' @param repetitions  number of k-fold cv iterations (default: 3)
-#'
+#' @param gene_expr Input expression matri
 #' @param bin.size bin size (default: 100)
 #' @param min.size minimum module size (default: 10)
 #' @param max.size maximum module size (default: 200)
@@ -1272,32 +1259,30 @@ plot_top_modules <- function(trained_model,
                              bioMart_gene_symbol_columns = "hgnc_symbol",
                              bioMart_gene_ensembl = "hsapiens_gene_ensembl") {
 
-    SpongingActiivty.model <-trained.model$SpongingActivity.model
-    trained.model<-trained_model
-
-    final.model <- SpongingActiivty.model$Model$finalModel
+    final.model <- trained.model$Model$finalModel
     Variable.importance <- importance(final.model) %>% as.data.frame() %>%
         arrange(desc(MeanDecreaseGini)) %>%
         tibble::rownames_to_column('Module')
 
-    mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
-    genes <- Variable.importance$Module
-    G_list <- getBM(filters = "ensembl_gene_id",
-                    attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
-                    values = genes, mart = mart, useCache = FALSE)
-
-    Variable.importance <- Variable.importance %>%
-        mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
-               Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
+    # Change gene names (deprecated, too slow)
+    # mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
+    # genes <- Variable.importance$Module
+    # G_list <- getBM(filters = "ensembl_gene_id",
+    #                 attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
+    #                 values = genes, mart = mart, useCache = FALSE)
+    #
+    # Variable.importance <- Variable.importance %>%
+    #     mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
+    #            Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
 
     grey_modules=k_modules-k_modules_red
 
     p<-Variable.importance[1:k_modules, ] %>%
         mutate(Analysed = c(rep("1", k_modules_red), rep("0",grey_modules))) %>%
         arrange(desc(MeanDecreaseGini)) %>%
-        ggplot(aes(x=reorder(Name_lncRNA_Results, MeanDecreaseGini), y=MeanDecreaseGini)) +
+        ggplot(aes(x=reorder(Module, MeanDecreaseGini), y=MeanDecreaseGini)) +
         geom_point() +
-        geom_segment( aes(x=Name_lncRNA_Results, xend=Name_lncRNA_Results, y=0, yend=MeanDecreaseGini, color = Analysed)) +
+        geom_segment( aes(x=Module, xend=Name_lncRNA_Results, y=0, yend=MeanDecreaseGini, color = Analysed)) +
         scale_colour_manual(values=c("red", "black"), breaks = c("1", "0")) +
         coord_flip()+
         xlab("Module") +
@@ -1312,9 +1297,6 @@ plot_top_modules <- function(trained_model,
             legend.background = element_blank(),
             legend.direction="horizontal",
             panel.border = element_rect(colour = "black", fill=NA, size=1),
-            # axis.text=element_text(size=12),
-            # axis.title=element_text(size=12), #,face="bold"
-            # legend.text=element_text(size=12),
             text=element_text(size=16)
         )
 
@@ -1339,91 +1321,38 @@ plot_top_modules <- function(trained_model,
 #' @import tidyr
 #'
 #' @param trained_model returned from train_and_test_model
-#' @param modules output of enrichment_modules()
+#' @param spongEffects output of enrichment_modules()
 #' @param meta_data metadata of samples
 #' (retrieved from prepare_tcga_for_spongEffects() or
 #' from prepare_metabric_for_spongEffects())
 #' @param meta_data_type TCGA or METABRIC
-#' @param subtypes array of subtypes
-#' (e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))
-#' @param bioMart_gene_symbol_columns bioMart dataset column for gene symbols
-#' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
-#' (default: hgnc_symbol)
-#' @param bioMart_gene_ensembl bioMart gene ensemble name
-#' (e.g., hsapiens_gene_ensembl).
+#' @param label Column of metadata to use as label in classification model
+#' @param sampleIDs Column of metadata containing sample/patient IDs to be matched with column names of spongEffects scores
+
 #'
 #' @export
 #'
 #' @return plots density scores for subtypes
 plot_density_scores <- function(trained_model,
-                                modules,
+                                spongEffects,
                                 meta_data,
-                                meta_data_type="TCGA",
-                                subtypes,
-                                bioMart_gene_symbol_columns = "hgnc_symbol",
-                                bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
+                                label,
+                                sampleIDs){
     ##FIGURE 2
-    trained.model<-trained_model
-    data_type<-meta_data_type
+    if (label %in% colnames(meta_data) & sampleIDs %in% colnames(meta_data)) {
+        title<-paste0("spongEffects scores")
 
-    title<-paste0("spongEffects - ",data_type," (Training)")
+        final.model <- trained_model$Model$finalModel
+        Variable.importance <- importance(final.model) %>% as.data.frame() %>%
+            arrange(desc(MeanDecreaseGini)) %>%
+            tibble::rownames_to_column('Module')
 
-    SpongingActiivty.model <-trained.model$SpongingActivity.model
-
-    final.model <- SpongingActiivty.model$Model$finalModel
-    Variable.importance <- importance(final.model) %>% as.data.frame() %>%
-        arrange(desc(MeanDecreaseGini)) %>%
-        tibble::rownames_to_column('Module')
-
-    mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
-    genes <- Variable.importance$Module
-    G_list <- getBM(filters = "ensembl_gene_id",
-                    attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
-                    values = genes, mart = mart, useCache = FALSE)
-
-    Variable.importance <- Variable.importance %>%
-        mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
-               Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
-
-    if (data_type=="TCGA") {
-
-        BRCA.Modules.OE<-modules
-        TCGA.meta.tumor=meta_data
-
-        TCGA.meta.tumor$SUBTYPE <- factor(TCGA.meta.tumor$SUBTYPE, levels = subtypes)
-        DrivingModules.BRCA <- BRCA.Modules.OE[rownames(BRCA.Modules.OE) %in% Variable.importance$Module, ] %>%
+        Density.plot <- spongEffects[rownames(spongEffects) %in% Variable.importance$Module, ] %>%
             gather(Patient, Score) %>%
-            mutate(Class = TCGA.meta.tumor$SUBTYPE[match(Patient, TCGA.meta.tumor$sampleID)]) %>%
+            mutate(Class = meta_data[match(Patient, meta_data[,sampleIDs]), label]) %>%
             ggplot(aes(x = Score, y = Class, fill = Class)) +
             geom_density_ridges() +
             xlab(title) +
-            scale_fill_manual(values=met.brewer("Hokusai2", 5)) +
-            theme_bw() +
-            theme(panel.grid.major.x = element_blank(),
-                  panel.grid.minor.x = element_blank(),
-                  axis.ticks.y = element_blank(),
-                  legend.position = "none",
-                  panel.border = element_rect(colour = "black", fill=NA, size=1),
-                  axis.text=element_text(size=25), axis.text.x = element_text(color = "black"),
-                  axis.text.y = element_text(color = "black"),
-                  axis.title.y =element_text(size=30),
-                  axis.title.x =element_text(size=30))
-        return(DrivingModules.BRCA)
-    }
-
-    if(data_type=="METABRIC"){
-
-        METABRIC.Modules.OE<-modules
-        METABRIC.meta=meta_data
-
-        METABRIC.meta$CLAUDIN_SUBTYPE <- factor(METABRIC.meta$CLAUDIN_SUBTYPE, levels = subtypes)
-        DrivingModules.METABRIC <- METABRIC.Modules.OE[rownames(METABRIC.Modules.OE) %in% Variable.importance$Module, ] %>%
-            gather(Patient, Score) %>%
-            mutate(Class = METABRIC.meta$CLAUDIN_SUBTYPE[match(Patient, METABRIC.meta$PATIENT_ID)]) %>%
-            ggplot(aes(x = Score, y = Class, fill = Class)) +
-            geom_density_ridges() +
-            xlab(title) +
-            scale_fill_manual(values=met.brewer("OKeeffe2", 5)) +
             theme_bw() +
             theme(panel.grid.major.x = element_blank(),
                   panel.grid.minor.x = element_blank(),
@@ -1435,12 +1364,8 @@ plot_density_scores <- function(trained_model,
                   axis.title.y =element_text(size=30),
                   axis.title.x =element_text(size=30))
 
-        return(DrivingModules.METABRIC)
-    }
-
-
-
-
+        return(Density.plot)
+    } else {print("label and/or sampleIDs must be columns in metadata")}
 }
 #' list of plots for (1) accuracy and (2) sensitivity + specificity
 #' (see Boniolo and Hoffmann 2022 et al. Fig. 3a and Fig. 3b)
