@@ -29,31 +29,18 @@ registerDoParallel(cl)
 spongEffects comes with a very small example gene and miRNA expression dataset useful for illustrating functionality. We provide gene and miRNA expression datasets for train and test data. We also provide a small ceRNA network, gene-miRNA candidates, centrality measures (of the ceRNA network), and a small metadata for this example (the ceRNA network and the centrality measures were created using the SPONGE vignette).
 
 After loading the package, the example datasets can be accessed:
-  ### Gene expression:
-  #### Train:
-  ```{r, eval=FALSE}
-head(train_cancer_gene_expr)
-```
-
+### Gene expression:
 ```{r, echo=FALSE, results='asis'}
 knitr::kable(train_cancer_gene_expr[1:5,1:8])
 ```
 
 ### miRNA expression:
 #### Train
-```{r, eval=FALSE}
-head(train_cancer_mir_expr)
-```
-
 ```{r, warning=FALSE, message=FALSE}
 knitr::kable(train_cancer_mir_expr[1:5,1:8])
 ```
 
 ### ceRNA network
-```{r, eval=FALSE}
-head(train_ceRNA_interactions)
-```
-
 ```{r, warning=FALSE, message=FALSE}
 knitr::kable(train_ceRNA_interactions[1:5,1:8])
 ```
@@ -64,26 +51,17 @@ head(train_genes_miRNA_candidates)
 ```
 
 ### centrality measures (of the ceRNA network)
-```{r, eval=FALSE}
-head(train_network_centralities)
-```
-
 ```{r, warning=FALSE, message=FALSE}
 knitr::kable(train_network_centralities[1:5,1:5])
 ```
 
 ### specification of meta data (e.g., subtypes of a cancer, column name of the subtypes is important) (format name = TCGA)
 #### Train
-```{r, eval=FALSE}
-head(train_cancer_metadata)
-```
-
 ```{r, warning=FALSE, message=FALSE}
 knitr::kable(train_cancer_metadata[1:5,1:8])
 ```
 
 ## (C) Filter ceRNA network
-
 We now want to filter the network to only use significant ceRNA interactions
 
 ```{r message=FALSE, warning=FALSE}
@@ -123,25 +101,25 @@ train.modules <- enrichment_modules(gene_expr = train_cancer_gene_expr, modules 
 
 ## (G) 1. Train with random forests classifier
 ```{r, warning=FALSE, message=FALSE}
-trained.model = calibrate_model(modules = train.modules, modules_metadata = train_cancer_metadata, label = "Subtype", sampleIDs = "PatientIDs",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+trained.model = calibrate_model(modules = train.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
 ```
 
 ## (J) 2. Define random modules and calcualte spongEffects scores
 ```{r}
 # Define random modules
 Random.modules <- Random_spongEffects(sponge_modules = Sponge.modules,
-                                      gene_expr = train.modules, min.size = 10,bin.size = 100,
-                                      max.size = 200,min.expression=10, replace = F,
-                                      method = "OE",cores = 1)
+                                      gene_expr = train_cancer_gene_expr, min.size = 1,bin.size = 10, max.size = 200,
+                                      min.expression=1, replace = F,method = "OE",cores = 1)
 ```
 
 # Train classification model on randomly defined modules
 ```{r, warning=FALSE, message=FALSE}
-Random.model = calibrate_model(modules = Random.modules, modules_metadata = train_cancer_metadata, label = "Subtype", sampleIDs = "PatientIDs",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+Random.model = calibrate_model(modules = Random.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
 ```
 
-# creation of a combined 
+# creation of a combined object to compare results in train and test set
 ```{r, warning=FALSE, message=FALSE}
+
 ```
 
 ## (K) Plot top k modules
@@ -151,8 +129,8 @@ lollipop_plot=plot_top_modules(trained_model=trained.model, k_modules_red = 2, k
 
 ## (L) Density of module scores
 ```{r, warning=FALSE, message=FALSE}
-density_plot_train=plot_density_scores(trained_model=trained.model,modules = train.modules,meta_data =train_cancer_metadata,subtypes = unique(train_cancer_metadata$SUBTYPE))
-density_plot_test=plot_density_scores(trained_model=trained.model,modules = test.modules, meta_data = test_cancer_metadata,subtypes = unique(test_cancer_metadata$SUBTYPE))
+density_plot_train=plot_density_scores(trained_model=trained.model,spongEffects = train.modules, meta_data = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID")
+
 ```
 
 ## (M) plot accuracy, sensitiviy, and specificity
