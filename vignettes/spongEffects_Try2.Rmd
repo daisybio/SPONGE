@@ -9,7 +9,7 @@ vignette: >
 %\VignetteEncoding{UTF-8}
 ---
   
- In recent years, competing endogenous RNA (ceRNA) networks have surfaces as promising tools to identify biomarkers, while creating new hypothesis on the post-transcriptional role of microRNAs (miRNAs). While different studies have proven the potential of these regulatory networks, current methods only allow the study of their global characteristics. Here, we introduce spongEffects, a novel method that infers subnetworks from pre-calculated ceRNA networks and calculates patient/sample-specific scores related to their regulatory activity. Notably, these module scores can be inferred from gene expression data alone and can thus be applied to cohorts where miRNA expression information is lacking. In this vignette, we show how spongEffects can be used for ceRNA module identification and enrichment. We do so by showcasing its use in a reduced breast cancer dataset (TCGA-BRCA). Moreover, we illustrate how the identified modules can be exploited for further downstream subtype classification tasks and identification of biologically meaningfull ceRNA modules. 
+In recent years, competing endogenous RNA (ceRNA) networks have established themselves as promising tools to identify biomarkers and inspired the formulation of new hypotheses regarding the post-transcriptional regulatory role of microRNAs (miRNAs). While different studies have proven the potential of these regulatory networks, current methods only allow the study of their global characteristics. Here, we introduce spongEffects, a novel method that infers subnetworks from pre-calculated ceRNA networks and calculates patient/sample-specific scores related to their regulatory activity. Notably, these module scores can be inferred from gene expression data alone and can thus be applied to cohorts where miRNA expression information is lacking. In this vignette, we show how spongEffects can be used for ceRNA module identification and enrichment. We do so by showcasing its use in a reduced breast cancer dataset (TCGA-BRCA). Moreover, we illustrate how the identified modules can be exploited for further downstream subtype classification tasks and identification of biologically meaningfull ceRNA modules. 
 
 spongEffects has been developed as an add-on to the SPONGE package (List et al. 2019, https://www.bioconductor.org/packages/release/bioc/html/SPONGE.html). SPONGE allows the inference of robust ceRNA networks from gene and miRNA expression data. 
 
@@ -33,11 +33,11 @@ registerDoParallel(cl)
 
 (B) Formats of the inputs necessary for spongEffect
 
-spongEffects comes with a very small example gene and miRNA expression dataset useful for illustrating its functionality. These datasets are part of the TCGA-BRCA cohort that we downsampled to reduce the computational time required by the vignette.
+spongEffects comes with a very small example datasetd useful for illustrating the functionalities of the package. The data were originally part of the TCGA-BRCA cohort. We downsized it to reduce the computational time required by the vignette.
 
-We provide gene and miRNA expression datasets, to simulate an optimal scenario where a train set and a test set are available. We also provide a small ceRNA network, gene-miRNA candidates, centrality measures (of the ceRNA network), and a small metadata for this example (the ceRNA network and the centrality measures were created using the SPONGE vignette). While these are not required to run spongEffects (only gene expression and a pre-computed ceRNA network are), we want to showcase how to conduct a full downstream analysis of the ceRNA modules.
+We provide two gene and miRNA expression datasets together with related metadata, to simulate an optimal scenario where a train set and a test set are available. We also provide a small ceRNA network, gene-miRNA candidates, ceRNA network centrality measures (the ceRNA network and the centrality measures were created using the SPONGE vignette). While these are not required to run spongEffects (only gene expression and a pre-computed ceRNA network are), we want to showcase how to conduct a full downstream analysis of the ceRNA modules.
 
-spongEffects expects a gene x sample expression matrix as input, with gene names as rownames. The type of gene identifier is up to the user but must be consistent between gene expression and ceRNA network. In this vignette we use Ensembl gene IDs. 
+spongEffects requires a gene x sample expression matrix as input, with gene names as rownames. The type of gene identifier is up to the user but must be consistent between gene expression and ceRNA network. In this vignette we use Ensembl gene IDs. 
 
 The example datasets can be accessed once the SPONGE package is loaded:
 
@@ -58,6 +58,7 @@ miRNA expression test set:
 ```{r, warning=FALSE, message=FALSE}
 knitr::kable(test_cancer_mir_expr[1:5,1:8])
 ```
+
 ceRNA network
 We use a ceRNA network computed with SPONGE (List et al. 2019) for the TCGA-BRCA dataset. The ceRNA network was downsized for this vignette.
 
@@ -85,7 +86,7 @@ knitr::kable(test_cancer_metadata[1:5,1:8])
 ```
 
 (C) Filter ceRNA network and add weighted centrality measures information
-Computationally inferred ceRNA networks often identify spurious associations between RNAs. Therefore, it is good practice to filter ceRNA networks for weak edges. More at List et al. 2019 and related vignette. 
+Computationally inferred ceRNA networks often identify spurious associations between RNAs. Therefore, it is good practice to filter ceRNA networks for weakly associated edges. More at List et al. 2019 and related vignette. 
 
 In the spognEffects paper, we used a weighted centrality metrics that considers the weight of the network edges rather than their number. This can be calculated from the ceRNA network if desired.
 
@@ -96,16 +97,15 @@ filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_
 ```
 
 (D) Discover modules
-
-We now want to discover spongEffects modules, here you can choose, if you want lncRNAs, circRNAs, protein_coding or a combination of those classes to be the central of a module.
-We here select the class of RNAs we are interested in. The user can change it by modifying the filtering function or by using their own gene names. The data.frame loaded with the package contains gene ensemble IDs for protein coding, long non-coding, and circular RNAs as downloaded from biomaRt (version 2.50.3, see https://www.bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html).
+Different classes of RNAs can be investigated as central nodes for the SPONGE modules. The user can identify their own class of interest, by modifying the filtering function or by using their own gene names. The data.frame loaded with the package contains gene ensemble IDs for protein coding, long non-coding, and circular RNAs as downloaded from biomaRt (version 2.50.3, see https://www.bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html).
 Finally, it is possible to determine the type of degree centrality used to rank the importance of potential central nodes. 
 Possibilities are: degree, eigenvector, betweenness, page_rank, or Weighted_Degree
 
 Different number of central nodes can be selected via the cutoff parameter.
 ```{rr, warning=FALSE, message=FALSE}
-RNAs <- c("lncRNA","circRNA","protein_coding")
-RNAs.ofInterest <- ensembl.df %>% dplyr::filter(gene_biotype %in% ceRNA_class) %>%
+
+RNAs <- c("lncRNA","protein_coding")
+RNAs.ofInterest <- ensembl.df %>% dplyr::filter(gene_biotype %in% RNAs) %>%
   dplyr::select(ensembl_gene_id)
 
 central_gene_modules<-get_central_modules(central_nodes = RNAs.ofInterest$ensembl_gene_id,node_centrality = filtered_network_centralities$Node_Centrality,ceRNA_class = RNAs, centrality_measure = "Weighted_Degree", cutoff = 10)

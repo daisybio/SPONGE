@@ -659,7 +659,6 @@ filter_ceRNA_network <- function(sponge_effects,
 
     }
     return(sponge_network_centralites)
-
 }
 
 #' prepare ceRNA network and network centralities from SPONGE / SPONGEdb
