@@ -92,3 +92,7 @@
 #' example train network centralities for spongEffects
 #' @format (obtained by SPONGE method)
 "train_network_centralities"
+
+#' example potential central nodes
+#' @format (downloaded via biomaRt)
+"Ensembl_IDs"
