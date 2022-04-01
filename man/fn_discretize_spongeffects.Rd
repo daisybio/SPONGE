@@ -2,7 +2,8 @@
 % Please edit documentation in R/fn_spongeffects_utility.R
 \name{fn_discretize_spongeffects}
 \alias{fn_discretize_spongeffects}
-\title{discretize}
+\title{discretize
+#' (functions taken from: Jerby-Arnon et al. 2018)}
 \usage{
 fn_discretize_spongeffects(v, n.cat)
 }
@@ -16,4 +17,5 @@ discretized
 }
 \description{
 discretize
+#' (functions taken from: Jerby-Arnon et al. 2018)
 }

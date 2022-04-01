@@ -7,7 +7,8 @@ for spongEffects}
 \usage{
 filter_ceRNA_network(
   sponge_effects,
-  network_analysis = NA,
+  Node_Centrality = NA,
+  add_weighted_centrality = F,
   mscor.threshold = 0.1,
   padj.threshold = 0.01
 )
@@ -17,10 +18,13 @@ filter_ceRNA_network(
 (Hoffmann et al., 2021) or created by SPONGE (List et al., 2019)
 usually ends with _sponge_results}
 
-\item{network_analysis}{the network analysis downloaded as R object
-from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE
+\item{Node_Centrality}{the network analysis downloaded as R object
+from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE and containing centrality measures.
 (List et al., 2019) usually ends with _networkAnalysis
 if network_analysis is NA then the function only filters the ceRNA network}
+
+\item{add_weighted_centrality}{calculate and add weighted centrality measures to previously
+available centralities. Default = F}
 
 \item{mscor.threshold}{mscor threshold to be filtered (default: NA)}
 

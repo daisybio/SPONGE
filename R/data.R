@@ -95,4 +95,4 @@
 
 #' example potential central nodes
 #' @format (downloaded via biomaRt)
-"Ensembl_IDs"
+"ensembl.df"

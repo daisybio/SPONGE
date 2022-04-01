@@ -19,6 +19,8 @@ Random_spongEffects(
 \arguments{
 \item{sponge_modules}{result of define_modules()}
 
+\item{gene_expr}{Input expression matri}
+
 \item{min.size}{minimum module size (default: 10)}
 
 \item{bin.size}{bin size (default: 100)}

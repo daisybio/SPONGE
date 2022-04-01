@@ -8,9 +8,7 @@ plot_top_modules(
   trained_model,
   k_modules = 25,
   k_modules_red = 10,
-  text_size = 16,
-  bioMart_gene_symbol_columns = "hgnc_symbol",
-  bioMart_gene_ensembl = "hsapiens_gene_ensembl"
+  text_size = 16
 )
 }
 \arguments{

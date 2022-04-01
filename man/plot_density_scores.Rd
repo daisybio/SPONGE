@@ -4,36 +4,22 @@
 \alias{plot_density_scores}
 \title{plots the density of the model scores for subtypes (see Boniolo and Hoffmann 2022 et al. Fig. 2)}
 \usage{
-plot_density_scores(
-  trained_model,
-  modules,
-  meta_data,
-  meta_data_type = "TCGA",
-  subtypes,
-  bioMart_gene_symbol_columns = "hgnc_symbol",
-  bioMart_gene_ensembl = "hsapiens_gene_ensembl"
-)
+plot_density_scores(trained_model, spongEffects, meta_data, label, sampleIDs)
 }
 \arguments{
 \item{trained_model}{returned from train_and_test_model}
 
-\item{modules}{output of enrichment_modules()}
+\item{spongEffects}{output of enrichment_modules()}
 
 \item{meta_data}{metadata of samples
 (retrieved from prepare_tcga_for_spongEffects() or
 from prepare_metabric_for_spongEffects())}
 
+\item{label}{Column of metadata to use as label in classification model}
+
+\item{sampleIDs}{Column of metadata containing sample/patient IDs to be matched with column names of spongEffects scores}
+
 \item{meta_data_type}{TCGA or METABRIC}
-
-\item{subtypes}{array of subtypes
-(e.g., c("Normal", "LumA", "LumB", "Her2", "Basal"))}
-
-\item{bioMart_gene_symbol_columns}{bioMart dataset column for gene symbols
-(e.g. human: hgnc_symbol, mouse: mgi_symbol)
-(default: hgnc_symbol)}
-
-\item{bioMart_gene_ensembl}{bioMart gene ensemble name
-(e.g., hsapiens_gene_ensembl).}
 }
 \value{
 plots density scores for subtypes

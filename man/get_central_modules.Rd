@@ -5,25 +5,26 @@
 \title{prepare ceRNA network and network centralities from SPONGE / SPONGEdb}
 \usage{
 get_central_modules(
-  bioMart_gene_ensembl,
-  weighted_node_centrality,
+  central_nodes,
+  node_centrality,
   ceRNA_class = c("lncRNA", "circRNA", "protein_coding"),
+  centrality_measure = "Weighted_Degree",
   cutoff = 1000
 )
 }
 \arguments{
-\item{bioMart_gene_ensembl}{bioMart gene ensemble name
-(e.g., hsapiens_gene_ensembl).
-(See https://www.bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html)}
+\item{central_nodes}{Vector containing Ensemble IDs of the chosen RNAs to use as central nodes for the modules.}
 
-\item{weighted_node_centrality}{output from filter_ceRNA_network()}
+\item{node_centrality}{output from filter_ceRNA_network()}
 
 \item{ceRNA_class}{default c("lncRNA","circRNA","protein_coding") (see http://www.ensembl.org/info/genome/genebuild/biotypes.html)}
+
+\item{centrality_measure}{Type of centrality measure to use. Deefault: "Weighted_Degree"}
 
 \item{cutoff}{the top cutoff modules will be returned (default: 1000)}
 }
 \value{
-top cutoff modules, with lncRNA as central genes
+top cutoff modules, with selected RNAs as central genes
 }
 \description{
 prepare ceRNA network and network centralities from SPONGE / SPONGEdb

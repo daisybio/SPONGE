@@ -681,7 +681,7 @@ filter_ceRNA_network <- function(sponge_effects,
 #'
 #' @export
 #'
-#' @return top cutoff modules, with lncRNA as central genes
+#' @return top cutoff modules, with selected RNAs as central genes
 get_central_modules <- function(central_nodes,
                                 node_centrality,
                                 ceRNA_class = c("lncRNA","circRNA","protein_coding"),

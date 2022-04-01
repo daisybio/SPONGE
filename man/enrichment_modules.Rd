@@ -5,7 +5,7 @@
 \title{Calculate enrichment scores}
 \usage{
 enrichment_modules(
-  gene_expr,
+  Expr.matrix,
   modules,
   bin.size = 100,
   min.size = 10,
@@ -16,6 +16,8 @@ enrichment_modules(
 )
 }
 \arguments{
+\item{Expr.matrix}{ceRNA expression matrix}
+
 \item{modules}{Result of define_modules()}
 
 \item{bin.size}{bin size (default: 100)}
@@ -31,8 +33,6 @@ Variation Analysis: GSVA) (default: OE)}
 
 \item{cores}{number of cores to be used to calculate entichment scores
 with gsva or ssgsea methods. Default 1}
-
-\item{Expr.matrix}{ceRNA expression matrix}
 }
 \value{
 matrix containing module enrichment scores (module x samples)
