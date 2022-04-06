@@ -4,8 +4,10 @@
 \name{ceRNA_interactions}
 \alias{ceRNA_interactions}
 \title{ceRNA interactions}
-\format{A data table of ceRNA interactions
-typically provided by sponge}
+\format{
+A data table of ceRNA interactions
+typically provided by sponge
+}
 \usage{
 ceRNA_interactions
 }

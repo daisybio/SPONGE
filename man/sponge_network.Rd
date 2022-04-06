@@ -4,9 +4,14 @@
 \alias{sponge_network}
 \title{Prepare a sponge network for plotting}
 \usage{
-sponge_network(sponge_result, mir_data, target.genes = NULL,
-  show.sponge.interaction = TRUE, show.mirnas = "none",
-  min.interactions = 3)
+sponge_network(
+  sponge_result,
+  mir_data,
+  target.genes = NULL,
+  show.sponge.interaction = TRUE,
+  show.mirnas = "none",
+  min.interactions = 3
+)
 }
 \arguments{
 \item{sponge_result}{ceRNA interactions as produced by the sponge method.}

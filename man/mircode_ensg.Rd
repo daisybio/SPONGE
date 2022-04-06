@@ -4,8 +4,10 @@
 \name{mircode_ensg}
 \alias{mircode_ensg}
 \title{mircode predicted miRNA gene interactions}
-\format{A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
-is predicted, 0 otherwise}
+\format{
+A matrix gene ensembl ids vs miRNA family names. >=1 if interaction
+is predicted, 0 otherwise
+}
 \source{
 http://www.mircode.org/download.php
 }

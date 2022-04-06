@@ -5,9 +5,11 @@
 \alias{precomputed_cov_matrices}
 \title{covariance matrices under the null hypothesis that sensitivity correlation
 is zero}
-\format{A list (different gene-gene correlations k) of lists
+\format{
+A list (different gene-gene correlations k) of lists
 (different number of miRNAs m) of
-covariance matrices}
+covariance matrices
+}
 \usage{
 precomputed_cov_matrices
 }
