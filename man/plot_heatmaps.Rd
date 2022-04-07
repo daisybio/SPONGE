@@ -2,7 +2,8 @@
 % Please edit documentation in R/fn_spongeffects_utility.R
 \name{plot_heatmaps}
 \alias{plot_heatmaps}
-\title{}
+\title{plots the heatmaps from training_and_test_model
+(see Boniolo and Hoffmann 2022 et al. Fig. 6)}
 \usage{
 plot_heatmaps(
   trained_model,
@@ -39,12 +40,6 @@ ComplexHeatmap object
 NOT FUNCTIONAL
 }
 \description{
-trained.model<-trained_model
-    Sponge.modules<-sponge_modules
-    enrichment.modules<-enrichment_modules
-    meta.data<-meta_data
-    type.data.set<-meta_data_type
-}
-\details{
-
+plots the heatmaps from training_and_test_model
+(see Boniolo and Hoffmann 2022 et al. Fig. 6)
 }
