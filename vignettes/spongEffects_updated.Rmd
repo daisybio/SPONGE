@@ -93,7 +93,7 @@ In the spognEffects paper, we used a weighted centrality metrics that considers 
 In this example, we filter the ceRNA network for size effects (i.e. mscor) and statistical significance. The thresholds used here are purely indicative and are likely to be modified when real data are used. 
 
 ```{r message=FALSE, warning=FALSE}
-filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_interactions, Node_Centrality = train_network_centralities,add_weighted_centrality=T, mscor.threshold = 0.01, padj.threshold = 0.1)
+filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_interactions, Node_Centrality = train_network_centralities, mscor.threshold = 0.01, padj.threshold = 0.1)
 ```
 
 (D) Discover modules
@@ -102,7 +102,7 @@ Finally, it is possible to determine the type of degree centrality used to rank 
 Possibilities are: degree, eigenvector, betweenness, page_rank, or Weighted_Degree
 
 Different number of central nodes can be selected via the cutoff parameter.
-```{rr, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 
 RNAs <- c("lncRNA","protein_coding")
 RNAs.ofInterest <- ensembl.df %>% dplyr::filter(gene_biotype %in% RNAs) %>%
@@ -137,13 +137,8 @@ test.modules <-  enrichment_modules(Expr.matrix = test_cancer_gene_expr, modules
 (G) Machine learning
 spongEffects scores have a tabular format (module x patient) and can thus be used for downstream classification or regression tasks. Here, we show how to calibrate a subtype classification model. In particular, we train a random forest via k-fold repeated cross validation. The resulting object contains the trained model and a confusion matrix evaluated on the train set. 
 
-N.B. In order to use a validate a model calibrated with the caret package (as done here), it is necessary that the test set contains the same input features (i.e., SPONGE modules here) as the train set. 
-```{r, warning=FALSE, message=FALSE}
-# We find modules that were identified both in the train and test and use those as input features for the model
-common_modules = intersect(rownames(train.modules), rownames(test.modules))
-train.modules = train.modules[common_modules, ]
-test.modules = test.modules[common_modules, ]
 
+```{r, warning=FALSE, message=FALSE}
 trained.model = calibrate_model(modules = train.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
 
 trained.model[["ConfusionMatrix_training"]]
@@ -152,7 +147,7 @@ trained.model[["ConfusionMatrix_training"]]
 As in a typical scenario, the model performances can be evaluated on the test set to test for generalization performances of the model. 
 
 ```{r}
-Input.test <- t(test.modules) %>% scale(center = T, scale = T)
+Input.test <- t(test_cancer_gene_expr) %>% scale(center = T, scale = T)
 Prediction.model <- predict(trained.model$Model, Input.test)
 
 # We compute the confusion metrix on the test set
@@ -167,28 +162,17 @@ In general, it is good idea to check the performance of a model calibrated on SP
 Random.modules <- Random_spongEffects(sponge_modules = Sponge.modules,
                                       gene_expr = train_cancer_gene_expr, min.size = 1,bin.size = 10, max.size = 200,
                                       min.expression=1, replace = F,method = "OE",cores = 1)
-# We can now use the randomly defined modules to calculate their enrichment in the test set
-Random.modules.test <- enrichment_modules(Expr.matrix = test_cancer_gene_expr, modules = Random.modules$Random_Modules, bin.size = 10, min.size = 1, max.size = 2000, min.expr = 1, method = "OE", cores=1)
-
 ```
 
 Train classification model on randomly defined modules
 ```{r, warning=FALSE, message=FALSE}
-# We find random modules that were identified both in the train and test and use those as input features for the model
-common_modules_random = intersect(rownames(Random.modules$Enrichment_Random_Modules), rownames(Random.modules.test))
-Random.modules.train = Random.modules$Enrichment_Random_Modules[common_modules, ]
-Random.modules.test = Random.modules.test[common_modules_random, ]
-
-Random.model = calibrate_model(modules = Random.modules.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+Random.model = calibrate_model(modules = Random.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
 
 Random.model[["ConfusionMatrix_training"]]
 ```
 
 Validate classification model of randomly defined modules on the test set
 ```{r}
-Input.test <- t(Random.modules.test) %>% scale(center = T, scale = T)
-Input.test<-Input.test[ , apply(Input.test, 2, function(x) !any(is.na(x)))]
-
 Prediction.model <- predict(Random.model$Model, Input.test)
 
 # We compute the confusion metrix on the test set
@@ -212,21 +196,6 @@ density_plot_train=plot_density_scores(trained_model=trained.model,spongEffects 
 density_plot_train
 
 ```
-Module driving prediction can also be visualized with an heatmap. At the moment, the user can choose one layer of annotation.
-```{r}
-heatmap.train = plot_heatmaps(trained_model = trained.model,spongEffects = train.modules,
-               meta_data = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Modules_to_Plot = 2,
-              show.rownames = F, show.colnames = F)
-heatmap.train
-```
-
-```{r}
-heatmap.test = plot_heatmaps(trained_model = trained.model,spongEffects = test.modules,
-               meta_data = test_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Modules_to_Plot = 2,
-              show.rownames = F, show.colnames = F)
-heatmap.test
-```
-
 (Q) stop the cluster 
 ```{r, warning=FALSE, message=FALSE}
 #stop your backend parallelisation if registered

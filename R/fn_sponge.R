@@ -28,13 +28,14 @@ fn_get_shared_miRNAs <- function(geneA, geneB, mir_interactions){
 #'
 #' @param number.of.genes Number of genes for which all pairwise interactions
 #' are needed
-#' @importFrom gRbase combnPrim
+#' @importFrom gRbase combn_prim
 #'
 #' @return data frame with one row per unique pairwise combination. To be used
 #' as input for the sponge method.
 #'
 genes_pairwise_combinations <- function(number.of.genes){
-    t(combnPrim(number.of.genes, 2))
+    #t(combnPrim(number.of.genes, 2))
+    t(combn_prim(number.of.genes, 2))
 }
 
 #' Compute competing endogeneous RNA interactions using
@@ -47,7 +48,7 @@ genes_pairwise_combinations <- function(number.of.genes){
 #' @importFrom iterators iter
 #' @importFrom iterators icount
 #' @importFrom data.table data.table
-#' @importFrom gRbase combnPrim
+#' @importFrom gRbase combn_prim
 #' @importFrom stats coef cor cov2cor df lm p.adjust pf predict reorder rnorm runif sd setNames xtabs var
 #'
 #' @param gene_expr A gene expression matrix with samples in rows and featurs

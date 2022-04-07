@@ -64,7 +64,7 @@ cross validation (caret package) (default: 1:100)}
 randomized prediction model
 Define random modules
 
-randomized prediction model
+A list with randomly defined modules and related enrichment scores
 }
 \description{
 build random classifiers
