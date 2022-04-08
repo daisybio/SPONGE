@@ -804,7 +804,7 @@ get_central_modules <- function(central_nodes,
 #' @import cvms
 #' @import miRBaseConverter
 #'
-#' @param modules return from enrichment_modules() function
+#' @param Input Features to use for model calibration.
 #' @param modules_metadata metadata table containing information about samples/patients
 #' @param label Column of metadata to use as label in classification model
 #' @param sampleIDs Column of metadata containing sample/patient IDs to be matched with column names of spongEffects scores
@@ -817,7 +817,7 @@ get_central_modules <- function(central_nodes,
 #' @export
 #'
 #' @return returns a list with the trained model and the prediction results
-calibrate_model <- function(modules,
+calibrate_model <- function(Input,
                             modules_metadata,
                             label,
                             sampleIDs,
@@ -830,7 +830,7 @@ calibrate_model <- function(modules,
 
         # Train subtype classifier -------------------------------------------------------------
         # Define input
-        Inputdata.model <- t(modules) %>% scale(center = T, scale = T) %>%
+        Inputdata.model <- t(Input) %>% scale(center = T, scale = T) %>%
             as.data.frame()
         Inputdata.model <- Inputdata.model %>%
             mutate(Class = as.factor(modules_metadata[match(rownames(Inputdata.model), modules_metadata[,sampleIDs]), label]))
@@ -1318,45 +1318,30 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
 
     Accuracy.plot <- Accuracy.df %>%
         ggplot(aes(x=Accuracy, y=Model)) +
-        geom_line(aes(group = Model), color = c( "#17154f",  "#355828", "#bf3729",  "#17154f", "#355828", "#bf3729"), size = 1.5) + # Renoir, 3
-        geom_point(aes(shape = Run), size = 6, color = c("#17154f", "#17154f",  "#355828","#355828", "#bf3729", "#bf3729")) +
-        # scale_color_manual(values = c("#0a3351", "#b9563f", "#0a3351", "#b9563f","#0a3351", "#b9563f")) +
-        scale_shape_manual(values=c(16, 17))+
+        geom_line(aes(group = Model)) +
+        geom_point(aes(shape = Run)) +
         theme_light() +
         xlab("Subset Accuracy") +
         ylab("") +
-        theme(
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.title = element_blank(),
-            legend.position="top",
-            legend.background = element_blank(),
-            legend.direction="horizontal",
-            panel.border = element_rect(colour = "black", fill=NA, size=1),
-            axis.text=element_text(size=15),
-            axis.title=element_text(size=20),
-            legend.text=element_text(size=12), axis.text.x = element_text(color = "black"),
-            axis.text.y = element_text(color = c( "#17154f",  "#bf3729", "#355828"))
-        )
+        theme_bw()
 
     # Sensitivity and Specificity
     # Figure 3b
-    Metrics.SpongeModules.training <- SpongingActiivty.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+    Metrics.SpongeModules.training <- SpongingActiivty.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
         mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.Random.training <- Random.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+    Metrics.Random.training <- Random.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
         mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+    Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
 
     Metrics.training <- rbind(Metrics.SpongeModules.training, rbind(Metrics.Random.training, Metrics.CentralGenes.training)) %>%
         mutate(Run = training_string)
 
-    Metrics.SpongeModules.testing <- SpongingActiivty.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame() %>%
+    Metrics.SpongeModules.testing <- SpongingActiivty.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
         mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.Random.testing <- Random.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+    Metrics.Random.testing <- Random.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
         mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:5), c(1,2)] %>% as.data.frame()%>%
+    Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
 
     Metrics.testing <- rbind(Metrics.SpongeModules.testing, rbind(Metrics.Random.testing, Metrics.CentralGenes.testing)) %>%
@@ -1373,21 +1358,9 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
         ggplot(aes(x = Metric, y = Value, fill = Model)) +
         geom_bar(position = "dodge", stat = "identity", width = 0.5) +
         facet_grid(Run ~ Class) +
-        scale_fill_manual(values=c( "#17154f",  "#bf3729", "#355828"),
-                          breaks = c("Modules", "Random", "Central Genes")) +
         xlab("Metric") +
         ylab("") +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-              panel.background = element_blank(), axis.line = element_line(colour = "black"),
-              strip.background = element_rect(fill="white", size=1, color="black"),
-              panel.border = element_rect(colour = "black", fill=NA, size=1),
-              strip.text.x = element_text(size=15,  color="black"),
-              strip.text.y = element_text(size=15, color="black"),
-              axis.text=element_text(size=15),
-              axis.title=element_text(size=20),
-              legend.text=element_text(size=15), axis.text.x = element_text(angle = 45, vjust = 0.9, hjust = 1, color = "black"),
-              axis.text.y = element_text(color = "black"),
-              legend.title=element_text(size=15))
+        theme_bw()
 
     metric_plots<-list(Accuracy.plot,Metrics.plot)
     names(metric_plots) <- c("Accuracy.plot","Metrics.plot")
