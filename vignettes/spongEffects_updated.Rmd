@@ -157,6 +157,7 @@ Prediction.model <- predict(trained.model$Model, Input.test)
 
 # We compute the confusion metrix on the test set
 ConfusionMatrix_testing <- caret::confusionMatrix(as.factor(Prediction.model), as.factor(test_cancer_metadata$SUBTYPE))
+trained.model$ConfusionMatrix_testing<-ConfusionMatrix_testing
 ConfusionMatrix_testing
 ```
 
@@ -179,7 +180,7 @@ common_modules_random = intersect(rownames(Random.modules$Enrichment_Random_Modu
 Random.modules.train = Random.modules$Enrichment_Random_Modules[common_modules_random, ]
 Random.modules.test = Random.modules.test[common_modules_random, ]
 
-Random.model = calibrate_model(Input = Random.modules.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+Random.model = calibrate_model(Input = Random.modules.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 2, repetitions = 1)
 
 Random.model[["ConfusionMatrix_training"]]
 ```
@@ -193,6 +194,7 @@ Prediction.model <- predict(Random.model$Model, Input.test)
 
 # We compute the confusion metrix on the test set
 ConfusionMatrix_testing_random <- caret::confusionMatrix(as.factor(Prediction.model), as.factor(test_cancer_metadata$SUBTYPE))
+Random.model$ConfusionMatrix_testing_random<-ConfusionMatrix_testing_random
 ConfusionMatrix_testing_random
 ```
 
@@ -218,6 +220,7 @@ CentralGenes.prediction <- predict(CentralGenes.model$Model, Input.centralgenes.
 
 # We compute the confusion metrix on the test set
 ConfusionMatrix_testing <- caret::confusionMatrix(as.factor(CentralGenes.prediction), as.factor(test_cancer_metadata$SUBTYPE))
+CentralGenes.model$ConfusionMatrix_testing<-ConfusionMatrix_testing
 ConfusionMatrix_testing
 
 ```
@@ -262,12 +265,13 @@ heatmap.test
 
 SpongEffects can be interpreted as the effect of ceRNA-ceRNA regulation and miRNA-ceRNA regulation (see publication for more details). If miRNA data are available, it is interesting to identify miRNAs that are involved in the regulation of modules driving prediction. We offer a way to visualize these with an heatmap. 
 ```{r}
-miRNa.frequency.heatmap <- plot_involved_miRNAs_to_modules(Sponge.modules,trained.model,
-                                          train_genes_miRNA_candidates,
-                                          k_modules = 2,
-                                          filter_miRNAs = 1.0,
-                                          bioMart_gene_symbol_columns = "hgnc_symbol",
-                                          bioMart_gene_ensembl = "hsapiens_gene_ensembl")
+miRNa.frequency.heatmap <- plot_involved_miRNAs_to_modules(sponge_modules=Sponge.modules,
+                                                           trained_model=trained.model,
+                                                           gene_mirna_candidates= train_genes_miRNA_candidates,
+                                                           k_modules = 2,
+                                                           filter_miRNAs = 0.01,
+                                                           bioMart_gene_symbol_columns = "hgnc_symbol",
+                                                           bioMart_gene_ensembl = "hsapiens_gene_ensembl")
 ```
 
 (Q) stop the cluster 
