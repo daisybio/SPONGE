@@ -1550,6 +1550,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
         tibble::rownames_to_column('Module')
 
     Variable.importance.top_k=Variable.importance[1:k_modules, ]$Module
+    Variable.importance.top_k<-str_remove_all(Variable.importance.top_k,"`")
     Sponge.interesting.modules<-Sponge.modules[Variable.importance.top_k]
     Sponge.modules.downstrean<-Sponge.interesting.modules
 
@@ -1574,9 +1575,14 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
         df_intern <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id",bioMart_gene_symbol_columns,"description"),values=df_intern$Geneid,mart= mart)
 
         name <- df_intern$hgnc_symbol
-        if(is.na(name))
+        name <- as.character(name)
+        if(is.na(name) || length(name)==0)
         {
             name <- df_intern$ensembl_gene_id
+        }
+        if(is.na(name) || length(name)==0)
+        {
+            name <- ensg
         }
         vec_colnames[count] = name
 
@@ -1585,18 +1591,23 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
 
     df_heatmap = data.frame(matrix(ncol=k_modules,nrow=0))
     df_heatmap = as.data.frame(df_heatmap)
-    colnames(df_heatmap)<-vec_colnames
+    colnames(df_heatmap)<-vec_colnames[1:length(colnames(df_heatmap))]
     #length(names(df_heatmap))
 
     for (ensg in vec_colnames_ensg)
     {
-        #ensg = "ENSG00000237233"
+        #ensg = "chr2:215378174:215386958:-"
         print(ensg)
         module_symbole = ensg
 
         df_symbolname = df_centralnodes_map[which(df_centralnodes_map$ensembl_gene_id == ensg), ]
 
         module_symbole = df_symbolname$hgnc_symbol
+
+        if(length(rownames(df_symbolname))==0)
+        {
+            module_symbole=ensg
+        }
 
         if(is.na(module_symbole))
         {
@@ -1627,7 +1638,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
 
         for (ensg_target in df_intern$ensembl_gene_id)
         {
-            #ensg_target="ENSG00000237970"
+            #ensg_target="ENSG00000064042"
 
             df_symbolname = df_intern[which(df_intern$ensembl_gene_id == ensg_target), ]
 
@@ -1644,6 +1655,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
 
                 for (i_mirnas in intersect_mirnas)
                 {
+                    #i_mirnas="hsa-miR-3916"
                     if(!is.na(i_mirnas)){
                         already_counted = df_mirna_counts[,i_mirnas]
                         already_counted = already_counted + 1
@@ -1657,7 +1669,8 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
         }
 
         for (mirna_name in colnames(df_mirna_counts)) {
-            #mirna_name="hsa-miR-4999-5p"
+            #mirna_name="hsa-miR-101-3p"
+            #print(mirna_name)
             if(!is.na(mirna_name)){
                 if(!any(row.names(df_heatmap) == mirna_name))
                 {
