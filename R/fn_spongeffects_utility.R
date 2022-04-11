@@ -843,7 +843,7 @@ calibrate_model <- function(Input,
         repetitions <- repetitions # number of k-fold cv iterations
 
         # Calibrate model
-        SpongingActivity.model <- fn_RF_classifier(Inputdata.model, n.folds, repetitions, metric = Metric, tunegrid)
+        SpongingActivity.model <- fn_RF_classifier(Input.object = Inputdata.model, K = n.folds, rep = repetitions, metric = Metric,tunegrid = tunegrid)
 
         return(SpongingActivity.model)
 
@@ -925,7 +925,7 @@ build_classifier_central_genes<-function(train_gene_expr,
 
     Inputdata.centralGene <- Inputdata.centralGene[! is.na(Inputdata.centralGene$Class), ]
 
-    CentralGenes.model <- fn_RF_classifier(Inputdata.centralGene, n.folds, repetitions, metric = Metric, tunegrid)
+    CentralGenes.model <- fn_RF_classifier(Input.object = Inputdata.centralGene, K =  n.folds, rep =  repetitions, metric = Metric, tunegrid =  tunegrid)
 
     #Test classification performance on second cohort
     Inputdata.centralGene.Metabric <- t(METABRIC.expr[Common.CentralGenes, ]) %>% scale(center = TRUE, scale = TRUE)
@@ -1276,6 +1276,7 @@ plot_density_scores <- function(trained_model,
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
+#' @import ggpubr
 #'
 #' @param trained_model returned from train_and_test_model
 #' @param central_genes_model returned from build_classifier_central_genes()
@@ -1302,7 +1303,7 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     testing_string<-paste0(testing_dataset_name," (Testing)")
     set_names<-c(training_string,testing_string)
 
-    SpongingActiivty.model <-trained.model$SpongingActivity.model
+    SpongingActiivty.model <-trained_model
     #CentralGenes.model
     #Random.model
 
@@ -1327,22 +1328,36 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
 
     # Sensitivity and Specificity
     # Figure 3b
-    Metrics.SpongeModules.training <- SpongingActiivty.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
-        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.Random.training <- Random.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
-        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
-        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.SpongeModules.training <- SpongingActiivty.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame() %>%
+        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+
+    colnames(Metrics.SpongeModules.training)=c("Class","Value","Model")
+
+    Metrics.Random.training <- Random.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame() %>%
+        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    colnames(Metrics.Random.training)=c("Class","Value","Model")
+
+    Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
+        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    colnames(Metrics.CentralGenes.training)=c("Class","Value","Model")
+
 
     Metrics.training <- rbind(Metrics.SpongeModules.training, rbind(Metrics.Random.training, Metrics.CentralGenes.training)) %>%
         mutate(Run = training_string)
 
-    Metrics.SpongeModules.testing <- SpongingActiivty.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame() %>%
-        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.Random.testing <- Random.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
-        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
-    Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes))), c(1,2)] %>% as.data.frame()%>%
-        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') %>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    Metrics.SpongeModules.testing <- SpongingActiivty.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame() %>%
+        mutate(Model = "Modules") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    colnames(Metrics.SpongeModules.testing)=c("Class","Value","Model")
+
+
+    Metrics.Random.testing <- Random.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
+        mutate(Model = "Random") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    colnames(Metrics.Random.testing)=c("Class","Value","Model")
+
+    Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
+        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+    colnames(Metrics.CentralGenes.testing)=c("Class","Value","Model")
+
 
     Metrics.testing <- rbind(Metrics.SpongeModules.testing, rbind(Metrics.Random.testing, Metrics.CentralGenes.testing)) %>%
         mutate(Run = testing_string)
@@ -1352,18 +1367,20 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     Metrics$Run <- factor( Metrics$Run, levels = set_names)
 
     Metrics$Class <- gsub("Class: ", "", Metrics$Class)
-    Metrics$Class <- factor(Metrics$Class, levels =subtypes)
+    #Metrics$Class <- factor(Metrics$Class, levels =subtypes)
 
     Metrics.plot <- Metrics %>%
-        ggplot(aes(x = Metric, y = Value, fill = Model)) +
+        ggplot(aes(x = Class, y = Value, fill = Model)) +
         geom_bar(position = "dodge", stat = "identity", width = 0.5) +
-        facet_grid(Run ~ Class) +
+        facet_grid(Metrics$Run) +
         xlab("Metric") +
         ylab("") +
         theme_bw()
 
-    metric_plots<-list(Accuracy.plot,Metrics.plot)
-    names(metric_plots) <- c("Accuracy.plot","Metrics.plot")
+    metric_plots<-ggarrange(Accuracy.plot,Metrics.plot,ncol = 1,nrow = 2)
+
+    #metric_plots<-list(Accuracy.plot,Metrics.plot)
+    #names(metric_plots) <- c("Accuracy.plot","Metrics.plot")
 
     return(metric_plots)
 }

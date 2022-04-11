@@ -46,7 +46,8 @@ Imports:
     ggplot2,
     MetBrewer,
     rlang,
-    tnet
+    tnet,
+    ggpubr
 VignetteBuilder: knitr
 biocViews: GeneExpression,
     Transcription,

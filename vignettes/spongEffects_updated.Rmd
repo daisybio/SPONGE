@@ -102,7 +102,7 @@ Finally, it is possible to determine the type of degree centrality used to rank 
 Possibilities are: degree, eigenvector, betweenness, page_rank, or Weighted_Degree
 
 Different number of central nodes can be selected via the cutoff parameter.
-```{rr, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 
 RNAs <- c("lncRNA","protein_coding")
 RNAs.ofInterest <- ensembl.df %>% dplyr::filter(gene_biotype %in% RNAs) %>%
@@ -144,7 +144,7 @@ common_modules = intersect(rownames(train.modules), rownames(test.modules))
 train.modules = train.modules[common_modules, ]
 test.modules = test.modules[common_modules, ]
 
-trained.model = calibrate_model(modules = train.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+trained.model = calibrate_model(Input = train.modules, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 2, repetitions = 1)
 
 trained.model[["ConfusionMatrix_training"]]
 ```
@@ -160,7 +160,7 @@ ConfusionMatrix_testing <- caret::confusionMatrix(as.factor(Prediction.model), a
 ConfusionMatrix_testing
 ```
 
-(I) Define random modules and calculate spongEffects scores
+(J) 2. Define random modules and calculate spongEffects scores
 In general, it is good idea to check the performance of a model calibrated on SPONGE modules agains the one of a model calibrated on randomly defined modules. We offer a function that calculates random modules and related enrichment scores. The resulting modules have the same size distribution of the original ones. 
 ```{r}
 # Define random modules
@@ -176,10 +176,10 @@ Train classification model on randomly defined modules
 ```{r, warning=FALSE, message=FALSE}
 # We find random modules that were identified both in the train and test and use those as input features for the model
 common_modules_random = intersect(rownames(Random.modules$Enrichment_Random_Modules), rownames(Random.modules.test))
-Random.modules.train = Random.modules$Enrichment_Random_Modules[common_modules, ]
+Random.modules.train = Random.modules$Enrichment_Random_Modules[common_modules_random, ]
 Random.modules.test = Random.modules.test[common_modules_random, ]
 
-Random.model = calibrate_model(modules = Random.modules.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+Random.model = calibrate_model(Input = Random.modules.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
 
 Random.model[["ConfusionMatrix_training"]]
 ```
@@ -196,11 +196,41 @@ ConfusionMatrix_testing_random <- caret::confusionMatrix(as.factor(Prediction.mo
 ConfusionMatrix_testing_random
 ```
 
-(J) 
+(K) Train model on central genes'expression
+Another way to evaluate the perfomance of the model trained on spongEffects scores is to compare its performances against a model trained on the central genes alone. We use only the central genes part of the modules we used to calibrate the model in step G.
 
+Once again, we need to verify that both train and test sets contain all the central genes of interest before model calibration. 
 
-(K) Plot top k modules
-We offer here a few ways to visualize the SPONGE modules.
+```{r}
+Input.centralgenes.train <- train_cancer_gene_expr[rownames(train_cancer_gene_expr) %in% names(Sponge.modules), ]
+Input.centralgenes.test <- test_cancer_gene_expr[rownames(test_cancer_gene_expr) %in% names(Sponge.modules), ]
+
+common_modules = intersect(rownames(Input.centralgenes.train), rownames(Input.centralgenes.test))
+Input.centralgenes.train = Input.centralgenes.train[common_modules, ]
+Input.centralgenes.test = Input.centralgenes.test[common_modules, ]
+
+# Calibrate model
+CentralGenes.model = calibrate_model(Input = Input.centralgenes.train, modules_metadata = train_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Metric = "Exact_match", n_folds = 1, repetitions = 1)
+
+# Validate on test set
+Input.centralgenes.test <- t(Input.centralgenes.test) %>% scale(center = T, scale = T)
+CentralGenes.prediction <- predict(CentralGenes.model$Model, Input.centralgenes.test)
+
+# We compute the confusion metrix on the test set
+ConfusionMatrix_testing <- caret::confusionMatrix(as.factor(CentralGenes.prediction), as.factor(test_cancer_metadata$SUBTYPE))
+ConfusionMatrix_testing
+
+```
+
+It is possible to compare the performances of the different models
+```{r}
+plot_accuracy_sensitivity_specificity(trained.model,CentralGenes.model,Random.model,
+                                      training_dataset_name="TCGA",testing_dataset_name="TCGA",
+                                      as.factor(test_cancer_metadata$SUBTYPE))
+```
+
+(Q) Interpretation of the results 
+We offer here a few ways to visualize and interpret the SPONGE modules obtained via spongEffects.
 First, we visualize modules driving subtype prediction. These could be of interest for further validation, to identify biomarkers for the disease of interest. 
 ```{r, warning=FALSE, message=FALSE}
 lollipop_plot=plot_top_modules(trained_model=trained.model, k_modules_red = 2, k_modules = 4)
@@ -228,6 +258,16 @@ heatmap.test = plot_heatmaps(trained_model = trained.model,spongEffects = test.m
                meta_data = test_cancer_metadata, label = "SUBTYPE", sampleIDs = "sampleID",Modules_to_Plot = 2,
               show.rownames = F, show.colnames = F)
 heatmap.test
+```
+
+SpongEffects can be interpreted as the effect of ceRNA-ceRNA regulation and miRNA-ceRNA regulation (see publication for more details). If miRNA data are available, it is interesting to identify miRNAs that are involved in the regulation of modules driving prediction. We offer a way to visualize these with an heatmap. 
+```{r}
+miRNa.frequency.heatmap <- plot_involved_miRNAs_to_modules(Sponge.modules,trained.model,
+                                          train_genes_miRNA_candidates,
+                                          k_modules = 2,
+                                          filter_miRNAs = 1.0,
+                                          bioMart_gene_symbol_columns = "hgnc_symbol",
+                                          bioMart_gene_ensembl = "hsapiens_gene_ensembl")
 ```
 
 (Q) stop the cluster 

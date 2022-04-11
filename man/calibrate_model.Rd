@@ -6,7 +6,7 @@
 (e.g., TCGA-BRCA and METABRIC)}
 \usage{
 calibrate_model(
-  modules,
+  Input,
   modules_metadata,
   label,
   sampleIDs,
@@ -17,7 +17,7 @@ calibrate_model(
 )
 }
 \arguments{
-\item{modules}{return from enrichment_modules() function}
+\item{Input}{Features to use for model calibration.}
 
 \item{modules_metadata}{metadata table containing information about samples/patients}
 
@@ -33,6 +33,8 @@ cross validation (caret package) (default: 1:100)}
 \item{n_folds}{number of folds (default: 10)}
 
 \item{repetitions}{number of k-fold cv iterations (default: 3)}
+
+\item{modules}{return from enrichment_modules() function}
 }
 \value{
 returns a list with the trained model and the prediction results
