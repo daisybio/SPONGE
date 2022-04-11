@@ -1690,6 +1690,8 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
     df_heatmap<-df_heatmap[rowSums(df_heatmap[])>filter_miRNAs,]
     df_heatmap<-as.matrix(df_heatmap)
 
+    column.Annotation <- HeatmapAnnotation(Group = colnames(df_heatmap))
+
     col.heatmap <- met.brewer("VanGogh3",n=5,type="continuous")
 
     # Heatmap
