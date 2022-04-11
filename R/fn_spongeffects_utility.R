@@ -1514,6 +1514,7 @@ plot_heatmaps<-function(trained_model,
 #' @import ggplot2
 #' @import MetBrewer
 #' @import grid
+#' @import stringr
 #'
 #' @param sponge_modules result of define_modules()
 #' @param trained_model returned from train_and_test_model
@@ -1703,7 +1704,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
                     title_gp = gpar(fontsize = 14),
                     direction = "horizontal", legend_width = unit(3, "cm"),
                     title_position = "topleft"),
-                #top_annotation = column.Annotation,
+                top_annotation = column.Annotation,
                 column_title = "Module", row_title = "miRNA",
                 row_title_gp = gpar(fontsize = 20),
                 column_title_gp = gpar(fontsize = 20),
