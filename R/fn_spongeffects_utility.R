@@ -1481,7 +1481,11 @@ plot_heatmaps<-function(trained_model,
         Annotation.meta <- meta_data[match(colnames(spongEffects), meta_data[, sampleIDs]), ]
         Column.Annotation <- HeatmapAnnotation(Group = Annotation.meta[,label])
 
-        spongeEffects.toPlot <- spongEffects[match(Variable.importance$Module[1:Modules_to_Plot], rownames(spongEffects)), ]
+        spongeEffects.toPlot <- spongEffects[match(Variable.importance$Module, rownames(spongEffects)), ]
+        spongeEffects.toPlot<- spongeEffects.toPlot[ rowSums(is.na(spongeEffects.toPlot)) == 0,]
+        if(Modules_to_Plot>length(rownames(spongeEffects.toPlot)))
+            Modules_to_Plot=length(rownames(spongeEffects.toPlot))
+        spongeEffects.toPlot<-spongeEffects.toPlot[1:Modules_to_Plot,]
 
         # Plot
         Heatmap.p <- spongeEffects.toPlot %>%
