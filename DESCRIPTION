@@ -20,7 +20,7 @@ Suggests:
     gridExtra,
     digest,
     doParallel,
-    bigmemory,
+    bigmemory
 Imports:
     Biobase,
     stats,
