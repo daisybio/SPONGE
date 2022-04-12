@@ -9,8 +9,8 @@ filter_ceRNA_network(
   sponge_effects,
   Node_Centrality = NA,
   add_weighted_centrality = T,
-  mscor.threshold = 0.1,
-  padj.threshold = 0.01
+  mscor.threshold = NA,
+  padj.threshold = NA
 )
 }
 \arguments{

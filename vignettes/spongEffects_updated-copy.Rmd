@@ -86,11 +86,7 @@ knitr::kable(test_cancer_metadata[1:5,1:8])
 ```
 
 (C) Filter ceRNA network and add weighted centrality measures information
-Computationally inferred ceRNA networks often identify spurious associations between RNAs. Therefore, it is good practice to filter ceRNA networks for weakly associated edges. More at List et al. 2019 and related vignette. 
-
-In the spognEffects paper, we used a weighted centrality metrics that considers the weight of the network edges rather than their number. This can be calculated from the ceRNA network if desired.
-
-In this example, we filter the ceRNA network for size effects (i.e. mscor) and statistical significance. The thresholds used here are purely indicative and are likely to be modified when real data are used. 
+Computationally inferred ceRNA networks often identify spurious associations between RNAs. Therefore, it is good practice to filter out ceRNA networks for weakly associated edges. More at List et al. 2019 and related vignette. In this example, we filter the ceRNA network for size effects (i.e. mscor) and statistical significance. Next, we want to identify the most important nodes in the network as seed genes for ceRNA modules. Various network centrality measures have been proposed in the literature to assess node importance. In the spongEffects paper and in this example, we used a weighted centrality, i.e. we consider the sum of weights of edges attached to a node rather than just the node degree. Node centralities can be computed via the `sponge_node_centralities()` function. The thresholds used here are purely indicative and are likely to be modified when real data are used. 
 
 ```{r message=FALSE, warning=FALSE}
 filtered_network_centralities=filter_ceRNA_network(sponge_effects = train_ceRNA_interactions, Node_Centrality = train_network_centralities,add_weighted_centrality=T, mscor.threshold = 0.01, padj.threshold = 0.1)
@@ -113,7 +109,7 @@ central_gene_modules<-get_central_modules(central_nodes = RNAs.ofInterest$ensemb
 ```
 
 (E) Define SPONGE modules 
-We define SPONGE modules based on a first-neighbout approach, taking into account all classes of potential RNAs around the central nodes identified above. We give the possibility to the user to consider the central node as part of the module or not. 
+We define SPONGE modules based on a first-neighbout approach, taking into account all classes of potential RNAs around the central nodes identified above. We give the possibility to the user to consider the central node as part of the module or not (remove.central). 
 ```{r, warning=FALSE, message=FALSE}
 
 Sponge.modules <- define_modules(network = filtered_network_centralities$Sponge.filtered, central.modules = central_gene_modules, remove.central = F, set.parallel = F)
@@ -123,7 +119,7 @@ Size.modules <- sapply(Sponge.modules, length)
 ```
 
 (F) Calculate Enrichment Scores (i.e., spongEffects scores)
-we implemented three different single sample gene set enrichment approaches, Overall Enrichment (OE), single-sample Gene Set Enrichment Analysis (ssGSEA), and Gene Set Variation Analysis (GSVA). The choice of the optimal is task dependent and is up to the user but we offer a comparison of the three algorithms in the spongEffects paper. 
+we implemented three different single sample gene set enrichment approaches to score the modules per sample, Overall Enrichment (OE), single-sample Gene Set Enrichment Analysis (ssGSEA), and Gene Set Variation Analysis (GSVA). The choice of the optimal method may vary by the data set but when we compared the three algorithms in the spongEffects paper we did not observe large differences. 
 
 Here, we calculate the spongEffects scores both for the train and test dataset. In a real word scenarios, these are expected to be generated separately. SPONGE modules inferred on one dataset are expected to generalize well to new cohorts, as described in the original publication.
 
@@ -135,7 +131,7 @@ test.modules <-  enrichment_modules(Expr.matrix = test_cancer_gene_expr, modules
 ```
 
 (G) Machine learning
-spongEffects scores have a tabular format (module x patient) and can thus be used for downstream classification or regression tasks. Here, we show how to calibrate a subtype classification model. In particular, we train a random forest via k-fold repeated cross validation. The resulting object contains the trained model and a confusion matrix evaluated on the train set. 
+spongEffects scores have a tabular format (module x patient) and can thus be used for downstream analysis tasks as, for example, classification or regression. As a typical application case, we show how to calibrate a subtype classification model. In particular, we train a random forest via k-fold repeated cross validation. The resulting object contains the trained model and a confusion matrix evaluated on the train set. 
 
 N.B. In order to use a validate a model calibrated with the caret package (as done here), it is necessary that the test set contains the same input features (i.e., SPONGE modules here) as the train set. 
 ```{r, warning=FALSE, message=FALSE}
@@ -162,7 +158,7 @@ ConfusionMatrix_testing
 ```
 
 (J) 2. Define random modules and calculate spongEffects scores
-In general, it is good idea to check the performance of a model calibrated on SPONGE modules agains the one of a model calibrated on randomly defined modules. We offer a function that calculates random modules and related enrichment scores. The resulting modules have the same size distribution of the original ones. 
+In general, it is good idea to check the performance of a model calibrated on SPONGE modules against the one of a model calibrated on randomly defined modules. We offer a function that calculates random modules and related enrichment scores. The resulting modules have the same size distribution of the original ones. 
 ```{r}
 # Define random modules
 Random.modules <- Random_spongEffects(sponge_modules = Sponge.modules,
@@ -199,7 +195,7 @@ ConfusionMatrix_testing_random
 ```
 
 (K) Train model on central genes'expression
-Another way to evaluate the perfomance of the model trained on spongEffects scores is to compare its performances against a model trained on the central genes alone. We use only the central genes part of the modules we used to calibrate the model in step G.
+Another way to evaluate the perfomance of the model trained on spongEffects scores is to compare its performances against a model trained on the central genes alone. The idea is to investigate if the module activity that reflects the contribution of miRNA regulation offers additional insights to the expression level of the central genes alone. Thus, as a baseline mode we use only the central genes part of the modules we used to calibrate the model in step G.
 
 Once again, we need to verify that both train and test sets contain all the central genes of interest before model calibration. 
 
@@ -263,7 +259,7 @@ heatmap.test = plot_heatmaps(trained_model = trained.model,spongEffects = test.m
 heatmap.test
 ```
 
-spongEffects can be interpreted as the effect of ceRNA-ceRNA regulation and miRNA-ceRNA regulation (see publication for more details). If miRNA data are available, it is interesting to identify miRNAs that are involved in the regulation of modules driving prediction. We offer a way to visualize these with an heatmap. 
+SpongEffects can be interpreted as the effect of ceRNA-ceRNA regulation and miRNA-ceRNA regulation (see publication for more details). If miRNA data are available, it is interesting to identify miRNAs that are involved in the regulation of modules driving prediction. We offer a way to visualize these with an heatmap. 
 ```{r}
 miRNa.frequency.heatmap <- plot_involved_miRNAs_to_modules(sponge_modules=Sponge.modules,
                                                            trained_model=trained.model,

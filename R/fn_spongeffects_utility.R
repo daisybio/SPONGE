@@ -632,8 +632,8 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 filter_ceRNA_network <- function(sponge_effects,
                                  Node_Centrality = NA,
                                  add_weighted_centrality = T,
-                                 mscor.threshold = 0.1,
-                                 padj.threshold = 0.01){
+                                 mscor.threshold = NA,
+                                 padj.threshold = NA){
 
     #Filter SPONGE network for significant edges
     Sponge.filtered <- sponge_effects %>%
@@ -674,9 +674,9 @@ filter_ceRNA_network <- function(sponge_effects,
 #' @import tnet
 #'
 #' @param central_nodes Vector containing Ensemble IDs of the chosen RNAs to use as central nodes for the modules.
-#' @param node_centrality output from filter_ceRNA_network()
+#' @param node_centrality output from filter_ceRNA_network() or own measurement, if own measurement taken, please provide node_centrality_column
 #' @param ceRNA_class default c("lncRNA","circRNA","protein_coding") (see http://www.ensembl.org/info/genome/genebuild/biotypes.html)
-#' @param centrality_measure Type of centrality measure to use. Deefault: "Weighted_Degree"
+#' @param centrality_measure Type of centrality measure to use. (Default: "Weighted_Degree", calculated in filter_ceRNA_network())
 #' @param cutoff the top cutoff modules will be returned (default: 1000)
 #'
 #' @export
@@ -688,7 +688,7 @@ get_central_modules <- function(central_nodes,
                                 centrality_measure = "Weighted_Degree",
                                 cutoff = 1000){
 
-    if (centrality_measure %in% c('degree', 'eigenvector', 'betweenness', 'page_rank', 'Weighted_Degree')) {
+    if (centrality_measure %in% colnames(node_centrality)) {
         if("circRNA" %in% ceRNA_class)
         {
             df_circRNAS_to_add <- node_centrality[ with(node_centrality, grepl("circ", gene) | grepl(":", gene) | grepl("chr", gene))]
@@ -702,7 +702,7 @@ get_central_modules <- function(central_nodes,
 
         return(Node.Centrality.weighted)
     } else {
-        print("centrality_measure must be one of the following: degree, eigenvector, betweenness, page_rank, or Weighted_Degree")
+        print(paste0("centrality_measure must be one of the following: ", colnames(node_centrality)))
     }
 }
 

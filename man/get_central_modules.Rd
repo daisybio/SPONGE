@@ -15,11 +15,11 @@ get_central_modules(
 \arguments{
 \item{central_nodes}{Vector containing Ensemble IDs of the chosen RNAs to use as central nodes for the modules.}
 
-\item{node_centrality}{output from filter_ceRNA_network()}
+\item{node_centrality}{output from filter_ceRNA_network() or own measurement, if own measurement taken, please provide node_centrality_column}
 
 \item{ceRNA_class}{default c("lncRNA","circRNA","protein_coding") (see http://www.ensembl.org/info/genome/genebuild/biotypes.html)}
 
-\item{centrality_measure}{Type of centrality measure to use. Deefault: "Weighted_Degree"}
+\item{centrality_measure}{Type of centrality measure to use. (Default: "Weighted_Degree", calculated in filter_ceRNA_network())}
 
 \item{cutoff}{the top cutoff modules will be returned (default: 1000)}
 }
