@@ -7,6 +7,7 @@ Maintainer: Markus List <markus.list@tum.de>
 Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input. The SPONGE package now also includes spongEffects: ceRNA modules offer patient-specific insights into the miRNA regulatory landscape.
 License: GPL (>=3) 
 LazyData: TRUE
+LazyDataCompression:xz
 RoxygenNote: 7.1.2
 Depends: 
     R (>= 3.4)
