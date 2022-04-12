@@ -261,13 +261,13 @@ heatmap.test
 
 spongEffects can be interpreted as the effect of ceRNA-ceRNA regulation and miRNA-ceRNA regulation (see publication for more details). If miRNA data are available, it is interesting to identify miRNAs that are involved in the regulation of modules driving prediction. We offer a way to visualize these with an heatmap. 
 ```{r}
-miRNa.frequency.heatmap <- plot_involved_miRNAs_to_modules(sponge_modules=Sponge.modules,
-                                                           trained_model=trained.model,
-                                                           gene_mirna_candidates= train_genes_miRNA_candidates,
-                                                           k_modules = 2,
-                                                           filter_miRNAs = 0.01,
-                                                           bioMart_gene_symbol_columns = "hgnc_symbol",
-                                                           bioMart_gene_ensembl = "hsapiens_gene_ensembl")
+plot_involved_miRNAs_to_modules(sponge_modules=Sponge.modules,
+                                trained_model=trained.model,
+                                gene_mirna_candidates= train_genes_miRNA_candidates,
+                                k_modules = 2,
+                                filter_miRNAs = 0.0,
+                                bioMart_gene_symbol_columns = "hgnc_symbol",
+                                bioMart_gene_ensembl = "hsapiens_gene_ensembl")
 ```
 
 (Q) stop the cluster 

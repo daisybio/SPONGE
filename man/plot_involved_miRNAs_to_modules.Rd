@@ -12,7 +12,25 @@ plot_involved_miRNAs_to_modules(
   k_modules = 25,
   filter_miRNAs = 3,
   bioMart_gene_symbol_columns = "hgnc_symbol",
-  bioMart_gene_ensembl = "hsapiens_gene_ensembl"
+  bioMart_gene_ensembl = "hsapiens_gene_ensembl",
+  width = 5,
+  length = 5,
+  show_row_names = T,
+  show_column_names = T,
+  show_annotation_column = F,
+  title = "Frequency",
+  legend_height = 1.5,
+  labels_gp_fontsize = 8,
+  title_gp_fontsize = 8,
+  legend_width = 3,
+  column_title = "Module",
+  row_title = "miRNA",
+  row_title_gp_fontsize = 10,
+  column_title_gp_fontsize = 10,
+  row_names_gp_fontsize = 7,
+  column_names_gp_fontsize = 7,
+  column_names_rot = 45,
+  unit = "cm"
 )
 }
 \arguments{
@@ -31,7 +49,43 @@ plot_involved_miRNAs_to_modules(
 (default: hgnc_symbol)}
 
 \item{bioMart_gene_ensembl}{bioMart gene ensemble name
-(e.g., hsapiens_gene_ensembl).}
+(e.g., hsapiens_gene_ensembl)}
+
+\item{width}{the width of the heatmap (default: 5)}
+
+\item{length}{the length of the heatmap (default: 5)}
+
+\item{show_row_names}{show row names (default: T)}
+
+\item{show_column_names}{show column names (default: T)}
+
+\item{show_annotation_column}{add annotation column to columns (default: F)}
+
+\item{title}{the title of the plot (default: "Frequency")}
+
+\item{legend_height}{the height of the legend (default: 1.5)}
+
+\item{labels_gp_fontsize}{the font size of the labels (default: 8)}
+
+\item{title_gp_fontsize}{the font size of the title (default: 8)}
+
+\item{legend_width}{the width of the legend (default: 3)}
+
+\item{column_title}{the column title (default: "Module")}
+
+\item{row_title}{the title of the rows (default: "miRNA")}
+
+\item{row_title_gp_fontsize}{the font size of the row title (default: 10)}
+
+\item{column_title_gp_fontsize}{the font size of the column title (default: 10)}
+
+\item{row_names_gp_fontsize}{the font size of the row names (default: 7)}
+
+\item{column_names_gp_fontsize}{the font size of the column names (default: 7)}
+
+\item{column_names_rot}{the rotation angel of the column names (default: 45)}
+
+\item{unit}{either cm or inch (see ComplexHeatmap parameter)}
 }
 \value{
 plot object

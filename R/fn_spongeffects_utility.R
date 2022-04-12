@@ -615,10 +615,10 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #'
 #' @param sponge_effects the ceRNA network downloaded as R object from SPONGEdb
 #' (Hoffmann et al., 2021) or created by SPONGE (List et al., 2019)
-#' usually ends with _sponge_results
+#' (ends with _sponge_results in the SPONGE vignette)
 #' @param Node_Centrality the network analysis downloaded as R object
 #' from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE and containing centrality measures.
-#' (List et al., 2019) usually ends with _networkAnalysis
+#' (List et al., 2019) (ends with _networkAnalysis in the SPONGE vignette, you can also use your own network centrality measurements)
 #' if network_analysis is NA then the function only filters the ceRNA network
 #' @param add_weighted_centrality calculate and add weighted centrality measures to previously
 #' available centralities. Default = T
@@ -1525,7 +1525,25 @@ plot_heatmaps<-function(trained_model,
 #' (e.g. human: hgnc_symbol, mouse: mgi_symbol)
 #' (default: hgnc_symbol)
 #' @param bioMart_gene_ensembl bioMart gene ensemble name
-#' (e.g., hsapiens_gene_ensembl).
+#' (e.g., hsapiens_gene_ensembl)
+#' @param width the width of the heatmap (default: 5)
+#' @param length the length of the heatmap (default: 5)
+#' @param show_row_names show row names (default: T)
+#' @param show_column_names show column names (default: T)
+#' @param show_annotation_column add annotation column to columns (default: F)
+#' @param title the title of the plot (default: "Frequency")
+#' @param legend_height the height of the legend (default: 1.5)
+#' @param labels_gp_fontsize the font size of the labels (default: 8)
+#' @param title_gp_fontsize  the font size of the title (default: 8)
+#' @param legend_width the width of the legend (default: 3)
+#' @param column_title the column title (default: "Module")
+#' @param row_title the title of the rows (default: "miRNA")
+#' @param row_title_gp_fontsize the font size of the row title (default: 10)
+#' @param column_title_gp_fontsize the font size of the column title (default: 10)
+#' @param row_names_gp_fontsize the font size of the row names (default: 7)
+#' @param column_names_gp_fontsize the font size of the column names (default: 7)
+#' @param column_names_rot the rotation angel of the column names (default: 45)
+#' @param unit either cm or inch (see ComplexHeatmap parameter)
 #'
 #' @export
 #'
@@ -1536,7 +1554,25 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
                                           k_modules = 25,
                                           filter_miRNAs = 3.0,
                                           bioMart_gene_symbol_columns = "hgnc_symbol",
-                                          bioMart_gene_ensembl = "hsapiens_gene_ensembl"){
+                                          bioMart_gene_ensembl = "hsapiens_gene_ensembl",
+                                          width = 5,
+                                          length = 5,
+                                          show_row_names = T,
+                                          show_column_names = T,
+                                          show_annotation_column = F,
+                                          title = "Frequency",
+                                          legend_height = 1.5,
+                                          labels_gp_fontsize= 8,
+                                          title_gp_fontsize = 8,
+                                          legend_width = 3,
+                                          column_title = "Module",
+                                          row_title = "miRNA",
+                                          row_title_gp_fontsize = 10,
+                                          column_title_gp_fontsize = 10,
+                                          row_names_gp_fontsize = 7,
+                                          column_names_gp_fontsize = 7,
+                                          column_names_rot = 45,
+                                          unit = "cm"){
 
     Sponge.modules<-sponge_modules
     trained.model<-trained_model
@@ -1690,29 +1726,56 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
     df_heatmap<-df_heatmap[rowSums(df_heatmap[])>filter_miRNAs,]
     df_heatmap<-as.matrix(df_heatmap)
 
-    column.Annotation <- HeatmapAnnotation(Group = colnames(df_heatmap))
 
     col.heatmap <- met.brewer("VanGogh3",n=5,type="continuous")
 
-    # Heatmap
-    heatmap.miRNA <- df_heatmap %>%
-        Heatmap(na_col = "white", col =  col.heatmap, # right_annotation = row.Annotation,
-                show_row_names = T, show_column_names = T,
-                heatmap_legend_param = list(
-                    title = "Frequency",
-                    at = c(0, 0.5, 1),
-                    legend_height = unit(1.5, "cm"),
-                    labels_gp = gpar(fontsize = 14),
-                    title_gp = gpar(fontsize = 14),
-                    direction = "horizontal", legend_width = unit(3, "cm"),
-                    title_position = "topleft"),
-                top_annotation = column.Annotation,
-                column_title = "Module", row_title = "miRNA",
-                row_title_gp = gpar(fontsize = 20),
-                column_title_gp = gpar(fontsize = 20),
-                row_names_gp = gpar(fontsize = 15), column_names_gp = gpar(fontsize = 15), column_names_rot = 45,
-                rect_gp = gpar(col = "white", lwd = 0.5),
-                width = unit(20, "cm"), height = unit(28, "cm"))
+    if(show_annotation_column){
+        column.Annotation <- HeatmapAnnotation(Group = colnames(df_heatmap))
+
+        # Heatmap
+        heatmap.miRNA <- df_heatmap %>%
+            Heatmap(na_col = "white", col =  col.heatmap, # right_annotation = row.Annotation,
+                    show_row_names = show_row_names, show_column_names = show_column_names,
+                    heatmap_legend_param = list(
+                        title = title,
+                        at = c(0, 0.5, 1),
+                        legend_height = unit(legend_height, unit),
+                        labels_gp = gpar(fontsize = labels_gp_fontsize),
+                        title_gp = gpar(fontsize = title_gp_fontsize),
+                        direction = "horizontal", legend_width = unit(legend_width, unit),
+                        title_position = "topleft"),
+                    top_annotation = column.Annotation,
+                    column_title = column_title, row_title = row_title,
+                    row_title_gp = gpar(fontsize = row_title_gp_fontsize),
+                    column_title_gp = gpar(fontsize = column_title_gp_fontsize),
+                    row_names_gp = gpar(fontsize = row_names_gp_fontsize), column_names_gp = gpar(fontsize = column_names_gp_fontsize), column_names_rot = column_names_rot,
+                    rect_gp = gpar(col = "white", lwd = 0.5),
+                    width = unit(width, unit), height = unit(length, unit))
+    }else
+    {
+        # Heatmap
+        heatmap.miRNA <- df_heatmap %>%
+            Heatmap(na_col = "white", col =  col.heatmap, # right_annotation = row.Annotation,
+                    show_row_names = show_row_names, show_column_names = show_column_names,
+                    heatmap_legend_param = list(
+                        title = title,
+                        at = c(0, 0.5, 1),
+                        legend_height = unit(legend_height, unit),
+                        labels_gp = gpar(fontsize = labels_gp_fontsize),
+                        title_gp = gpar(fontsize = title_gp_fontsize),
+                        direction = "horizontal", legend_width = unit(legend_width, unit),
+                        title_position = "topleft"),
+                    #top_annotation = column.Annotation,
+                    column_title = column_title, row_title = row_title,
+                    row_title_gp = gpar(fontsize = row_title_gp_fontsize),
+                    column_title_gp = gpar(fontsize = column_title_gp_fontsize),
+                    row_names_gp = gpar(fontsize = row_names_gp_fontsize), column_names_gp = gpar(fontsize = column_names_gp_fontsize), column_names_rot = column_names_rot,
+                    rect_gp = gpar(col = "white", lwd = 0.5),
+                    width = unit(width, unit), height = unit(length, unit))
+
+    }
+
+
 
     return(heatmap.miRNA)
 

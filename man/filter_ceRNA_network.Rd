@@ -16,11 +16,11 @@ filter_ceRNA_network(
 \arguments{
 \item{sponge_effects}{the ceRNA network downloaded as R object from SPONGEdb
 (Hoffmann et al., 2021) or created by SPONGE (List et al., 2019)
-usually ends with _sponge_results}
+(ends with _sponge_results in the SPONGE vignette)}
 
 \item{Node_Centrality}{the network analysis downloaded as R object
 from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE and containing centrality measures.
-(List et al., 2019) usually ends with _networkAnalysis
+(List et al., 2019) (ends with _networkAnalysis in the SPONGE vignette, you can also use your own network centrality measurements)
 if network_analysis is NA then the function only filters the ceRNA network}
 
 \item{add_weighted_centrality}{calculate and add weighted centrality measures to previously
