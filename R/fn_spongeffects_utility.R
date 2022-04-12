@@ -1586,6 +1586,10 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
         arrange(desc(MeanDecreaseGini)) %>%
         tibble::rownames_to_column('Module')
 
+    if(length(rownames(Variable.importance))< k_modules){
+        k_modules=length(rownames(Variable.importance))
+    }
+
     Variable.importance.top_k=Variable.importance[1:k_modules, ]$Module
     Variable.importance.top_k<-str_remove_all(Variable.importance.top_k,"`")
     Sponge.interesting.modules<-Sponge.modules[Variable.importance.top_k]
