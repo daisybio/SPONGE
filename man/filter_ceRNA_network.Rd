@@ -21,7 +21,7 @@ filter_ceRNA_network(
 \item{Node_Centrality}{the network analysis downloaded as R object
 from SPONGEdb (Hoffmann et al., 2021) or created by SPONGE and containing centrality measures.
 (List et al., 2019) (ends with _networkAnalysis in the SPONGE vignette, you can also use your own network centrality measurements)
-if network_analysis is NA then the function only filters the ceRNA network}
+if network_analysis is NA then the function only filters the ceRNA network, otherwise it will filter the given network centralities, but will not recalculate them based on the filtered ceRNA network.}
 
 \item{add_weighted_centrality}{calculate and add weighted centrality measures to previously
 available centralities. Default = T}
