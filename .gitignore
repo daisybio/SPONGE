@@ -2,4 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+SPONGE.Rproj
+*.Rproj
 inst/doc
