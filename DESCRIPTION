@@ -2,8 +2,24 @@ Package: SPONGE
 Type: Package
 Title: Sparse Partial Correlations On Gene Expression
 Version: 1.17.1
-Authors@R: Markus List, Markus Hoffmann, Fabio Boniolo, Azim Dehghani Amirabad, Dennis Kostka, Marcel H. Schulz 
-Authors@R: Markus List <markus.list@tum.de>
+Authors@R: c(person(given = "Markus",
+           family = "List",
+           role = c("aut", "cre"),
+           email = "markus.list@tum.de",
+           comment = c(ORCID = "0000-0002-0941-4168")),
+           person(given = "Markus",
+           family = "Hoffmann",
+           role = c("aut", "cre"),
+           email = "markus.daniel.hoffmann@tum.de",
+           comment = c(ORCID = "0000-0002-1920-288X")),
+           person(given = "Fabio",
+           family = "Boniolo"),
+           person(given = "Azim Dehghani",
+           family = "Amirabad"),
+           person(given = "Dennis",
+           family = "Kostka"),
+           person(given = "Marcel H.",
+           family = "Schulz"))
 Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input. The SPONGE package now also includes spongEffects: ceRNA modules offer patient-specific insights into the miRNA regulatory landscape.
 License: GPL (>=3) 
 LazyData: TRUE
