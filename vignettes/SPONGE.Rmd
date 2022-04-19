@@ -4,7 +4,7 @@ author: "Markus List, Azim Dehghani Amirabad, Dennis Kostka, Marcel H. Schulz"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{SPONGE vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,12 +1,12 @@
 ---
-  title: "spongeEffects.Rmd"
+title: "spongeEffects.Rmd"
 author: "Hoffmann M - Boniolo F"
 date: "2/10/2022"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{spongEffects vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
   
 In recent years, competing endogenous RNA (ceRNA) networks have established themselves as promising tools to identify biomarkers and inspired the formulation of new hypotheses regarding the post-transcriptional regulatory role of microRNAs (miRNAs). While different studies have proven the potential of these regulatory networks, current methods only allow the study of their global characteristics. Here, we introduce spongEffects, a novel method that infers subnetworks from pre-calculated ceRNA networks and calculates patient/sample-specific scores related to their regulatory activity. Notably, these module scores can be inferred from gene expression data alone and can thus be applied to cohorts where miRNA expression information is lacking. In this vignette, we show how spongEffects can be used for ceRNA module identification and enrichment. We do so by showcasing its use in a reduced breast cancer dataset (TCGA-BRCA). Moreover, we illustrate how the identified modules can be exploited for further downstream subtype classification tasks and identification of biologically meaningfull ceRNA modules. 
