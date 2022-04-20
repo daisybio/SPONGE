@@ -1479,7 +1479,15 @@ plot_heatmaps<-function(trained_model,
         # Visualize Heatmaps  ---------------------------------------------------------
         # Define annotation layer
         Annotation.meta <- meta_data[match(colnames(spongEffects), meta_data[, sampleIDs]), ]
-        Column.Annotation <- HeatmapAnnotation(Group = Annotation.meta[,label])
+        
+        unique_subtypes<-unique(Annotation.meta$SUBTYPE)
+        number_groups <- length(unique(Annotation.meta$SUBTYPE))
+        col.heatmap <- met.brewer("Renoir",n=number_groups,type="continuous")
+        col.heatmap<-as.vector(col.heatmap)
+        
+        col.heatmap<-setNames(col.heatmap,unique_subtypes)
+        
+        Column.Annotation <- HeatmapAnnotation(Group = Annotation.meta[,label],col = list(Group = col.heatmap))
 
         spongeEffects.toPlot <- spongEffects[match(Variable.importance$Module, rownames(spongEffects)), ]
         spongeEffects.toPlot<- spongeEffects.toPlot[ rowSums(is.na(spongeEffects.toPlot)) == 0,]
