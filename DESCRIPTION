@@ -1,7 +1,7 @@
 Package: SPONGE
 Type: Package
 Title: Sparse Partial Correlations On Gene Expression
-Version: 1.17.5
+Version: 1.18.0
 Authors@R: c(person(given = "Markus",
            family = "List",
            role = c("aut", "cre"),
