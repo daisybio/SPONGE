@@ -223,9 +223,10 @@ ConfusionMatrix_testing
 
 It is possible to compare the performances of the different models
 ```{r}
-plot_accuracy_sensitivity_specificity(trained.model,CentralGenes.model,Random.model,
+plot_accuracy_sensitivity_specificity(trained_model=trained.model,central_genes_model=NA,
+                                      random_model= Random.model,
                                       training_dataset_name="TCGA",testing_dataset_name="TCGA",
-                                      as.factor(test_cancer_metadata$SUBTYPE))
+                                      subtypes=as.factor(test_cancer_metadata$SUBTYPE))
 ```
 
 (Q) Interpretation of the results 
