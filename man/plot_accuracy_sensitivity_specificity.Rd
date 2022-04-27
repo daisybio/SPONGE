@@ -7,7 +7,8 @@
 \usage{
 plot_accuracy_sensitivity_specificity(
   trained_model,
-  central_genes_model,
+  central_genes_model = NA,
+  all_expression_model = NA,
   random_model,
   training_dataset_name = "TCGA",
   testing_dataset_name = "TCGA",
@@ -18,6 +19,8 @@ plot_accuracy_sensitivity_specificity(
 \item{trained_model}{returned from train_and_test_model}
 
 \item{central_genes_model}{returned from build_classifier_central_genes()}
+
+\item{all_expression_model}{training and testing like central_genes_model but on ALL common expression data}
 
 \item{random_model}{returned from train_and_test_model using the randomization}
 
