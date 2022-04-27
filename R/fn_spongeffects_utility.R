@@ -1302,6 +1302,8 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     Random.model<-random_model
 
     counter<-0
+    central_genes<-FALSE
+    all_expression<-FALSE
     if(!is.na(central_genes_model)){
       central_genes<-TRUE
     }
