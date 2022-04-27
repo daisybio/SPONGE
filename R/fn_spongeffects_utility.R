@@ -1300,7 +1300,7 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     trained.model<-trained_model
     CentralGenes.model<-central_genes_model
     Random.model<-random_model
-    
+
     counter<-0
     if(!is.na(central_genes_model)){
       central_genes<-TRUE
@@ -1308,6 +1308,9 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     if(!is.na(all_expression_model)){
       all_expression<-TRUE
     }
+
+    central_genes<- as.logical(central_genes)
+    all_expression<- as.logical(all_expression)
 
     training_string<-paste0(training_dataset_name," (Training)")
     testing_string<-paste0(testing_dataset_name," (Testing)")
@@ -1318,34 +1321,34 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     #Random.model
 
     ##FIGURE 3A
-    
-    if(central_genes_model && !all_expression)
+
+    if(central_genes && !all_expression)
     {
       Accuracy.df <- data.frame(Run = rep(set_names, 3),
                                 Model = c(rep("Modules", 2), rep("Central Genes", 2), rep("Random", 2)),
                                 Accuracy = c(SpongingActiivty.model$ConfusionMatrix_training[["overall"]][['Accuracy']], SpongingActiivty.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              CentralGenes.model$ConfusionMatrix_training[["overall"]][['Accuracy']],CentralGenes.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              Random.model$ConfusionMatrix_training[["overall"]][['Accuracy']], Random.model$ConfusionMatrix_testing[["overall"]][['Accuracy']]))
-      
+
       Accuracy.df$Model <- factor(Accuracy.df$Model, levels = c("Modules", "Random", "Central Genes"))
       Accuracy.df$Run <- factor(Accuracy.df$Run, levels = set_names)
-    }else if(!central_genes_model && !all_expression_model){
+    }else if(!central_genes && !all_expression){
       Accuracy.df <- data.frame(Run = rep(set_names, 2),
                                 Model = c(rep("Modules", 2), rep("Random", 2)),
                                 Accuracy = c(SpongingActiivty.model$ConfusionMatrix_training[["overall"]][['Accuracy']], SpongingActiivty.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              Random.model$ConfusionMatrix_training[["overall"]][['Accuracy']], Random.model$ConfusionMatrix_testing[["overall"]][['Accuracy']]))
-      
+
       Accuracy.df$Model <- factor(Accuracy.df$Model, levels = c("Modules", "Random"))
       Accuracy.df$Run <- factor(Accuracy.df$Run, levels = set_names)
-      
-    }else if(central_genes_model && all_expression_model){
+
+    }else if(central_genes && all_expression){
       Accuracy.df <- data.frame(Run = rep(set_names, 4),
                                 Model = c(rep("Modules", 2), rep("Central Genes", 2), rep("Random", 2), rep("All Expression",2)),
                                 Accuracy = c(SpongingActiivty.model$ConfusionMatrix_training[["overall"]][['Accuracy']], SpongingActiivty.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              CentralGenes.model$ConfusionMatrix_training[["overall"]][['Accuracy']],CentralGenes.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              Random.model$ConfusionMatrix_training[["overall"]][['Accuracy']], Random.model$ConfusionMatrix_testing[["overall"]][['Accuracy']],
                                              all_expression_model$ConfusionMatrix_training[["overall"]][['Accuracy']], all_expression_model$ConfusionMatrix_testing[["overall"]][['Accuracy']]))
-      
+
       Accuracy.df$Model <- factor(Accuracy.df$Model, levels = c("Modules", "Random", "Central Genes", "All Expression"))
       Accuracy.df$Run <- factor(Accuracy.df$Run, levels = set_names)
     }
@@ -1370,30 +1373,30 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
         mutate(Model = "Random") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
     colnames(Metrics.Random.training)=c("Class","Value","Model")
 
-    if(central_genes_model && !all_expression)
+    if(central_genes && !all_expression)
     {
       Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.CentralGenes.training)=c("Class","Value","Model")
-      
+
       Metrics.training <- rbind(Metrics.SpongeModules.training, rbind(Metrics.Random.training, Metrics.CentralGenes.training)) %>%
         mutate(Run = training_string)
-    }else if(!central_genes_model && !all_expression_model){
+    }else if(!central_genes && !all_expression){
       Metrics.training <- rbind(Metrics.SpongeModules.training, Metrics.Random.training) %>%
         mutate(Run = training_string)
-    }else if(central_genes_model && all_expression_model){
+    }else if(central_genes && all_expression){
       Metrics.CentralGenes.training <- CentralGenes.model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.CentralGenes.training)=c("Class","Value","Model")
-      
+
       Metrics.AllExpression.training <- all_expression_model$ConfusionMatrix_training[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
         mutate(Model = "All Expression") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.AllExpression.training)=c("Class","Value","Model")
-      
+
       Metrics.training <- rbind(Metrics.SpongeModules.training, rbind(Metrics.Random.training, rbind(Metrics.CentralGenes.training, Metrics.AllExpression.training))) %>%
         mutate(Run = training_string)
     }
-    
+
 
 
 
@@ -1407,40 +1410,40 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
         mutate(Model = "Random") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
     colnames(Metrics.Random.testing)=c("Class","Value","Model")
 
-    if(central_genes_model && !all_expression)
+    if(central_genes && !all_expression)
     {
       Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.CentralGenes.testing)=c("Class","Value","Model")
-      
+
       Metrics.testing <- rbind(Metrics.SpongeModules.testing, rbind(Metrics.Random.testing, Metrics.CentralGenes.testing)) %>%
         mutate(Run = testing_string)
-    }else if(!central_genes_model && !all_expression_model){
+    }else if(!central_genes && !all_expression){
       Metrics.testing <- rbind(Metrics.SpongeModules.testing,Metrics.Random.testing) %>%
         mutate(Run = testing_string)
-    }else if(central_genes_model && all_expression_model){
+    }else if(central_genes && all_expression){
       Metrics.CentralGenes.testing <- CentralGenes.model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
         mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.CentralGenes.testing)=c("Class","Value","Model")
-      
+
       Metrics.AllExpression.testing <- all_expression_model$ConfusionMatrix_testing[["byClass"]][c(1:length(unique(subtypes)))] %>% as.data.frame()%>%
-        mutate(Model = "Central Genes") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
+        mutate(Model = "All Expression") %>% tibble::rownames_to_column('Class') #%>% gather(Metric, Value, Sensitivity:Specificity,-Class, -Model)
       colnames(Metrics.AllExpression.testing)=c("Class","Value","Model")
-      
+
       Metrics.testing <- rbind(Metrics.SpongeModules.testing, rbind(Metrics.Random.testing, rbind(Metrics.CentralGenes.testing, Metrics.AllExpression.testing))) %>%
         mutate(Run = testing_string)
     }
-    
+
 
     Metrics <- rbind(Metrics.training, Metrics.testing)
-    
-    
-    if(central_genes_model && !all_expression)
+
+
+    if(central_genes && !all_expression)
     {
       Metrics$Model <- factor(Metrics$Model, levels = c("Modules", "Random", "Central Genes"))
-    }else if(!central_genes_model && !all_expression_model){
+    }else if(!central_genes && !all_expression){
       Metrics$Model <- factor(Metrics$Model, levels = c("Modules", "Random"))
-    }else if(central_genes_model && all_expression_model){
+    }else if(central_genes && all_expression){
       Metrics$Model <- factor(Metrics$Model, levels = c("Modules", "Random", "Central Genes", "All Expression"))
     }
     Metrics$Run <- factor( Metrics$Run, levels = set_names)
@@ -1558,14 +1561,14 @@ plot_heatmaps<-function(trained_model,
         # Visualize Heatmaps  ---------------------------------------------------------
         # Define annotation layer
         Annotation.meta <- meta_data[match(colnames(spongEffects), meta_data[, sampleIDs]), ]
-        
+
         unique_subtypes<-unique(Annotation.meta$SUBTYPE)
         number_groups <- length(unique(Annotation.meta$SUBTYPE))
         col.heatmap <- met.brewer("Renoir",n=number_groups,type="continuous")
         col.heatmap<-as.vector(col.heatmap)
-        
+
         col.heatmap<-setNames(col.heatmap,unique_subtypes)
-        
+
         Column.Annotation <- HeatmapAnnotation(Group = Annotation.meta[,label],col = list(Group = col.heatmap))
 
         spongeEffects.toPlot <- spongEffects[match(Variable.importance$Module, rownames(spongEffects)), ]
