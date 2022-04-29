@@ -1,0 +1,79 @@
+Package: SPONGE
+Type: Package
+Title: Sparse Partial Correlations On Gene Expression
+Version: 1.17.5
+Authors@R: c(person(given = "Markus",
+           family = "List",
+           role = c("aut", "cre"),
+           email = "markus.list@tum.de",
+           comment = c(ORCID = "0000-0002-0941-4168")),
+           person(given = "Markus",
+           family = "Hoffmann",
+           role = c("aut"),
+           email = "markus.daniel.hoffmann@tum.de",
+           comment = c(ORCID = "0000-0002-1920-288X")),
+           person(given = "Fabio",
+           family = "Boniolo"),
+           person(given = "Azim Dehghani",
+           family = "Amirabad"),
+           person(given = "Dennis",
+           family = "Kostka"),
+           person(given = "Marcel H.",
+           family = "Schulz"))
+Description: This package provides methods to efficiently detect competitive endogeneous RNA interactions between two genes. Such interactions are mediated by one or several miRNAs such that both gene and miRNA expression data for a larger number of samples is needed as input. The SPONGE package now also includes spongEffects: ceRNA modules offer patient-specific insights into the miRNA regulatory landscape.
+License: GPL (>=3) 
+LazyData: TRUE
+LazyDataCompression:xz
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 3.6)
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown,
+    visNetwork,
+    ggrepel,
+    gridExtra,
+    digest,
+    doParallel,
+    bigmemory
+Imports:
+    Biobase,
+    stats,
+    ppcor,
+    logging,
+    foreach,
+    doRNG,
+    data.table,
+    MASS,
+    expm,
+    gRbase,
+    glmnet,
+    igraph,
+    iterators,
+    tidyverse,
+    caret,
+    dplyr,
+    biomaRt,
+    randomForest,
+    ggridges,
+    cvms,
+    miRBaseConverter,
+    ComplexHeatmap,
+    ggplot2,
+    MetBrewer,
+    rlang,
+    tnet,
+    ggpubr,
+    stringr
+VignetteBuilder: knitr
+biocViews: GeneExpression,
+    Transcription,
+    GeneRegulation,
+    NetworkInference,
+    Transcriptomics,
+    SystemsBiology,
+    Regression,
+    RandomForest,
+    MachineLearning,
+
