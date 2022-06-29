@@ -131,6 +131,14 @@ define_modules <- function(network,
                            central.modules = F,
                            remove.central = T,
                            set.parallel = T) {
+  
+  # Some gene columns from SPONGEdb start with an uppercase G, so we need to adjust it just in case
+  if("GeneA" %in% colnames(network)) {
+    network = network %>% rename(geneA = GeneA)
+  }
+  if("GeneB" %in% colnames(network)) {
+    network = network %>% rename(geneB = GeneB)
+  }
     set.parallel = F
     if (set.parallel) {
         Sponge.Modules <- foreach(i = 1:nrow(central.modules),  .packages = "dplyr") %dopar% {
@@ -638,7 +646,14 @@ filter_ceRNA_network <- function(sponge_effects,
     #Filter SPONGE network for significant edges
     Sponge.filtered <- sponge_effects %>%
         fn_filter_network(mscor.threshold =  mscor.threshold, padj.threshold = padj.threshold)
-
+    
+    # Some gene columns from SPONGEdb start with an uppercase G, so we need to adjust it just in case
+    if("GeneA" %in% colnames(Sponge.filtered)) {
+      Sponge.filtered = Sponge.filtered %>% rename(geneA = GeneA)
+    }
+    if("GeneB" %in% colnames(Sponge.filtered)) {
+      Sponge.filtered = Sponge.filtered %>% rename(geneB = GeneB)
+    }
     Node_Centrality <- Node_Centrality %>%
         dplyr::filter(gene %in% Sponge.filtered$geneA | gene %in% Sponge.filtered$geneB)
 
