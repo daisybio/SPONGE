@@ -1578,9 +1578,8 @@ plot_heatmaps<-function(trained_model,
         # Visualize Heatmaps  ---------------------------------------------------------
         # Define annotation layer
         Annotation.meta <- meta_data[match(colnames(spongEffects), meta_data[, sampleIDs]), ]
-
-        unique_subtypes<-unique(Annotation.meta$SUBTYPE)
-        number_groups <- length(unique(Annotation.meta$SUBTYPE))
+        unique_subtypes<-unique(Annotation.meta[,label])
+        number_groups <- length(unique_subtypes)
         col.heatmap <- met.brewer("Renoir",n=number_groups,type="continuous")
         col.heatmap<-as.vector(col.heatmap)
 
