@@ -1,0 +1,6 @@
+```{r}
+Sponge.modules <- define_modules(network = filtered_network_centralities$Sponge.filtered, central.modules = central_gene_modules, remove.central = F, set.parallel = F)
+# Module size distribution
+Size.modules <- sapply(Sponge.modules, length)
+```
+

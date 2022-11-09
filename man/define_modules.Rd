@@ -9,7 +9,8 @@ define_modules(
   network,
   central.modules = F,
   remove.central = T,
-  set.parallel = T
+  set.parallel = T,
+  useCD = T
 )
 }
 \arguments{

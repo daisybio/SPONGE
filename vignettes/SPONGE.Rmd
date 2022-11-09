@@ -40,11 +40,63 @@ library(SPONGE)
 ```
 
 
+```{r}
+# use pipeline outputs to create target scan symbols
+create_target_scan_symbols <- function(miranda) {
+  print("CREATING TARGET SCAN SYMBOLS")
+  print("using given targets")
+  miranda_targets <- NULL
+  tarpmir_targets <- NULL
+  pita_targets <- NULL
+  
+  # add individually if no majority vote could be formed
+
+    # process targets from miranda
+    if (file.exists(miranda)) {
+      print("processing miRanda targets")
+      miranda.bp <- data.frame(read.table(miranda, header = T, sep = "\t"))
+      miranda_targets <- as.data.frame.matrix(table(miranda.bp$Target, miranda.bp$miRNA))
+    }
+  
+  
+  # MERGE DATA
+  merged.targets <- NULL
+  targets_data <- list(miranda_targets, tarpmir_targets, pita_targets)
+  for (target in targets_data) {
+    # append data if present
+    if (!is.null(target)) {
+      colnames(target) <- gsub("\\.", "-", colnames(target))
+      # first data set
+      if (is.null(merged.targets)) {
+        merged.targets <- target
+      } else {
+        # merge by row names
+        merged.targets <- merge(merged.targets, target, by = 0, all = T)
+        # reformat rows
+        rownames(merged.targets) <- merged.targets$Row.names
+        # drop Row
+        merged.targets$Row.names <- NULL
+        # remove NAs
+        merged.targets[is.na(merged.targets)] <- 0
+        # combine tables
+        colnames(merged.targets) <- sapply(strsplit(colnames(merged.targets), "\\."), "[", 1)
+        merged.targets <- do.call(cbind,lapply(split(seq_len(ncol(merged.targets)),names(merged.targets)),function(x) rowSums(merged.targets[x])))
+      }
+    }
+  }
+  # return contingency table
+  return(merged.targets)
+}
+```
+
+
 SPONGE comes with a very small example gene and miRNA expression dataset useful for illustrating functionality. We suggest obtaining larger expression data sets via the GEOquery or TCGAbiolinks R packages, for instance. After loading the package, the example datasets can be accessed:
 
 Gene expression:
 
 ```{r, eval=FALSE}
+miranda.bp <- data.frame(read.table("../bind_sites_processed.txt", header = T, sep = "\t"))
+targetscan <- as.data.frame.matrix(table(miranda.bp$Target, miranda.bp$miRNA))
 head(gene_expr)
 ```
 
@@ -225,7 +277,7 @@ The foreach R package will allow you to parallelize SPONGE over multiple CPUs. T
 library(doParallel)
 library(foreach)
 
-num.of.cores <- 2 #many more on a compute cluster
+num.of.cores <- 16 #many more on a compute cluster
 
 #if you want to use logging
 #logging.file <- "where_my_log_file_should_go.log"

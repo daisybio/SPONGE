@@ -27,9 +27,6 @@ cross validation (caret package)}
 
 \item{set_seed}{set seed (default: 42)}
 }
-\value{
-
-}
 \description{
 RF classification model
 }
