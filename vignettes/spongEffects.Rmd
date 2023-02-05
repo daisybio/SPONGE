@@ -157,7 +157,7 @@ As in a typical scenario, the model performances can be evaluated on the test se
 Input.test <- t(test.modules) %>% scale(center = T, scale = T)
 Prediction.model <- predict(trained.model$Model, Input.test)
 
-# We compute the confusion metrix on the test set
+# We compute the confusion matrix on the test set
 ConfusionMatrix_testing <- caret::confusionMatrix(as.factor(Prediction.model), as.factor(test_cancer_metadata$SUBTYPE))
 trained.model$ConfusionMatrix_testing<-ConfusionMatrix_testing
 ConfusionMatrix_testing

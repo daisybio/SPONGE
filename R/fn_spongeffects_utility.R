@@ -102,8 +102,9 @@ fn_weighted_degree <- function(network,
     }
 }
 
+
 #' Functions to define Sponge modules, created as all the first neighbors of
-#' the most central genes
+#' the most central genes (= centrality), or with community detection methods (louvain, leiden, walktrap, optimal).
 #'
 #' @import tidyverse
 #' @import caret
@@ -114,15 +115,18 @@ fn_weighted_degree <- function(network,
 #' @import ggridges
 #' @import cvms
 #' @import miRBaseConverter
+#' @import igraph
 #'
 #' @param network Network as dataframe and list of central nodes. First two
 #' columns of the dataframe should contain the information of the nodes
 #' connected by edges.
-#' @param  central.modules consider central gene as part of the module
+#' @param  central.modules consider central gene as part of the module. Is ignored if community detection is used for module creation.
 #' (default: False)
 #' @param remove.central Possibility of keeping or removing (default) central
 #' genes in the modules (default: T)
 #' @param set.parallel paralleling calculation of define_modules() (default: F)
+#' @param module_creation c("centrality", "louvain", "leiden", "walktrap", "optimal") Which method should be used to create modules (default: "centrality")
+#' @param param Is used to refine the community detection methods. Will influence the resolution parameter for the louvain or leiden algorithm and the steps parameter in the walktrap algorithm.
 #'
 #' @export
 #'
@@ -130,7 +134,8 @@ fn_weighted_degree <- function(network,
 define_modules <- function(network,
                            central.modules = F,
                            remove.central = T,
-                           set.parallel = T) {
+                           set.parallel = T,
+                           module_creation = "centrality", param) {
   
   # Some gene columns from SPONGEdb start with an uppercase G, so we need to adjust it just in case
   if("GeneA" %in% colnames(network)) {
@@ -138,6 +143,60 @@ define_modules <- function(network,
   }
   if("GeneB" %in% colnames(network)) {
     network = network %>% rename(geneB = GeneB)
+  }
+  if(module_creation == "louvain"){
+    graph <-graph.data.frame(network, directed = FALSE)
+    cluster <- igraph::cluster_louvain(graph, resolution = param)
+    Sponge.Modules <- list()
+    k <- 1
+    for(i in 1:length(cluster)) {
+      Sponge.Modules[i] <- cluster[i]
+      comm_graph = induced_subgraph(graph, cluster[[i]])
+      names(Sponge.Modules)[i] <- names(which.max(degree(comm_graph)))    }
+    return(Sponge.Modules)
+  }
+  if(module_creation == "leiden"){
+    graph <-graph.data.frame(network, directed = FALSE)
+    cluster <- igraph::cluster_leiden(graph, objective_function = "modularity", resolution_parameter = 3)
+    Sponge.Modules <- list()
+    k <- 1
+    for(i in 1:length(cluster)) {
+      Sponge.Modules[i] <- cluster[i]
+      comm_graph = induced_subgraph(graph, cluster[[i]])
+      names(Sponge.Modules)[i] <- names(which.max(degree(comm_graph)))
+    }
+    return(Sponge.Modules)
+  }
+  
+  if(module_creation == "optimal"){
+    graph <-graph.data.frame(network, directed = FALSE)
+    components <- igraph::clusters(graph, mode="weak")
+    biggest_cluster_id <- which.max(components$csize)
+    
+    vert_ids <- V(graph)[components$membership == biggest_cluster_id]
+    
+    graph <- igraph::induced_subgraph(graph, vert_ids)
+    cluster <- igraph::cluster_optimal(graph)
+    Sponge.Modules <- list()
+    k <- 1
+    for(i in 1:length(cluster)) {
+      Sponge.Modules[i] <- cluster[i]
+      comm_graph = induced_subgraph(graph, cluster[[i]])
+      names(Sponge.Modules)[i] <- names(which.max(degree(comm_graph)))    }
+    return(Sponge.Modules)
+  }
+
+  
+  if(module_creation == "walktrap"){
+    graph <-graph.data.frame(network, directed = FALSE)
+    cluster <- igraph::cluster_walktrap(graph,steps = param)
+    Sponge.Modules <- list()
+    k <- 1
+    for(i in 1:length(cluster)) {
+      Sponge.Modules[i] <- cluster[i]
+      comm_graph = induced_subgraph(graph, cluster[[i]])
+      names(Sponge.Modules)[i] <- names(which.max(degree(comm_graph)))    }
+    return(Sponge.Modules)
   }
     set.parallel = F
     if (set.parallel) {
@@ -1169,30 +1228,30 @@ plot_top_modules <- function(trained_model,
                              k_modules_red = 10,
                              text_size = 16) {
 
-    final.model <- trained.model$Model$finalModel
+    final.model <- trained_model$Model$finalModel
     Variable.importance <- importance(final.model) %>% as.data.frame() %>%
         arrange(desc(MeanDecreaseGini)) %>%
         tibble::rownames_to_column('Module')
 
-    # Change gene names (deprecated, too slow)
-    # mart <- useMart("ensembl", dataset=bioMart_gene_ensembl)
-    # genes <- Variable.importance$Module
-    # G_list <- getBM(filters = "ensembl_gene_id",
-    #                 attributes = c("ensembl_gene_id",bioMart_gene_symbol_columns,'external_gene_name', "description"),
-    #                 values = genes, mart = mart, useCache = FALSE)
+     #Change gene names (deprecated, too slow)
+     mart <-useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+     genes <- Variable.importance$Module
+     G_list <- getBM(
+                     attributes = c("ensembl_gene_id","hgnc_symbol",'external_gene_name', "description"),
+                     values = genes, mart = mart, useCache = FALSE)
     #
-    # Variable.importance <- Variable.importance %>%
-    #     mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
-    #            Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
+   Variable.importance <- Variable.importance %>%
+         mutate(Hugo_Symbol = G_list$hgnc_symbol[match(Variable.importance$Module, G_list$ensembl_gene_id)],
+                Name_lncRNA_Results = ifelse(Hugo_Symbol == "", Module, Hugo_Symbol))
 
     grey_modules=k_modules-k_modules_red
 
     p<-Variable.importance[1:k_modules, ] %>%
         mutate(Analysed = c(rep("1", k_modules_red), rep("0",grey_modules))) %>%
         arrange(desc(MeanDecreaseGini)) %>%
-        ggplot(aes(x=reorder(Module, MeanDecreaseGini), y=MeanDecreaseGini)) +
+        ggplot(aes(x=reorder(Name_lncRNA_Results, MeanDecreaseGini), y=MeanDecreaseGini)) +
         geom_point() +
-        geom_segment( aes(x=Module, xend=Module, y=0, yend=MeanDecreaseGini, color = Analysed)) +
+        geom_segment( aes(x=Name_lncRNA_Results, xend=Name_lncRNA_Results, y=0, yend=MeanDecreaseGini, color = Analysed)) +
         scale_colour_manual(values=c("red", "black"), breaks = c("1", "0")) +
         coord_flip()+
         xlab("Module") +
@@ -1319,9 +1378,8 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
     counter<-0
     central_genes<-FALSE
     all_expression<-FALSE
-    if(!is.na(central_genes_model)){
       central_genes<-TRUE
-    }
+    
     if(!is.na(all_expression_model)){
       all_expression<-TRUE
     }
@@ -1545,6 +1603,8 @@ plot_confusion_matrices <- function(trained_model,
 #' @import randomForest
 #' @import ComplexHeatmap
 #' @import ggplot2
+#' @import RColorBrewer
+#' @import biomaRt
 #'
 #' @param trained_model returned from train_and_test_model
 #' @param spongEffects output of enrichment_modules()
@@ -1565,9 +1625,9 @@ plot_heatmaps<-function(trained_model,
                         meta_data,
                         label,
                         sampleIDs,
-                        Modules_to_Plot = 2,
-                        show.rownames = F,
-                        show.colnames = F){
+                        Modules_to_Plot = 10,
+                        show.rownames = T,
+                        show.colnames = F, title){
 
     if (label %in% colnames(meta_data)  & sampleIDs %in% colnames(meta_data)) {
         final.model <- trained_model$Model$finalModel
@@ -1577,27 +1637,45 @@ plot_heatmaps<-function(trained_model,
 
         # Visualize Heatmaps  ---------------------------------------------------------
         # Define annotation layer
+        meta_data$SUBTYPE <- gsub(pattern = "TGCT_Seminoma",replacement = "Seminoma", x = meta_data$SUBTYPE)
+        meta_data$SUBTYPE <- gsub(pattern = "TGCT_NonSeminoma",replacement = "Non-seminoma", x = meta_data$SUBTYPE)
+        
         Annotation.meta <- meta_data[match(colnames(spongEffects), meta_data[, sampleIDs]), ]
+        
         unique_subtypes<-unique(Annotation.meta[,label])
-        number_groups <- length(unique_subtypes)
-        col.heatmap <- met.brewer("Renoir",n=number_groups,type="continuous")
-        col.heatmap<-as.vector(col.heatmap)
-
-        col.heatmap<-setNames(col.heatmap,unique_subtypes)
-
-        Column.Annotation <- HeatmapAnnotation(Group = Annotation.meta[,label],col = list(Group = col.heatmap))
-
         spongeEffects.toPlot <- spongEffects[match(Variable.importance$Module, rownames(spongEffects)), ]
         spongeEffects.toPlot<- spongeEffects.toPlot[ rowSums(is.na(spongeEffects.toPlot)) == 0,]
         if(Modules_to_Plot>length(rownames(spongeEffects.toPlot)))
             Modules_to_Plot=length(rownames(spongeEffects.toPlot))
         spongeEffects.toPlot<-spongeEffects.toPlot[1:Modules_to_Plot,]
-
-        # Plot
-        Heatmap.p <- spongeEffects.toPlot %>%
-            t() %>% scale() %>% t() %>%
-            Heatmap(show_row_names = show.rownames, show_column_names = show.colnames,
-                    top_annotation = Column.Annotation, show_heatmap_legend = TRUE)
+        exprmat <- spongeEffects.toPlot
+        exprmat<- data.frame(t(exprmat[]))
+        test <- Convert_Gene_Names(Expr = exprmat )
+        exprmat$subtype = Annotation.meta[,label][!is.null(Annotation.meta[,label])]
+        exprmat <- exprmat[order(exprmat$subtype),]
+        annotation_col <- data.frame(exprmat$subtype)
+        colnames(annotation_col) <- "Subtype"
+        exprmat$subtype = NULL
+        exprmat <- data.frame(t(exprmat[]))
+        mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+        ensgIds <- rownames(exprmat)
+        convertedGeneDF <- getBM(attributes=c('ensembl_gene_id',
+                                           'hgnc_symbol'),mart = mart,values =ensgIds, 
+                             useCache = FALSE)
+        GeneNames <- convertedGeneDF[match(ensgIds, convertedGeneDF$ensembl_gene_id), 2]
+        rownames(exprmat) <- GeneNames
+       # Plot
+        # annotation colors
+        safe_colorblind_palette <-  c("#D55E00", "#E69F00", "#56B4E9", "#009E73",
+                                      "#F0E442", "#0072B2", "#000000", "#CC79A7")
+        annotation.colors <- list(SUBTYPE = safe_colorblind_palette)
+        
+        names(annotation.colors$SUBTYPE) = unique_subtypes
+        length(annotation.colors$SUBTYPE) = length(unique_subtypes)
+        Heatmap.p <-  exprmat %>%
+          t() %>% scale() %>% t()%>%
+        ComplexHeatmap::pheatmap(annotation_colors= annotation.colors, annotation_col = annotation_col, show_rownames = show.rownames, heatmap_legend_param = list(title="Z-score"), color= rev(brewer.pal(n=length(unique_subtypes), name="RdYlBu")), main= title,cluster_cols = F, column_names_side = "top", show_colnames = show.colnames, cluster_rows = F)
+        
 
         return(Heatmap.p)
 
@@ -1891,4 +1969,112 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
 
     #draw(heatmap.miRNA, heatmap_legend_side = "bottom",
     #     annotation_legend_side = "bottom")
+}
+
+#' plot expression of miRNAs in module for specific RNA (no negative values!)
+#'
+#' @import ggplot2
+#' @import reshape2
+#'
+#' @param target the target gene
+#' @param genes_miRNA_candidates the miRNAs of the module to plot the relative expression against
+#' @param mi_rna_expr the miRNA expression
+#' @param meta the meta information for annotations
+#' @param log_trasform defaut T: whether the results should be log transformed
+#' @param pseudocout defaut 1e-3: the pseudocounts
+#' @param unit the unit to display for the data. This parameter does not chance the behaviour of the method and the data is expected to match the provided unit
+#' 
+#' @export
+#'
+#' @return plot object
+# 
+plot_miRNAs_per_gene <- function(target, genes_miRNA_candidates, mi_rna_expr, meta, log_transform = T, pseudocount = 1e-3, unit = "counts") {
+  # extract miRNAs associated with given RNA
+  candidates <- genes_miRNA_candidates[[target]]
+  miRNAs <- candidates[["mirna"]]
+  miRNA_expr <- mi_rna_expr[,miRNAs]
+  
+  # sum all expressions for the given conditions
+  miRNA_expr <- merge(miRNA_expr, meta[,c("SUBTYPE", "sampleID")], by.x = 0, by.y = "sampleID")
+  miRNA_expr <- data.frame(miRNA_expr, row.names = 1)
+  miRNA_expr <- aggregate(miRNA_expr[,1:(ncol(miRNA_expr)-1)], list(condition=miRNA_expr$SUBTYPE), FUN=sum)
+  miRNA_expr <- t(data.frame(miRNA_expr, row.names = 1))
+  miRNA_expr <- melt(miRNA_expr, id.vars = "x", varnames = c("miRNA", "variable"))
+  miRNA_expr$miRNA <- gsub("\\.", "-", miRNA_expr$miRNA)
+  
+  # label
+  label <- paste0("miRNA ", unit, " over samples")
+  # log transform if given
+  if (log_transform){
+    miRNA_expr$value <- log10(miRNA_expr$value + pseudocount)
+    label <- paste0("log10 + ", pseudocount, " ", label)
+  }
+  # two bar plots in one
+  bars <- ggplot(miRNA_expr, aes(y=miRNA, x=value, fill=variable)) +
+    ggtitle(target) +
+    geom_bar(stat='identity', position='dodge') +
+    xlab(label) + 
+    scale_fill_discrete(name = "Condition")
+  return(bars)
+}
+
+
+#' plot the target gene heatmap
+#'
+#' @import pheatmap
+#'
+#' @param target the target gene
+#' @param target_genes the genes of the module to plot the heatmap with
+#' @param gene_expression the gene expression
+#' @param meta the meta information for annotations
+#' @param gtf_raw defaut NA: if given, will convert to hgnc
+#' @param annotation defaut NA: gene annotations
+#' 
+#' @export
+#'
+#' @return pheatmap heatmap
+# 
+# 
+plot_target_gene_expressions <- function(target, target_genes, gene_expression, meta, gtf_raw = NA, annotation = NA) {
+  # get target expression
+  target_expression <- gene_expression[,target, drop = F]
+  # get target genes expressions
+  target_genes_expression <- gene_expression[,target_genes]
+  # combine into one
+  data <- t(cbind(target_expression, target_genes_expression))
+  # save all conditions of samples
+  conditions <- unique(meta$SUBTYPE)
+  target <- "ANKS6 expression in module"
+  # convert to hgnc if gtf is given
+  if (!is.na(gtf_raw)) {
+    print("reading GTF file and converting to HGNC symbols...")
+    gtf <- rtracklayer::readGFF(gtf)
+    gene.ens.all <- unique(gtf[!is.na(gtf$transcript_id),c("gene_id", "gene_name")])
+    colnames(gene.ens.all) <- c("ensembl_gene_id", "hgnc_symbol")
+    rownames(gene.ens.all) <- gene.ens.all$ensembl_gene_id
+    # convert
+    annotation = gene.ens.all
+  }
+  if (!is.na(annotation)){
+    ensgs <- rownames(data)
+    ensgs <- merge(ensgs, annotation, by = 1, all.x = T)
+    ensgs[!is.na(ensgs$hgnc_symbol),"x"] <- ensgs[!is.na(ensgs$hgnc_symbol),"hgnc_symbol"]
+    rownames(data) <- ensgs$x
+  }
+  # heat color scheme
+  colors <- c(colorRampPalette(c("blue", "orange"))(100), colorRampPalette(c("orange", "red"))(100))
+
+  # annotation colors
+  safe_colorblind_palette <-  c("#D55E00", "#E69F00", "#56B4E9", "#009E73",
+                                              "#F0E442", "#0072B2", "#000000", "#CC79A7")
+  annotation.colors <- list(SUBTYPE = safe_colorblind_palette)
+
+  names(annotation.colors$SUBTYPE) = conditions
+  length(annotation.colors$SUBTYPE) = length(conditions)
+  # create annotation for heat map
+  df <- data.frame(meta[,c("sampleID", "SUBTYPE")], row.names = 1)
+  data = data +1
+  return(pheatmap::pheatmap(data, treeheight_row = 0, treeheight_col = 0,
+                     show_colnames = F, cluster_rows = T, cluster_cols = T,
+                     color = colors,annotation_colors = annotation.colors, annotation_col = df, main = target, fontsize_row = 10, show_rownames = F))
 }

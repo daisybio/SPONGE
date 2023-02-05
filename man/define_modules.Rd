@@ -3,13 +3,15 @@
 \name{define_modules}
 \alias{define_modules}
 \title{Functions to define Sponge modules, created as all the first neighbors of
-the most central genes}
+the most central genes (= centrality), or with community detection methods (louvain, leiden, walktrap, optimal).}
 \usage{
 define_modules(
   network,
   central.modules = F,
   remove.central = T,
-  set.parallel = T
+  set.parallel = T,
+  module_creation = "centrality",
+  param
 )
 }
 \arguments{
@@ -17,18 +19,22 @@ define_modules(
 columns of the dataframe should contain the information of the nodes
 connected by edges.}
 
-\item{central.modules}{consider central gene as part of the module
+\item{central.modules}{consider central gene as part of the module. Is ignored if community detection is used for module creation.
 (default: False)}
 
 \item{remove.central}{Possibility of keeping or removing (default) central
 genes in the modules (default: T)}
 
 \item{set.parallel}{paralleling calculation of define_modules() (default: F)}
+
+\item{module_creation}{c("centrality", "louvain", "leiden", "walktrap", "optimal") Which method should be used to create modules (default: "centrality")}
+
+\item{param}{Is used to refine the community detection methods. Will influence the resolution parameter for the louvain or leiden algorithm and the steps parameter in the walktrap algorithm.}
 }
 \value{
 List of modules. Module names are the corresponding central genes.
 }
 \description{
 Functions to define Sponge modules, created as all the first neighbors of
-the most central genes
+the most central genes (= centrality), or with community detection methods (louvain, leiden, walktrap, optimal).
 }
