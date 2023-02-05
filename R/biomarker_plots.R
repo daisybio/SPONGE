@@ -1,3 +1,5 @@
+#THESE FUNCTIONS ARE INCLUDDED INTO spongeffects_utility AND SHOULD NOT BE REFERENCED. THEY ARE ONLY COMMITED FOR LEGACY REASONS.
+
 library(ggplot2)
 library(reshape2)
 # plot expression of miRNAs in module for specific RNA (no negative values!)
