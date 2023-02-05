@@ -11,9 +11,10 @@ plot_heatmaps(
   meta_data,
   label,
   sampleIDs,
-  Modules_to_Plot = 2,
-  show.rownames = F,
-  show.colnames = F
+  Modules_to_Plot = 10,
+  show.rownames = T,
+  show.colnames = F,
+  title
 )
 }
 \arguments{
