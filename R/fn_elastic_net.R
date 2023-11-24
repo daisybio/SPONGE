@@ -64,8 +64,12 @@ fn_elasticnet <- function(x, y, alpha.step = 0.1){
         })
     }
 
-    models.cvm <- unlist(lapply(models, function(model){
-        min(model$cvm)
+    models.cvm <- unlist(lapply(models, function(model) {
+      if (!is.na(model)) {
+        return(min(model$cvm))
+      } else {
+        return(Inf)
+      }
     }))
 
     #return model with smallest residual sum of squares
