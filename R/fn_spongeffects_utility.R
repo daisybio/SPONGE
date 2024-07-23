@@ -23,7 +23,6 @@ fn_filter_network <- function(network,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param CentralityMeasures dataframe with centrality score measures as columns
 #' and samples as rows
@@ -63,7 +62,6 @@ fn_combined_centrality <- function(CentralityMeasures) {
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import tnet
 #'
 #' @param network Network formatted as a dataframe with three columns containing
@@ -113,7 +111,6 @@ fn_weighted_degree <- function(network,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param network Network as dataframe and list of central nodes. First two
 #' columns of the dataframe should contain the information of the nodes
@@ -190,7 +187,6 @@ define_modules <- function(network,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param v gene distance (defined by mother function OE module function)
 #' @param n.cat size of the bins (defined by mother function  OE module function)
@@ -217,7 +213,6 @@ fn_discretize_spongeffects<-function(v,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param NormCount normalized counts
 #' @param gene.sign significant genes
@@ -276,7 +271,6 @@ fn_OE_module <- function(NormCount,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param r expression matrix
 #' @param genes.dist.q values of the genes after binning (result of binning)
@@ -334,7 +328,6 @@ fn_get_semi_random_OE <- function(r,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import rlang
 #'
 #' @param Expr.matrix ceRNA expression matrix
@@ -425,7 +418,6 @@ fn_exact_match_summary <- function (data,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param Input.object data.frame made by predictors and dependent variable
 #' @param K number of folds (k-fold)
@@ -480,7 +472,6 @@ fn_RF_classifier <- function(Input.object,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param tcga_cancer_symbol e.g., BRCA for breast cancer
 #' @param normal_ceRNA_expression_data normal ceRNA expression data
@@ -558,7 +549,6 @@ prepare_tcga_for_spongEffects <- function(tcga_cancer_symbol,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param metabric_expression filepath to expression data in metabric format
 #' @param metabric_metadata filepath to metabric metadata in metabric format
@@ -611,7 +601,6 @@ prepare_metabric_for_spongEffects <- function(metabric_expression,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param sponge_effects the ceRNA network downloaded as R object from SPONGEdb
 #' (Hoffmann et al., 2021) or created by SPONGE (List et al., 2019)
@@ -670,7 +659,6 @@ filter_ceRNA_network <- function(sponge_effects,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import tnet
 #'
 #' @param central_nodes Vector containing Ensemble IDs of the chosen RNAs to use as central nodes for the modules.
@@ -717,7 +705,6 @@ get_central_modules <- function(central_nodes,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param modules return from enrichment_modules() function
 #' @param modules_metadata metadata table containing information about samples/patients
@@ -802,7 +789,6 @@ get_central_modules <- function(central_nodes,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param Input Features to use for model calibration.
 #' @param modules_metadata metadata table containing information about samples/patients
@@ -860,7 +846,6 @@ calibrate_model <- function(Input,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param train_gene_expr expression data of train dataset,
 #' genenames must be in rownames
@@ -951,7 +936,6 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param sponge_modules result of define_modules()
 #' @param train_gene_expr expression data of train dataset,
@@ -1079,7 +1063,6 @@ build_classifier_central_genes<-function(train_gene_expr,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #'
 #' @param sponge_modules result of define_modules()
 #' @param gene_expr Input expression matri
@@ -1209,7 +1192,6 @@ plot_top_modules <- function(trained_model,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
@@ -1272,7 +1254,6 @@ plot_density_scores <- function(trained_model,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
@@ -1480,7 +1461,6 @@ plot_accuracy_sensitivity_specificity <- function(trained_model,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
@@ -1601,7 +1581,6 @@ plot_heatmaps<-function(trained_model,
 #' @import randomForest
 #' @import ggridges
 #' @import cvms
-#' @import miRBaseConverter
 #' @import ComplexHeatmap
 #' @import ggplot2
 #' @import MetBrewer
@@ -1693,7 +1672,7 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
     vec_colnames = vector(length = k_modules)
     vec_colnames_ensg = names(Sponge.modules.downstrean)
     df_centralnodes_map = data.frame()
-    df_mirnas_map = data.frame()
+    # df_mirnas_map = data.frame()
 
     count=0
     for (ensg in names(Sponge.modules.downstrean)) {
@@ -1758,16 +1737,17 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
         df_intern <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id",bioMart_gene_symbol_columns,"description"),values=df_intern$Geneid,mart= mart)
 
 
+        # Note: since miRBaseConverter is deprecated, we do not convert the miRNA ids any more. The same identifier is used as in gene_mirna_candidates
         df_mirnas_intern=data.frame(miRNAs_significance.downstream[[ensg]])
-        df_mirnas_intern=miRNA_AccessionToName(df_mirnas_intern$mirna)
+        # df_mirnas_intern=miRNA_AccessionToName(df_mirnas_intern$mirna)
 
-        df_mirna_counts = data.frame(matrix(ncol = length(df_mirnas_intern$Accession)))
-        colnames(df_mirna_counts) <- df_mirnas_intern$TargetName
+        df_mirna_counts = data.frame(matrix(ncol = length(df_mirnas_intern$mirna)))
+        colnames(df_mirna_counts) <- df_mirnas_intern$mirna
         df_mirna_counts[is.na(df_mirna_counts)] <- 0
 
         count_targets = 0
 
-        df_mirnas_map<-rbind(df_mirnas_map,df_mirnas_intern)
+        # df_mirnas_map<-rbind(df_mirnas_map,df_mirnas_intern)
 
         for (ensg_target in df_intern$ensembl_gene_id)
         {
@@ -1782,9 +1762,9 @@ plot_involved_miRNAs_to_modules<-function(sponge_modules,
             {
 
                 miRNAs_thistarget <- miRNAs_significance.downstream.Target[[symbolname]]$mirna
-                miRNAs_thistarget=miRNA_AccessionToName(miRNAs_thistarget)
+                # miRNAs_thistarget=miRNA_AccessionToName(miRNAs_thistarget)
 
-                intersect_mirnas = intersect(miRNAs_thistarget$TargetName,df_mirnas_intern$TargetName)
+                intersect_mirnas = intersect(miRNAs_thistarget,df_mirnas_intern$mirna)
 
                 for (i_mirnas in intersect_mirnas)
                 {

@@ -59,7 +59,6 @@ Imports:
     randomForest,
     ggridges,
     cvms,
-    miRBaseConverter,
     ComplexHeatmap,
     ggplot2,
     MetBrewer,
