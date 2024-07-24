@@ -1090,6 +1090,7 @@ Random_spongEffects<-function(sponge_modules,
                               cores = 1){
 
     Size.modules = sapply(sponge_modules, length)
+    Sponge.modules<- sponge_modules
 
     # Define random modules
     Random.Modules <- list()
