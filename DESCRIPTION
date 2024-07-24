@@ -1,7 +1,7 @@
 Package: SPONGE
 Type: Package
 Title: Sparse Partial Correlations On Gene Expression
-Version: 1.27.0
+Version: 1.27.1
 Authors@R: c(person(given = "Markus",
            family = "List",
            role = c("aut", "cre"),
@@ -10,8 +10,13 @@ Authors@R: c(person(given = "Markus",
            person(given = "Markus",
            family = "Hoffmann",
            role = c("aut"),
-           email = "markus.daniel.hoffmann@tum.de",
+           email = "markus.hoffmann@nih.gov",
            comment = c(ORCID = "0000-0002-1920-288X")),
+           person(given = "Lena",
+           family = "Strasser",
+           role = c("aut", "cre"),
+           email = "lena.j.strasser@tum.de",
+           comment = c(ORCID = "0009-0007-7881-6818")),
            person(given = "Fabio",
            family = "Boniolo"),
            person(given = "Azim Dehghani",
