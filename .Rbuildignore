@@ -4,3 +4,4 @@
 ^\.Rproj\.user$
 .travis.yml
 sponge_logo.svg
+.idea
