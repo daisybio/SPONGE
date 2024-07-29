@@ -81,4 +81,4 @@ biocViews: GeneExpression,
     SystemsBiology,
     Regression,
     RandomForest,
-    MachineLearning,
+    MachineLearning
