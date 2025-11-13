@@ -213,8 +213,8 @@ sponge <- function(gene_expr,
         gene.combinations <- gene.combinations[valid_genes,]
 
         gene.combinations <- data.frame(
-          which(all_genes %in% gene.combinations$geneA),
-          which(all_genes %in% gene.combinations$geneB),
+          match(gene.combinations$geneA, all_genes),
+          match(gene.combinations$geneB, all_genes),
           gene.combinations,
           stringsAsFactors = FALSE)
       } else stop("No valid gene combinations selected")
